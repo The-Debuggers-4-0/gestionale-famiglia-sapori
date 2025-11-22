@@ -10,8 +10,7 @@
 <?import javafx.scene.text.Text?>
 
 <VBox alignment="CENTER" spacing="40.0" styleClass="main-container" stylesheets="@../css/style.css" 
-      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="it.uniprogetto.famigliasapori.controller.HomeController">
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
 
     <VBox alignment="CENTER" spacing="10.0">
         <Label styleClass="title-label" text="Famiglia &amp; Sapori" />
