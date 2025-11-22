@@ -10,7 +10,8 @@
 <?import javafx.scene.text.Text?>
 
 <VBox alignment="CENTER" styleClass="main-container" stylesheets="@../css/style.css"
-    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+    fx:controller="famiglia.sapori.controller.LoginController">
 
     <VBox alignment="CENTER" maxWidth="400.0" spacing="20.0" styleClass="login-card">
         <padding>
