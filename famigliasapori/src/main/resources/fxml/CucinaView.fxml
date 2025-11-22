@@ -19,7 +19,7 @@
             </padding>
             <Label styleClass="header-title" text="Cucina - Comande in Arrivo" />
             <HBox HBox.hgrow="ALWAYS" />
-            <Button mnemonicParsing="false" styleClass="logout-button" text="Esci" />
+            <Button mnemonicParsing="false" styleClass="logout-button" onAction="#handleLogout" text="Esci" />
         </HBox>
     </top>
 
