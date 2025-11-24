@@ -16,7 +16,8 @@
 
 <BorderPane prefHeight="720.0" prefWidth="1080.0" stylesheets="@../css/style.css"
     xmlns="http://javafx.com/javafx/21"
-    xmlns:fx="http://javafx.com/fxml/1">
+    xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="famiglia.sapori.controller.SalaController">
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="header-bar">
             <padding>
@@ -25,7 +26,7 @@
             <Label styleClass="header-title" text="Sala Principale" />
             <HBox HBox.hgrow="ALWAYS" />
             <Label fx:id="userLabel" styleClass="user-label" text="Cameriere: Mario Rossi" />
-            <Button mnemonicParsing="false" styleClass="logout-button" text="Logout" />
+            <Button fx:id="btnLogout" mnemonicParsing="false" onAction="#handleLogout" styleClass="logout-button" text="Logout" />
         </HBox>
     </top>
 
@@ -96,6 +97,8 @@
                 </TabPane>
 
                 <VBox spacing="10.0" styleClass="summary-box">
+                    <Label styleClass="field-label" text="NOTE CAMERIERE" />
+                    <TextArea fx:id="txtNote" prefHeight="60.0" promptText="Eventuali intolleranze o richieste..." styleClass="input-field" wrapText="true"/>
                     <Label styleClass="field-label" text="RIEPILOGO ORDINE" />
                     <TextArea fx:id="txtRiepilogo" editable="false" prefHeight="150.0" promptText="Seleziona i piatti per vedere il riepilogo..." styleClass="receipt-area" wrapText="true">
                         <font>

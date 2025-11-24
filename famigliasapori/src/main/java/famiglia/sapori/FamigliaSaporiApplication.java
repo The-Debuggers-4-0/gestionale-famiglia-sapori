@@ -8,12 +8,15 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+import famiglia.sapori.model.Utente;
+
 /**
  * Applicazione principale per il Gestionale Famiglia Sapori
  */
 public class FamigliaSaporiApplication extends Application {
 
     private static Scene scene;
+    public static Utente currentUser;
 
     @Override
     public void start(Stage stage) throws IOException {
