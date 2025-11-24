@@ -206,6 +206,10 @@ public class SalaController implements Initializable {
             showAlert("Errore", "L'ordine è vuoto.");
             return;
         }
+        if (FamigliaSaporiApplication.currentUser == null) {
+            showAlert("Errore", "Utente non autenticato. Effettua nuovamente il login.");
+            return;
+        }
  
         try {
             // Format order details string
