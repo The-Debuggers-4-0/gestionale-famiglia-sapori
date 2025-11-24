@@ -1,0 +1,269 @@
+package famiglia.sapori.controller;
+ 
+import famiglia.sapori.FamigliaSaporiApplication;
+import famiglia.sapori.dao.ComandaDAO;
+import famiglia.sapori.dao.MenuDAO;
+import famiglia.sapori.dao.TavoloDAO;
+import famiglia.sapori.model.Comanda;
+import famiglia.sapori.model.Piatto;
+import famiglia.sapori.model.Tavolo;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+ 
+import java.io.IOException;
+import java.net.URL;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+ 
+public class SalaController implements Initializable {
+ 
+    @FXML private Label userLabel;
+    @FXML private Button btnLogout;
+    @FXML private FlowPane tavoliContainer;
+    @FXML private Label selectedTableLabel;
+    @FXML private TabPane menuTabPane;
+    @FXML private TextArea txtNote;
+    @FXML private TextArea txtRiepilogo;
+    @FXML private Label lblTotale;
+    @FXML private Button btnInvia;
+ 
+    private TavoloDAO tavoloDAO;
+    private MenuDAO menuDAO;
+    private ComandaDAO comandaDAO;
+ 
+    private Tavolo selectedTavolo;
+    private Map<Piatto, Integer> currentOrder;
+ 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        tavoloDAO = new TavoloDAO();
+        menuDAO = new MenuDAO();
+        comandaDAO = new ComandaDAO();
+        currentOrder = new HashMap<>();
+ 
+        if (FamigliaSaporiApplication.currentUser != null) {
+            userLabel.setText("Cameriere: " + FamigliaSaporiApplication.currentUser.getNome());
+        }
+ 
+        loadTavoli();
+        loadMenu();
+    }
+ 
+    private void loadTavoli() {
+        tavoliContainer.getChildren().clear();
+        try {
+            List<Tavolo> tavoli = tavoloDAO.getAllTavoli();
+            for (Tavolo t : tavoli) {
+                VBox tavoloBox = createTavoloBox(t);
+                tavoliContainer.getChildren().add(tavoloBox);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+ 
+    private VBox createTavoloBox(Tavolo t) {
+        VBox box = new VBox(5);
+        box.setAlignment(Pos.CENTER);
+       
+        Rectangle rect = new Rectangle(60, 60);
+        rect.setArcWidth(10);
+        rect.setArcHeight(10);
+       
+        if ("Occupato".equalsIgnoreCase(t.getStato())) {
+            rect.setFill(Color.RED);
+        } else {
+            rect.setFill(Color.GREEN);
+        }
+       
+        Label lblNum = new Label("Tavolo " + t.getNumero());
+        lblNum.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+       
+        box.getChildren().addAll(rect, lblNum);
+       
+        box.setOnMouseClicked(e -> selectTavolo(t));
+       
+        return box;
+    }
+ 
+    private void selectTavolo(Tavolo t) {
+        this.selectedTavolo = t;
+        selectedTableLabel.setText("Tavolo " + t.getNumero());
+        // Reset order when switching table? Or keep it?
+        // For simplicity, let's keep the current order draft but warn if needed.
+        // Ideally, we should load existing order if table is occupied.
+        // For this sprint, we assume we are taking a NEW order.
+    }
+ 
+    private void loadMenu() {
+        menuTabPane.getTabs().clear();
+        try {
+            List<String> categorie = menuDAO.getAllCategorie();
+            List<Piatto> piatti = menuDAO.getAllPiatti();
+ 
+            for (String cat : categorie) {
+                Tab tab = new Tab(cat);
+                VBox content = new VBox(10);
+                content.setPadding(new javafx.geometry.Insets(10));
+                content.setStyle("-fx-background-color: #2b2b2b;");
+               
+                List<Piatto> piattiCategoria = piatti.stream()
+                    .filter(p -> p.getCategoria().equals(cat))
+                    .collect(Collectors.toList());
+ 
+                for (Piatto p : piattiCategoria) {
+                    content.getChildren().add(createPiattoRow(p));
+                }
+ 
+                ScrollPane scroll = new ScrollPane(content);
+                scroll.setFitToWidth(true);
+                tab.setContent(scroll);
+                menuTabPane.getTabs().add(tab);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+ 
+    private HBox createPiattoRow(Piatto p) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setStyle("-fx-background-color: #3c3c3c; -fx-padding: 10; -fx-background-radius: 5;");
+ 
+        VBox info = new VBox(2);
+        Label name = new Label(p.getNome());
+        name.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        Label price = new Label(String.format("€ %.2f", p.getPrezzo()));
+        price.setStyle("-fx-text-fill: #aaaaaa;");
+        info.getChildren().addAll(name, price);
+       
+        HBox spacer = new HBox();
+        HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+ 
+        Button btnMinus = new Button("-");
+        Button btnPlus = new Button("+");
+        Label lblQty = new Label("0");
+        lblQty.setStyle("-fx-text-fill: white; -fx-min-width: 20; -fx-alignment: center;");
+ 
+        btnMinus.setOnAction(e -> updateQuantity(p, -1, lblQty));
+        btnPlus.setOnAction(e -> updateQuantity(p, 1, lblQty));
+ 
+        row.getChildren().addAll(info, spacer, btnMinus, lblQty, btnPlus);
+        return row;
+    }
+ 
+    private void updateQuantity(Piatto p, int delta, Label lblQty) {
+        int currentQty = currentOrder.getOrDefault(p, 0);
+        int newQty = currentQty + delta;
+       
+        if (newQty < 0) newQty = 0;
+       
+        if (newQty == 0) {
+            currentOrder.remove(p);
+        } else {
+            currentOrder.put(p, newQty);
+        }
+       
+        lblQty.setText(String.valueOf(newQty));
+        updateRiepilogo();
+    }
+ 
+    private void updateRiepilogo() {
+        StringBuilder sb = new StringBuilder();
+        double total = 0;
+ 
+        for (Map.Entry<Piatto, Integer> entry : currentOrder.entrySet()) {
+            Piatto p = entry.getKey();
+            int qty = entry.getValue();
+            double subtotal = p.getPrezzo() * qty;
+            total += subtotal;
+           
+            sb.append(String.format("%dx %s - € %.2f\n", qty, p.getNome(), subtotal));
+        }
+ 
+        txtRiepilogo.setText(sb.toString());
+        lblTotale.setText(String.format("TOTALE: € %.2f", total));
+    }
+ 
+    @FXML
+    private void handleInviaComanda() {
+        if (selectedTavolo == null) {
+            showAlert("Errore", "Seleziona un tavolo prima di inviare l'ordine.");
+            return;
+        }
+        if (currentOrder.isEmpty()) {
+            showAlert("Errore", "L'ordine è vuoto.");
+            return;
+        }
+ 
+        try {
+            // Format order details string
+            StringBuilder prodottiStr = new StringBuilder();
+            for (Map.Entry<Piatto, Integer> entry : currentOrder.entrySet()) {
+                if (prodottiStr.length() > 0) prodottiStr.append(", ");
+                prodottiStr.append(entry.getValue()).append("x ").append(entry.getKey().getNome());
+            }
+ 
+            Comanda comanda = new Comanda(
+                0, // ID auto-generated
+                selectedTavolo.getId(),
+                prodottiStr.toString(),
+                "Cucina", // Default type
+                "In Attesa",
+                null, // Date auto-generated
+                txtNote.getText(),
+                FamigliaSaporiApplication.currentUser.getId()
+            );
+ 
+            comandaDAO.insertComanda(comanda);
+           
+            // Update table status to Occupato
+            tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), "Occupato");
+           
+            showAlert("Successo", "Comanda inviata in cucina!");
+           
+            // Reset UI
+            currentOrder.clear();
+            txtNote.clear();
+            updateRiepilogo();
+            loadTavoli(); // Refresh table status
+           
+            // Reset quantities in UI (This is tricky without reloading the whole menu list,
+            // but for now reloading menu is acceptable or we just reset the view)
+            loadMenu();
+ 
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Errore", "Impossibile salvare la comanda: " + e.getMessage());
+        }
+    }
+ 
+    @FXML
+    private void handleLogout() {
+        try {
+            FamigliaSaporiApplication.currentUser = null;
+            FamigliaSaporiApplication.setRoot("LoginView");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+ 
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+}
