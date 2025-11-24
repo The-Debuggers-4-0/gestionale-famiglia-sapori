@@ -1,0 +1,48 @@
+package famiglia.sapori.dao;
+
+import famiglia.sapori.database.DatabaseConnection;
+import famiglia.sapori.model.Piatto;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MenuDAO {
+
+    public List<Piatto> getAllPiatti() throws SQLException {
+        List<Piatto> piatti = new ArrayList<>();
+        String query = "SELECT * FROM Menu WHERE disponibile = 1";
+
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                piatti.add(new Piatto(
+                        rs.getInt("id"),
+                        rs.getString("nome"),
+                        rs.getString("descrizione"),
+                        rs.getDouble("prezzo"),
+                        rs.getString("categoria"),
+                        rs.getBoolean("disponibile"),
+                        rs.getString("allergeni")
+                ));
+            }
+        }
+        return piatti;
+    }
+
+    public List<String> getAllCategorie() throws SQLException {
+        List<String> categorie = new ArrayList<>();
+        String query = "SELECT DISTINCT categoria FROM Menu ORDER BY categoria";
+
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                categorie.add(rs.getString("categoria"));
+            }
+        }
+        return categorie;
+    }
+}
