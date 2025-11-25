@@ -98,7 +98,7 @@
 
                 <VBox spacing="10.0" styleClass="summary-box">
                     <Label styleClass="field-label" text="NOTE CAMERIERE" />
-                    <TextArea fx:id="txtNote" prefHeight="60.0" promptText="Eventuali intolleranze o richieste..." styleClass="input-field" wrapText="true"/>
+                    <TextArea fx:id="txtNote" prefHeight="60.0" promptText="Eventuali intolleranze o richieste..." styleClass="input-field" style="-fx-text-fill: black;" wrapText="true"/>
                     <Label styleClass="field-label" text="RIEPILOGO ORDINE" />
                     <TextArea fx:id="txtRiepilogo" editable="false" prefHeight="150.0" promptText="Seleziona i piatti per vedere il riepilogo..." styleClass="receipt-area" wrapText="true">
                         <font>
