@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
  
 public class ComandaDAO {
- 
+    
+    // Inserisce una nuova comanda nel database
     public void insertComanda(Comanda comanda) throws SQLException {
         String query = "INSERT INTO Comande (id_tavolo, prodotti, tipo, stato, note, id_cameriere) VALUES (?, ?, ?, ?, ?, ?)";
        
@@ -24,7 +25,8 @@ public class ComandaDAO {
             stmt.executeUpdate();
         }
     }
- 
+
+    // Recupera tutte le comande con uno specifico stato, ordinate per data e ora
     public List<Comanda> getComandeByStato(String stato) throws SQLException {
         List<Comanda> comande = new ArrayList<>();
         String query = "SELECT * FROM Comande WHERE stato = ? ORDER BY data_ora ASC";
@@ -50,7 +52,8 @@ public class ComandaDAO {
         }
         return comande;
     }
- 
+
+    // Aggiorna lo stato di una comanda specifica
     public void updateStatoComanda(int id, String stato) throws SQLException {
         String query = "UPDATE Comande SET stato = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();

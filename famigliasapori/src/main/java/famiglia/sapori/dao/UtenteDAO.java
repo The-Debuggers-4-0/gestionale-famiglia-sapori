@@ -8,7 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
  
 public class UtenteDAO {
- 
+    
+    // Effettua il login di un utente verificando username e password
     public Utente login(String username, String password) throws SQLException {
         String query = "SELECT * FROM Utenti WHERE username = ? AND password = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();

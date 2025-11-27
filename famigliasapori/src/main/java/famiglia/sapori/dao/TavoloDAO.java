@@ -8,6 +8,7 @@ import java.util.List;
 
 public class TavoloDAO {
 
+    // Recupera tutti i tavoli dal database
     public List<Tavolo> getAllTavoli() throws SQLException {
         List<Tavolo> tavoli = new ArrayList<>();
         String query = "SELECT * FROM Tavoli";
@@ -29,6 +30,7 @@ public class TavoloDAO {
         return tavoli;
     }
 
+    // Aggiorna lo stato di un tavolo specifico
     public void updateStatoTavolo(int id, String stato) throws SQLException {
         String query = "UPDATE Tavoli SET stato = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();

@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MenuDAO {
-
+    
+    // Recupera tutti i piatti disponibili nel menu
     public List<Piatto> getAllPiatti() throws SQLException {
         List<Piatto> piatti = new ArrayList<>();
         String query = "SELECT * FROM Menu WHERE disponibile = 1";
@@ -31,6 +32,7 @@ public class MenuDAO {
         return piatti;
     }
 
+    // Recupera tutte le categorie di piatti presenti nel menu
     public List<String> getAllCategorie() throws SQLException {
         List<String> categorie = new ArrayList<>();
         String query = "SELECT DISTINCT categoria FROM Menu ORDER BY categoria";
