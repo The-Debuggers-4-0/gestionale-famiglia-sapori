@@ -22,7 +22,9 @@ jobs:
           cache: maven
 
       - name: Build and run tests with Maven
-        run: mvn -B clean verify pom.xml
+        run:
+          cd famigliasapori
+          mvn -B clean verify pom.xml
         # in alternativa solo test:
         # run: mvn -B test --file pom.xml
 
