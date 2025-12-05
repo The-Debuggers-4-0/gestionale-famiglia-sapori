@@ -37,8 +37,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: MySQL Deploy Action
-        uses: calxus/mysql-deploy-action@v2
+
 
       - name: Build and run tests with Maven
         run: mvn -f famigliasapori/pom.xml -B clean verify
