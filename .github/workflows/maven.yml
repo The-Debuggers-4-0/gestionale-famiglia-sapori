@@ -9,22 +9,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
-    services:
-      mysql:
-        image: mysql:8.0
-        ports:
-          - 3306:3306
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: famigliasapori
-          MYSQL_USER: appuser
-          MYSQL_PASSWORD: apppass
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
       - name: Checkout repository
@@ -36,6 +20,18 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
+
+      # Installa MySQL su Ubuntu
+      - name: Install MySQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-server
+          sudo service mysql start
+          # Crea DB e utente per i test
+          mysql -e "CREATE DATABASE testdb;"
+          mysql -e "CREATE USER 'testuser'@'localhost' IDENTIFIED BY 'testpass';"
+          mysql -e "GRANT ALL PRIVILEGES ON testdb.* TO 'testuser'@'localhost';"
+          mysql -e "FLUSH PRIVILEGES;"
 
 
 
