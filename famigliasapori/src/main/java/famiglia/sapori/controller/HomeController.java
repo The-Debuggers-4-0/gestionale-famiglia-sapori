@@ -20,6 +20,9 @@ public class HomeController implements Initializable {
     @FXML
     private Button btnCucina;
 
+    @FXML
+    private Button btnBar;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Configurazione iniziale se necessaria
@@ -50,6 +53,20 @@ public class HomeController implements Initializable {
             FamigliaSaporiApplication.setRoot("CucinaView");
         } catch (IOException e) {
             System.err.println("Errore nel caricamento della pagina Cucina: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Gestisce il click sul bottone Bar
+     * Naviga direttamente verso la vista bar
+     */
+    @FXML
+    private void handleBarClick() {
+        try {
+            System.out.println("Navigazione verso Bar");
+            FamigliaSaporiApplication.setRoot("BarView");
+        } catch (IOException e) {
+            System.err.println("Errore nel caricamento della pagina Bar: " + e.getMessage());
         }
     }
 }

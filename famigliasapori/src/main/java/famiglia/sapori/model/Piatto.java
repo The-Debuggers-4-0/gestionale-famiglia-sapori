@@ -31,4 +31,17 @@ public class Piatto {
     public String toString() {
         return nome;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Piatto piatto = (Piatto) o;
+        return id == piatto.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
 }

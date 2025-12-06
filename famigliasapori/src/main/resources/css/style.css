@@ -415,3 +415,31 @@
 .ticket-btn-done:hover {
     -fx-background-color: #2ecc71;
 }
+
+/* ==========================================================================
+   STILI BAR (Gestione Bevande)
+   ========================================================================== */
+
+/* ListView Scura */
+.dark-list-view {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: #34495e; /* Sfondo interno della lista */
+    -fx-background-insets: 0;
+    -fx-padding: 5;
+}
+
+.dark-list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-padding: 10;
+    -fx-border-color: transparent transparent rgba(255,255,255,0.1) transparent;
+}
+
+.dark-list-view .list-cell:filled:selected, 
+.dark-list-view .list-cell:filled:hover {
+    -fx-background-color: #2c3e50;
+}
+
+.dark-list-view .list-cell:empty {
+    -fx-background-color: transparent;
+}

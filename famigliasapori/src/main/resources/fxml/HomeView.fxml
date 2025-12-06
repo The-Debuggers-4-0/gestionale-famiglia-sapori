@@ -47,7 +47,20 @@
                 </VBox>
             </graphic>
         </Button>
-
+        
+        <Button fx:id="btnBar" contentDisplay="TOP" mnemonicParsing="false" onAction="#handleBarClick" styleClass="role-button">
+            <graphic>
+                <VBox alignment="CENTER" spacing="10.0">
+                    <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
+                        <image>
+                            <Image url="@../images/bar.png" />
+                        </image>
+                    </ImageView>
+                    <Label styleClass="card-title" text="Bar" />
+                    <Text styleClass="card-description" text="Gestione bevande e caffetteria" />
+                </VBox>
+            </graphic>
+        </Button>
     </HBox>
     
     <Label styleClass="footer-label" text="Versione 1.0" />
