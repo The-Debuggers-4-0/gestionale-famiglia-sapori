@@ -25,6 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
+import javafx.util.Duration;
  
 public class SalaController implements Initializable {
  
@@ -44,6 +49,7 @@ public class SalaController implements Initializable {
  
     private Tavolo selectedTavolo;
     private Map<Piatto, Integer> currentOrder;
+    private Timeline pollingTimeline;
  
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -58,6 +64,24 @@ public class SalaController implements Initializable {
  
         loadTavoli();
         loadMenu();
+        startPolling();
+    }
+
+    private void startPolling() {
+        pollingTimeline = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
+            Platform.runLater(() -> {
+                loadTavoli();
+                loadMenu();
+            });
+        }));
+        pollingTimeline.setCycleCount(Timeline.INDEFINITE);
+        pollingTimeline.play();
+    }
+
+    private void stopPolling() {
+        if (pollingTimeline != null) {
+            pollingTimeline.stop();
+        }
     }
  
     private void loadTavoli() {
@@ -107,6 +131,7 @@ public class SalaController implements Initializable {
     }
  
     private void loadMenu() {
+        int selectedTabIndex = menuTabPane.getSelectionModel().getSelectedIndex();
         menuTabPane.getTabs().clear();
         try {
             List<String> categorie = menuDAO.getAllCategorie();
@@ -131,6 +156,10 @@ public class SalaController implements Initializable {
                 tab.setContent(scroll);
                 menuTabPane.getTabs().add(tab);
             }
+
+            if (selectedTabIndex >= 0 && selectedTabIndex < menuTabPane.getTabs().size()) {
+                menuTabPane.getSelectionModel().select(selectedTabIndex);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -153,11 +182,22 @@ public class SalaController implements Initializable {
  
         Button btnMinus = new Button("-");
         Button btnPlus = new Button("+");
-        Label lblQty = new Label("0");
+
+        // Initialize quantity from currentOrder
+        int currentQty = currentOrder.getOrDefault(p, 0);
+        Label lblQty = new Label(String.valueOf(currentQty));
         lblQty.setStyle("-fx-text-fill: white; -fx-min-width: 20; -fx-alignment: center;");
  
         btnMinus.setOnAction(e -> updateQuantity(p, -1, lblQty));
         btnPlus.setOnAction(e -> updateQuantity(p, 1, lblQty));
+
+        // Handle availability
+        if (!p.isDisponibile()) {
+            row.setDisable(true);
+            row.setOpacity(0.5);
+            name.setText(name.getText() + " (Non disp.)");
+            name.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+        }
  
         row.getChildren().addAll(info, spacer, btnMinus, lblQty, btnPlus);
         return row;
@@ -212,30 +252,32 @@ public class SalaController implements Initializable {
         }
  
         try {
-            // Format order details string
-            StringBuilder prodottiStr = new StringBuilder();
+            // Split items into Kitchen and Bar
+            Map<Piatto, Integer> kitchenItems = new HashMap<>();
+            Map<Piatto, Integer> barItems = new HashMap<>();
             for (Map.Entry<Piatto, Integer> entry : currentOrder.entrySet()) {
-                if (prodottiStr.length() > 0) prodottiStr.append(", ");
-                prodottiStr.append(entry.getValue()).append("x ").append(entry.getKey().getNome());
+                Piatto p = entry.getKey();
+                if (isDrink(p.getCategoria())) {
+                    barItems.put(p, entry.getValue());
+                } else {
+                    kitchenItems.put(p, entry.getValue());
+                }
             }
- 
-            Comanda comanda = new Comanda(
-                0, // ID auto-generated
-                selectedTavolo.getId(),
-                prodottiStr.toString(),
-                "Cucina", // Default type
-                "In Attesa",
-                null, // Date auto-generated
-                txtNote.getText(),
-                FamigliaSaporiApplication.currentUser.getId()
-            );
- 
-            comandaDAO.insertComanda(comanda);
+
+            // Send Kitchen Order
+            if (!kitchenItems.isEmpty()) {
+                sendComanda(kitchenItems, "Cucina");
+            }
+
+            // Send Bar Order
+            if (!barItems.isEmpty()) {
+                sendComanda(barItems, "Bar");
+            }
            
             // Update table status to Occupato
             tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), "Occupato");
            
-            showAlert("Successo", "Comanda inviata in cucina!");
+            showAlert("Successo", "Comanda inviata!");
            
             // Reset UI
             currentOrder.clear();
@@ -243,8 +285,7 @@ public class SalaController implements Initializable {
             updateRiepilogo();
             loadTavoli(); // Refresh table status
            
-            // Reset quantities in UI (This is tricky without reloading the whole menu list,
-            // but for now reloading menu is acceptable or we just reset the view)
+            // Reset quantities in UI
             loadMenu();
  
         } catch (SQLException e) {
@@ -252,9 +293,37 @@ public class SalaController implements Initializable {
             showAlert("Errore", "Impossibile salvare la comanda: " + e.getMessage());
         }
     }
- 
+    
+    private void sendComanda(Map<Piatto, Integer> items, String tipo) throws SQLException {
+        StringBuilder prodottiStr = new StringBuilder();
+        for (Map.Entry<Piatto, Integer> entry : items.entrySet()) {
+            if (prodottiStr.length() > 0) prodottiStr.append(", ");
+            prodottiStr.append(entry.getValue()).append("x ").append(entry.getKey().getNome());
+        }
+
+        Comanda comanda = new Comanda(
+            0, // ID auto-generated
+            selectedTavolo.getId(),
+            prodottiStr.toString(),
+            tipo,
+            "In Attesa",
+            null, // Date auto-generated
+            txtNote.getText(),
+            FamigliaSaporiApplication.currentUser.getId()
+        );
+
+        comandaDAO.insertComanda(comanda);
+    }
+
+    private boolean isDrink(String category) {
+        if (category == null) return false;
+        String c = category.toLowerCase();
+        return c.contains("bevande") || c.contains("vini") || c.contains("birre") || c.contains("caffè") || c.contains("bar") || c.contains("drink");
+    }
+
     @FXML
     private void handleLogout() {
+        stopPolling();
         try {
             FamigliaSaporiApplication.currentUser = null;
             FamigliaSaporiApplication.setRoot("LoginView");

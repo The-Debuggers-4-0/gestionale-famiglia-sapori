@@ -53,6 +53,34 @@ public class ComandaDAO {
         return comande;
     }
 
+    // Recupera tutte le comande con uno specifico stato e tipo, ordinate per data e ora
+    public List<Comanda> getComandeByStatoAndTipo(String stato, String tipo) throws SQLException {
+        List<Comanda> comande = new ArrayList<>();
+        String query = "SELECT * FROM Comande WHERE stato = ? AND tipo = ? ORDER BY data_ora ASC";
+       
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+           
+            stmt.setString(1, stato);
+            stmt.setString(2, tipo);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    comande.add(new Comanda(
+                        rs.getInt("id"),
+                        rs.getInt("id_tavolo"),
+                        rs.getString("prodotti"),
+                        rs.getString("tipo"),
+                        rs.getString("stato"),
+                        rs.getTimestamp("data_ora").toLocalDateTime(),
+                        rs.getString("note"),
+                        rs.getInt("id_cameriere")
+                    ));
+                }
+            }
+        }
+        return comande;
+    }
+
     // Aggiorna lo stato di una comanda specifica
     public void updateStatoComanda(int id, String stato) throws SQLException {
         String query = "UPDATE Comande SET stato = ? WHERE id = ?";

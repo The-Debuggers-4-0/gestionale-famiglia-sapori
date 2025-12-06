@@ -82,8 +82,8 @@ public class CucinaController implements Initializable {
 
     private void loadComande() {
         try {
-            List<Comanda> comande = comandaDAO.getComandeByStato("In Attesa");
-            comande.addAll(comandaDAO.getComandeByStato("In Preparazione"));
+            List<Comanda> comande = comandaDAO.getComandeByStatoAndTipo("In Attesa", "Cucina");
+            comande.addAll(comandaDAO.getComandeByStatoAndTipo("In Preparazione", "Cucina"));
 
             // Aggiorna la UI solo se necessario o sempre (qui semplifichiamo ricaricando tutto)
             ordersContainer.getChildren().clear();
