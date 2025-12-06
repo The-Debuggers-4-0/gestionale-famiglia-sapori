@@ -25,8 +25,9 @@ public class Piatto {
     public double getPrezzo() { return prezzo; }
     public String getCategoria() { return categoria; }
     public boolean isDisponibile() { return disponibile; }
+    public void setDisponibile(boolean disponibile) { this.disponibile = disponibile;}
     public String getAllergeni() { return allergeni; }
-   
+
     @Override
     public String toString() {
         return nome;
