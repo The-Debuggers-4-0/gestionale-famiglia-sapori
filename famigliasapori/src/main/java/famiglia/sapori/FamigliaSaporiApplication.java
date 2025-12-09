@@ -23,7 +23,7 @@ public class FamigliaSaporiApplication extends Application {
         scene = new Scene(loadFXML("HomeView"), 800, 600);
         stage.setTitle("Gestionale Famiglia Sapori");
         stage.setScene(scene);
-        stage.setFullScreen(true);
+        stage.setFullScreen(false);
         stage.setResizable(false);
         stage.show();
     }

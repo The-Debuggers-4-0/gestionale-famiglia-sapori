@@ -75,11 +75,11 @@
             <version>4.0.18</version>
             <scope>test</scope>
         </dependency>
-        <!-- Monocle per esecuzione headless (opzionale, utile in CI) -->
+        <!-- Monocle per esecuzione headless (necessario in CI) -->
         <dependency>
             <groupId>org.testfx</groupId>
             <artifactId>openjfx-monocle</artifactId>
-            <version>8u76-b04</version>
+            <version>jdk-12.0.1+2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -99,6 +99,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
+                <configuration>
+                    <argLine>
+                        -Djava.awt.headless=true
+                        -Dtestfx.robot=glass
+                        -Dtestfx.headless=true
+                        -Dprism.order=sw
+                        -Dprism.text=t2k
+                        -Dtestfx.setup.timeout=2500
+                    </argLine>
+                </configuration>
             </plugin>
             
             <!-- Plugin JavaFX -->
