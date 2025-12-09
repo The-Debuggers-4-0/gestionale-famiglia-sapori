@@ -42,6 +42,7 @@ public class SalaController implements Initializable {
     @FXML private TextArea txtRiepilogo;
     @FXML private Label lblTotale;
     @FXML private Button btnInvia;
+    @FXML private Button btnPrenotazioni;
  
     private TavoloDAO tavoloDAO;
     private MenuDAO menuDAO;
@@ -107,6 +108,8 @@ public class SalaController implements Initializable {
        
         if ("Occupato".equalsIgnoreCase(t.getStato())) {
             rect.setFill(Color.RED);
+        } else if ("Prenotato".equalsIgnoreCase(t.getStato())) {
+            rect.setFill(Color.web("#f39c12"));
         } else {
             rect.setFill(Color.GREEN);
         }

@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `Utenti` (
 CREATE TABLE IF NOT EXISTS `Tavoli` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `numero` INT NOT NULL UNIQUE,
-  `stato` ENUM('Libero', 'Occupato') DEFAULT 'Libero',
+  `stato` ENUM('Libero', 'Occupato', 'Prenotato') DEFAULT 'Libero',
   `posti` INT NOT NULL DEFAULT 4,
   `note` TEXT NULL,
   PRIMARY KEY (`id`)
@@ -41,6 +41,26 @@ CREATE TABLE IF NOT EXISTS `Menu` (
   `disponibile` TINYINT(1) DEFAULT 1, -- 1 = True, 0 = False
   `allergeni` TEXT NULL, -- Es. "Glutine, Lattosio"
   PRIMARY KEY (`id`)
+);
+
+-- -----------------------------------------------------
+-- 4b. Tabella PRENOTAZIONI
+-- Attributi: id, nome_cliente, telefono, numero_persone, data_ora, note, id_tavolo
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `Prenotazioni` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nome_cliente` VARCHAR(100) NOT NULL,
+  `telefono` VARCHAR(20) NULL,
+  `numero_persone` INT NOT NULL,
+  `data_ora` DATETIME NOT NULL,
+  `note` TEXT NULL,
+  `id_tavolo` INT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_prenotazioni_tavoli`
+    FOREIGN KEY (`id_tavolo`)
+    REFERENCES `Tavoli` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
 );
 
 -- -----------------------------------------------------
