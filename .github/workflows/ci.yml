@@ -29,8 +29,13 @@ jobs:
       - name: Build project with Maven
         run: mvn -f famigliasapori/pom.xml clean compile
 
-      - name: Run tests with Maven  
-        run: mvn -f famigliasapori/pom.xml test
+      - name: Run tests with Maven (headless mode for FX tests)
+        env:
+          CI: true
+        run: |
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          mvn -f famigliasapori/pom.xml test
 
       - name: Generate test report
         if: always()
