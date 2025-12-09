@@ -36,7 +36,11 @@
                 <padding>
                     <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
                 </padding>
-                <Label styleClass="section-title" text="Mappa Tavoli" />
+                <HBox alignment="CENTER_LEFT">
+                    <Label styleClass="section-title" text="Mappa Tavoli" />
+                    <HBox HBox.hgrow="ALWAYS" />
+                        <Button fx:id="btnPrenotazioni" mnemonicParsing="false" onAction="#handleGestionePrenotazioni" styleClass="orange-button" text="PRENOTAZIONI" />
+                    </HBox>
                 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="dark-scroll-pane, content-box" VBox.vgrow="ALWAYS">
                     <content>
                         <FlowPane fx:id="tavoliContainer" hgap="15.0" vgap="15.0" />

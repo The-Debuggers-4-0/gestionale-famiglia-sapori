@@ -25,7 +25,7 @@
                 <VBox alignment="CENTER" spacing="10.0">
                     <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
                         <image>
-                            <Image url="@../images/cassa.png" />
+                            <Image url="@../images/cameriere.png" />
                         </image>
                     </ImageView>
                     <Label styleClass="card-title" text="Sala &amp; Ordini" />
