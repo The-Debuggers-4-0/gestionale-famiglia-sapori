@@ -339,4 +339,15 @@ public class SalaController implements Initializable {
         alert.setContentText(content);
         alert.showAndWait();
     }
+
+    @FXML
+    private void handleGestionePrenotazioni() {
+        stopPolling();
+        try {
+            FamigliaSaporiApplication.setRoot("PrenotazioneView");
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Errore", "Impossibile caricare la vista prenotazioni: " + e.getMessage());
+        }
+    }
 }
