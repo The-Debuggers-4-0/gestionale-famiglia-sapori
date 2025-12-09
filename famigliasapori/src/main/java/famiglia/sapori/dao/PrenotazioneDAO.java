@@ -60,4 +60,21 @@ public class PrenotazioneDAO {
             stmt.executeUpdate();
         }
     }
+
+    public List<Integer> getReservedTableIdsForDate(java.time.LocalDate date) throws SQLException {
+        List<Integer> reservedIds = new ArrayList<>();
+        // Seleziona i tavoli che hanno una prenotazione nel giorno specificato
+        String query = "SELECT DISTINCT id_tavolo FROM Prenotazioni WHERE DATE(data_ora) = ? AND id_tavolo IS NOT NULL";
+        
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setDate(1, java.sql.Date.valueOf(date));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    reservedIds.add(rs.getInt("id_tavolo"));
+                }
+            }
+        }
+        return reservedIds;
+    }
 }

@@ -41,6 +41,7 @@
                         <TableColumn fx:id="colOrario" text="Data/Ora" prefWidth="120" />
                         <TableColumn fx:id="colNome" text="Cliente" prefWidth="150" />
                         <TableColumn fx:id="colPax" text="Pax" prefWidth="50" />
+                        <TableColumn fx:id="colTavolo" text="Tavolo" prefWidth="80" />
                         <TableColumn fx:id="colTel" text="Telefono" prefWidth="100" />
                         <TableColumn fx:id="colNote" text="Note" prefWidth="200" />
                     </columns>
