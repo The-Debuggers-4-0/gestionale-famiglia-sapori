@@ -92,4 +92,42 @@ public class ComandaDAO {
             stmt.executeUpdate();
         }
     }
+
+    // Recupera le comande di un tavolo che non sono ancora state pagate
+    public List<Comanda> getComandeDaPagare(int idTavolo) throws SQLException {
+        List<Comanda> comande = new ArrayList<>();
+        // Seleziona tutto tranne quelle già 'Pagato'
+        String query = "SELECT * FROM Comande WHERE id_tavolo = ? AND stato != 'Pagato'";
+
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, idTavolo);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    comande.add(new Comanda(
+                            rs.getInt("id"),
+                            rs.getInt("id_tavolo"),
+                            rs.getString("prodotti"),
+                            rs.getString("tipo"),
+                            rs.getString("stato"),
+                            rs.getTimestamp("data_ora").toLocalDateTime(),
+                            rs.getString("note"),
+                            rs.getInt("id_cameriere")
+                    ));
+                }
+            }
+        }
+        return comande;
+    }
+
+    // Imposta tutte le comande di un tavolo come "Pagato"
+    public void setComandePagate(int idTavolo) throws SQLException {
+        String query = "UPDATE Comande SET stato = 'Pagato' WHERE id_tavolo = ? AND stato != 'Pagato'";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, idTavolo);
+            stmt.executeUpdate();
+        }
+    }
 }

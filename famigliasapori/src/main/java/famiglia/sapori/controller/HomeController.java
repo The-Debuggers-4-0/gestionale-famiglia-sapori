@@ -23,6 +23,9 @@ public class HomeController implements Initializable {
     @FXML
     private Button btnBar;
 
+    @FXML
+    private Button btnCassa;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Configurazione iniziale se necessaria
@@ -67,6 +70,17 @@ public class HomeController implements Initializable {
             FamigliaSaporiApplication.setRoot("BarView");
         } catch (IOException e) {
             System.err.println("Errore nel caricamento della pagina Bar: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleCassaClick() {
+        try {
+            System.out.println("Navigazione verso Cassa");
+            FamigliaSaporiApplication.setRoot("CassaView");
+        } catch (IOException e) {
+            System.err.println("Errore nel caricamento della pagina Cassa: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
