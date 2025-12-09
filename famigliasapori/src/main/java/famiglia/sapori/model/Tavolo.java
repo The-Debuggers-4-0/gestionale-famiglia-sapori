@@ -21,4 +21,22 @@ public class Tavolo {
     public void setStato(String stato) { this.stato = stato; }
     public int getPosti() { return posti; }
     public String getNote() { return note; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Tavolo tavolo = (Tavolo) obj;
+        return id == tavolo.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Tavolo " + numero;
+    }
 }

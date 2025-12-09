@@ -20,4 +20,22 @@ public class Utente {
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getRuolo() { return ruolo; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Utente utente = (Utente) obj;
+        return id == utente.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return nome;
+    }
 }
