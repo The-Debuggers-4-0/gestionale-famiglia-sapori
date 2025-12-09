@@ -21,7 +21,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
  
 public class PrenotazioniController implements Initializable {
@@ -30,6 +32,7 @@ public class PrenotazioniController implements Initializable {
     @FXML private TableColumn<Prenotazione, String> colOrario;
     @FXML private TableColumn<Prenotazione, String> colNome;
     @FXML private TableColumn<Prenotazione, String> colPax;
+    @FXML private TableColumn<Prenotazione, String> colTavolo;
     @FXML private TableColumn<Prenotazione, String> colTel;
     @FXML private TableColumn<Prenotazione, String> colNote;
  
@@ -45,6 +48,7 @@ public class PrenotazioniController implements Initializable {
     private PrenotazioneDAO prenotazioneDAO;
     private TavoloDAO tavoloDAO;
     private ObservableList<Prenotazione> masterData = FXCollections.observableArrayList();
+    private Map<Integer, Integer> tavoloMap = new HashMap<>();
  
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -56,6 +60,13 @@ public class PrenotazioniController implements Initializable {
         colPax.setCellValueFactory(new PropertyValueFactory<>("numeroPersone"));
         colTel.setCellValueFactory(new PropertyValueFactory<>("telefono"));
         colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
+        
+        colTavolo.setCellValueFactory(cellData -> {
+            Integer idTavolo = cellData.getValue().getIdTavolo();
+            if (idTavolo == null) return new SimpleStringProperty("-");
+            Integer num = tavoloMap.get(idTavolo);
+            return new SimpleStringProperty(num != null ? "Tavolo " + num : "?");
+        });
        
         // Formattazione data personalizzata per la colonna
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm");
@@ -67,11 +78,18 @@ public class PrenotazioniController implements Initializable {
         datePicker.setValue(LocalDate.now());
         txtOra.setText(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
  
-        loadPrenotazioni();
         loadTavoli();
+        loadPrenotazioni();
  
         // Listener per la ricerca
         txtCerca.textProperty().addListener((observable, oldValue, newValue) -> filterList(newValue));
+        
+        // Listener per il cambio data
+        datePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                loadTavoli();
+            }
+        });
     }
  
     private void loadPrenotazioni() {
@@ -86,12 +104,34 @@ public class PrenotazioniController implements Initializable {
     private void loadTavoli() {
         try {
             List<Tavolo> tavoli = tavoloDAO.getAllTavoli();
+            tavoloMap.clear();
+            for (Tavolo t : tavoli) {
+                tavoloMap.put(t.getId(), t.getNumero());
+            }
+            
+            // Filtra i tavoli già prenotati per la data selezionata
+            LocalDate selectedDate = datePicker.getValue();
+            if (selectedDate != null) {
+                List<Integer> reservedIds = prenotazioneDAO.getReservedTableIdsForDate(selectedDate);
+                
+                // Se la data è oggi, consideriamo anche i tavoli attualmente occupati
+                if (selectedDate.equals(LocalDate.now())) {
+                    for (Tavolo t : tavoli) {
+                        if ("Occupato".equalsIgnoreCase(t.getStato())) {
+                            reservedIds.add(t.getId());
+                        }
+                    }
+                }
+                
+                tavoli.removeIf(t -> reservedIds.contains(t.getId()));
+            }
+            
             comboTavolo.getItems().setAll(tavoli);
             comboTavolo.setConverter(new StringConverter<Tavolo>() {
                 @Override
                 public String toString(Tavolo t) {
                     if (t == null) return null;
-                    return "Tavolo " + t.getNumero() + " (" + t.getPosti() + " posti) - " + t.getStato();
+                    return "Tavolo " + t.getNumero() + " (" + t.getPosti() + " posti)";
                 }
                 @Override
                 public Tavolo fromString(String string) {
@@ -128,6 +168,12 @@ public class PrenotazioniController implements Initializable {
             LocalDateTime dataOra = LocalDateTime.of(date, time);
  
             Tavolo selectedTavolo = comboTavolo.getValue();
+
+            if (selectedTavolo != null && spinPax.getValue() > selectedTavolo.getPosti()) {
+                showAlert("Attenzione", "Il numero di persone (" + spinPax.getValue() + ") supera i posti del tavolo (" + selectedTavolo.getPosti() + ").");
+                return;
+            }
+
             Integer idTavolo = selectedTavolo != null ? selectedTavolo.getId() : null;
  
             Prenotazione p = new Prenotazione(0, nome, txtTelefono.getText(), spinPax.getValue(), dataOra, txtNote.getText(), idTavolo);
@@ -153,8 +199,15 @@ public class PrenotazioniController implements Initializable {
         Prenotazione selected = tablePrenotazioni.getSelectionModel().getSelectedItem();
         if (selected != null) {
             try {
+                // Se la prenotazione ha un tavolo associato, lo liberiamo
+                if (selected.getIdTavolo() != null) {
+                    tavoloDAO.updateStatoTavolo(selected.getIdTavolo(), "Libero");
+                }
+
                 prenotazioneDAO.deletePrenotazione(selected.getId());
+                
                 loadPrenotazioni();
+                loadTavoli(); // Aggiorna lo stato dei tavoli nella UI
             } catch (SQLException e) {
                 e.printStackTrace();
             }
