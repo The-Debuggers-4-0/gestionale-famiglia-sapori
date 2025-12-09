@@ -61,8 +61,22 @@
                 </VBox>
             </graphic>
         </Button>
+
+        <Button fx:id="btnCassa" contentDisplay="TOP" mnemonicParsing="false" onAction="#handleCassaClick" styleClass="role-button">
+            <graphic>
+                <VBox alignment="CENTER" spacing="10.0">
+                    <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
+                        <image>
+                            <Image url="@../images/cassa.png" />
+                        </image>
+                    </ImageView>
+                    <Label styleClass="card-title" text="Cassa" />
+                    <Text styleClass="card-description" text="Pagamenti e chiusura tavoli" />
+                </VBox>
+            </graphic>
+        </Button>
     </HBox>
     
-    <Label styleClass="footer-label" text="Versione 1.0" />
+    <Label styleClass="footer-label" text="Versione 2.0" />
 
 </VBox>
