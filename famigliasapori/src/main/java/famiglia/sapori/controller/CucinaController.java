@@ -90,7 +90,7 @@ public class CucinaController implements Initializable {
 
             if (comande.isEmpty()) {
                 Label emptyLabel = new Label("Nessuna comanda in attesa");
-                emptyLabel.setStyle("-fx-text-fill: black; -fx-font-size: 18px;");
+                emptyLabel.setStyle("-fx-text-fill: #34495e; -fx-font-size: 18px;");
                 ordersContainer.getChildren().add(emptyLabel);
                 return;
             }

@@ -97,7 +97,7 @@ public class BarController implements Initializable {
 
             if (comande.isEmpty()) {
                 Label emptyLabel = new Label("Nessuna comanda in attesa");
-                emptyLabel.setStyle("-fx-text-fill: white; -fx-font-size: 18px;");
+                emptyLabel.setStyle("-fx-text-fill: #34495e; -fx-font-size: 18px;");
                 ordersContainer.getChildren().add(emptyLabel);
                 return;
             }
