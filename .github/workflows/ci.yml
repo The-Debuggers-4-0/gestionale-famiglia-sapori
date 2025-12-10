@@ -33,7 +33,7 @@ jobs:
       - name: Build project with Maven
         run: mvn -f famigliasapori/pom.xml clean compile
 
-      # Step 4: Esegue tutti i test (130 test: unit, integration, JavaFX UI)
+      # Step 4: Esegue tutti i test 
       # - Xvfb: server grafico virtuale per eseguire test JavaFX in headless (senza GUI)
       # - CI=true: attiva modalità headless in Surefire via pom.xml
       - name: Run tests with Maven (headless mode for FX tests)
@@ -50,18 +50,7 @@ jobs:
         if: always()  # Esegue sempre, anche se i test falliscono
         run: mvn -f famigliasapori/pom.xml jacoco:report
 
-      # Step 6: Carica il report di coverage su Codecov per tracking nel tempo
-      # Codecov genera grafici e badge per visualizzare la coverage
-      - name: Upload coverage to Codecov
-        if: always()
-        uses: codecov/codecov-action@v4
-        with:
-          files: famigliasapori/target/site/jacoco/jacoco.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false  # Non blocca la build se Codecov è down
-
-      # Step 7: Pubblica i risultati dei test come GitHub Check
+      # Step 6: Pubblica i risultati dei test come GitHub Check
       # Mostra direttamente su GitHub quali test sono passati/falliti
       - name: Publish test results
         if: always()
@@ -71,7 +60,7 @@ jobs:
           check_name: Test Results
           comment_mode: off  # Non commenta automaticamente sui PR
 
-      # Step 8: Carica i report dei test come artifact scaricabili
+      # Step 7: Carica i report dei test come artifact scaricabili
       # Utile per debugging in caso di fallimenti
       - name: Upload test artifacts
         if: always()
@@ -81,7 +70,7 @@ jobs:
           path: famigliasapori/target/surefire-reports/
           retention-days: 30  # Conserva per 30 giorni
 
-      # Step 9: Carica il report HTML di coverage come artifact
+      # Step 8: Carica il report HTML di coverage come artifact
       # Report interattivo navigabile per vedere nel dettaglio quali righe sono coperte
       - name: Upload coverage report
         if: always()
