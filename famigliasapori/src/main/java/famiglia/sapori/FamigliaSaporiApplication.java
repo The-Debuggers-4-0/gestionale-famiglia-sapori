@@ -24,7 +24,7 @@ public class FamigliaSaporiApplication extends Application {
         stage.setTitle("Gestionale Famiglia Sapori");
         stage.setScene(scene);
         stage.setFullScreen(false);
-        stage.setResizable(false);
+        stage.setResizable(true);
         stage.show();
     }
 
