@@ -1,5 +1,6 @@
 name: Java CI with Maven
 
+# Trigger: esegue la pipeline ad ogni push o pull request sul branch main
 on:
   push:
     branches: [ "main" ]
@@ -9,26 +10,32 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    
+    # Permessi necessari per pubblicare i risultati dei test come GitHub Check
+    permissions:
+      contents: read
+      checks: write  # Per pubblicare risultati test come check
 
     steps:
+      # Step 1: Scarica il codice sorgente dal repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Installa Java 21 con cache Maven per velocizzare le build successive
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: maven
+          cache: maven  # Cache delle dipendenze Maven per build più veloci
 
-      # Database cloud Filess.io - non serve installazione locale
-      - name: Configure database for CI/CD
-        run: |
-          echo "Using cloud database Filess.io - configuration already in place"
-
+      # Step 3: Compila il progetto senza eseguire i test
       - name: Build project with Maven
         run: mvn -f famigliasapori/pom.xml clean compile
 
+      # Step 4: Esegue tutti i test (130 test: unit, integration, JavaFX UI)
+      # - Xvfb: server grafico virtuale per eseguire test JavaFX in headless (senza GUI)
+      # - CI=true: attiva modalità headless in Surefire via pom.xml
       - name: Run tests with Maven (headless mode for FX tests)
         env:
           CI: true
@@ -37,15 +44,49 @@ jobs:
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           mvn -f famigliasapori/pom.xml test
 
-      - name: Generate test report
-        if: always()
-        run: mvn -f famigliasapori/pom.xml surefire-report:report-only
+      # Step 5: Genera report di code coverage con JaCoCo
+      # Misura quante righe/branch del codice sono coperte dai test
+      - name: Generate JaCoCo coverage report
+        if: always()  # Esegue sempre, anche se i test falliscono
+        run: mvn -f famigliasapori/pom.xml jacoco:report
 
-      - name: Upload test results
+      # Step 6: Carica il report di coverage su Codecov per tracking nel tempo
+      # Codecov genera grafici e badge per visualizzare la coverage
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: famigliasapori/target/site/jacoco/jacoco.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false  # Non blocca la build se Codecov è down
+
+      # Step 7: Pubblica i risultati dei test come GitHub Check
+      # Mostra direttamente su GitHub quali test sono passati/falliti
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: famigliasapori/target/surefire-reports/*.xml
+          check_name: Test Results
+          comment_mode: off  # Non commenta automaticamente sui PR
+
+      # Step 8: Carica i report dei test come artifact scaricabili
+      # Utile per debugging in caso di fallimenti
+      - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: |
-            famigliasapori/target/surefire-reports/
-            famigliasapori/target/site/
+          name: test-results-${{ github.run_number }}
+          path: famigliasapori/target/surefire-reports/
+          retention-days: 30  # Conserva per 30 giorni
+
+      # Step 9: Carica il report HTML di coverage come artifact
+      # Report interattivo navigabile per vedere nel dettaglio quali righe sono coperte
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ github.run_number }}
+          path: famigliasapori/target/site/jacoco/
+          retention-days: 30
