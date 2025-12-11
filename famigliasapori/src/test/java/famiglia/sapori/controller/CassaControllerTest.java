@@ -5,16 +5,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.lang.reflect.Method;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CassaControllerTest {
-
+    
     /**
      * Verifica il parsing di prodotti nel formato "Qx Nome" (es. "2x Carbonara").
      * Testa casi validi, quantità zero e formato malformato.
      */
+    @SuppressWarnings("unused")
     @Test
     public void testParseProductString_validFormat() throws Exception {
         CassaController controller = new CassaController();
@@ -29,6 +28,7 @@ public class CassaControllerTest {
     /**
      * Verifica gestione errore parsing quando il formato è errato (es. mancanza "x").
      */
+    @SuppressWarnings("unused")
     @Test
     public void testParseProductString_malformedInput() {
         String input = "InvalidFormat";
