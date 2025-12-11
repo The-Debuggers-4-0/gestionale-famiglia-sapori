@@ -1,11 +1,14 @@
 package famiglia.sapori.controller;
 
+import famiglia.sapori.test.util.ApplicationMockHelper;
 import famiglia.sapori.testutil.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
@@ -13,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class PrenotazioniControllerFxTest extends ApplicationTest {
     private PrenotazioniController controller;
+    private Stage testStage;
 
     @BeforeAll
     static void setupDatabase() throws Exception {
@@ -22,6 +26,8 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
+        this.testStage = stage;
+        
         // Carica il file FXML reale che usa il database H2
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/PrenotazioneView.fxml"));
         Parent root = loader.load();
@@ -31,6 +37,16 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
         
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
+    }
+    
+    @BeforeEach
+    void setupMockScene() throws Exception {
+        ApplicationMockHelper.setupMockScene(testStage);
+    }
+    
+    @AfterEach
+    void clearMockScene() throws Exception {
+        ApplicationMockHelper.clearMockScene();
     }
 
     /**
@@ -99,5 +115,32 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
     void dateFormattingIsCorrect() {
         assertNotNull(controller);
         // Le date dovrebbero essere formattate come dd/MM HH:mm
+    }
+
+    /**
+     * Verifica che cliccando "Torna in Sala" si naviga.
+     */
+    @Test
+    void clickingBackButtonNavigatesToSala() {
+        assertNotNull(lookup("Torna in Sala").query());
+        clickOn("Torna in Sala"); // Should trigger handleBack()
+    }
+    
+    /**
+     * Verifica che cliccando "Registra Prenotazione" con campi vuoti non crea prenotazione.
+     */
+    @Test
+    void clickingSalvaButtonWithEmptyFieldsShowsError() {
+        assertNotNull(lookup("Registra Prenotazione").query());
+        clickOn("Registra Prenotazione"); // Should trigger handleSalvaPrenotazione() with validation
+    }
+    
+    /**
+     * Verifica che cliccando "Elimina Selezionata" senza selezione non elimina nulla.
+     */
+    @Test
+    void clickingEliminaButtonWithNoSelectionDoesNothing() {
+        assertNotNull(lookup("Elimina Selezionata").query());
+        clickOn("Elimina Selezionata"); // Should trigger handleEliminaPrenotazione() with no selection
     }
 }

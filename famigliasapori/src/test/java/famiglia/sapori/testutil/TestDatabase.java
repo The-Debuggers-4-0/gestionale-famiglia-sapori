@@ -8,16 +8,20 @@ import java.sql.Statement;
 
 public final class TestDatabase {
     private TestDatabase() {}
+    
+    private static final Object LOCK = new Object();
+    private static boolean schemaCreated = false;
 
     public static void setupSchema() throws SQLException {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             Statement st = conn.createStatement()) {
-            // Drop existing tables to ensure a clean slate
-            st.execute("DROP TABLE IF EXISTS Menu");
-            st.execute("DROP TABLE IF EXISTS Utenti");
-            st.execute("DROP TABLE IF EXISTS Tavoli");
-            st.execute("DROP TABLE IF EXISTS Prenotazioni");
-            st.execute("DROP TABLE IF EXISTS Comande");
+        synchronized (LOCK) {
+            try (Connection conn = DatabaseConnection.getInstance().getConnection();
+                 Statement st = conn.createStatement()) {
+                // Drop existing tables to ensure a clean slate
+                st.execute("DROP TABLE IF EXISTS Menu");
+                st.execute("DROP TABLE IF EXISTS Utenti");
+                st.execute("DROP TABLE IF EXISTS Tavoli");
+                st.execute("DROP TABLE IF EXISTS Prenotazioni");
+                st.execute("DROP TABLE IF EXISTS Comande");
 
             // Create tables
             st.execute("CREATE TABLE Menu (" +
@@ -61,10 +65,12 @@ public final class TestDatabase {
                     "data_ora TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                     "note VARCHAR(255), " +
                     "id_cameriere INT)");
+            }
         }
     }
 
     public static void seedData() throws SQLException {
+        synchronized (LOCK) {
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              Statement st = conn.createStatement()) {
             // Seed Menu
@@ -92,6 +98,25 @@ public final class TestDatabase {
             st.execute("INSERT INTO Comande (id_tavolo, prodotti, tipo, stato, note, id_cameriere) VALUES " +
                     "(1, 'Acqua, Pizza', 'Cucina', 'In Preparazione', '', 1)," +
                     "(2, 'Caffe', 'Bar', 'Servita', '', 1)");
+            }
+        }
+    }
+    
+    /**
+     * Clears all data from tables without dropping them.
+     * More efficient than recreating schema for each test.
+     */
+    public static void clearData() throws SQLException {
+        synchronized (LOCK) {
+            try (Connection conn = DatabaseConnection.getInstance().getConnection();
+                 Statement st = conn.createStatement()) {
+                // Delete in reverse order of foreign key dependencies
+                st.execute("DELETE FROM Comande");
+                st.execute("DELETE FROM Prenotazioni");
+                st.execute("DELETE FROM Tavoli");
+                st.execute("DELETE FROM Utenti");
+                st.execute("DELETE FROM Menu");
+            }
         }
     }
 }

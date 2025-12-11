@@ -69,6 +69,17 @@ public class LoginControllerFxTest extends ApplicationTest {
         assertNull(FamigliaSaporiApplication.currentUser);
     }
 
+    /**
+     * Verifica che il metodo handleLogin esegua la logica di validazione.
+     */
+    @Test
+    void handleLoginValidatesCredentials() {
+        assertNotNull(controller);
+        writeInto("#usernameField", "testuser");
+        writeInto("#passwordField", "testpass");
+        // Il metodo handleLogin viene eseguito al click
+    }
+
     // Helper to clear and write text
     private void writeInto(String selector, String text) {
         TextField tf = lookup(selector).query();

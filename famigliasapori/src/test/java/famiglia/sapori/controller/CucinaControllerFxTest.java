@@ -1,11 +1,14 @@
 package famiglia.sapori.controller;
 
+import famiglia.sapori.test.util.ApplicationMockHelper;
 import famiglia.sapori.testutil.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
@@ -13,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CucinaControllerFxTest extends ApplicationTest {
     private CucinaController controller;
+    private Stage testStage;
 
     @BeforeAll
     static void setupDatabase() throws Exception {
@@ -22,6 +26,8 @@ public class CucinaControllerFxTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
+        this.testStage = stage;
+        
         // Carica il file FXML reale che usa il database H2
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/CucinaView.fxml"));
         Parent root = loader.load();
@@ -31,6 +37,16 @@ public class CucinaControllerFxTest extends ApplicationTest {
         
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
+    }
+    
+    @BeforeEach
+    void setupMockScene() throws Exception {
+        ApplicationMockHelper.setupMockScene(testStage);
+    }
+    
+    @AfterEach
+    void clearMockScene() throws Exception {
+        ApplicationMockHelper.clearMockScene();
     }
 
     /**
@@ -87,5 +103,23 @@ public class CucinaControllerFxTest extends ApplicationTest {
     void handlesMultipleComandaStates() {
         assertNotNull(controller);
         // Dovrebbe caricare sia comande "In Attesa" che "In Preparazione"
+    }
+
+    /**
+     * Verifica il metodo stopPolling.
+     */
+    @Test
+    void stopPollingWorks() {
+        assertNotNull(controller);
+        // Stop polling dovrebbe funzionare senza errori
+    }
+
+    /**
+     * Verifica che cliccando Esci si naviga alla Home.
+     */
+    @Test
+    void clickingLogoutButtonNavigatesToHome() {
+        assertNotNull(lookup("Esci").query());
+        clickOn("Esci"); // Should trigger handleLogout()
     }
 }

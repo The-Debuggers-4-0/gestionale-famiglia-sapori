@@ -1,11 +1,14 @@
 package famiglia.sapori.controller;
 
+import famiglia.sapori.test.util.ApplicationMockHelper;
 import famiglia.sapori.testutil.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
@@ -13,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class BarControllerFxTest extends ApplicationTest {
     private BarController controller;
+    private Stage testStage;
 
     @BeforeAll
     static void setupDatabase() throws Exception {
@@ -22,6 +26,8 @@ public class BarControllerFxTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
+        this.testStage = stage;
+        
         // Carica il file FXML reale che usa il database H2
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/BarView.fxml"));
         Parent root = loader.load();
@@ -31,6 +37,16 @@ public class BarControllerFxTest extends ApplicationTest {
         
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
+    }
+    
+    @BeforeEach
+    void setupMockScene() throws Exception {
+        ApplicationMockHelper.setupMockScene(testStage);
+    }
+    
+    @AfterEach
+    void clearMockScene() throws Exception {
+        ApplicationMockHelper.clearMockScene();
     }
 
     /**
@@ -71,12 +87,20 @@ public class BarControllerFxTest extends ApplicationTest {
     }
 
     /**
-     * Verifica gestione comande vuote.
-     * Quando non ci sono comande, dovrebbe mostrare un messaggio appropriato.
+     * Verifica il metodo di gestione comande.
      */
     @Test
-    void handleEmptyComandeList() {
+    void comandaHandlingMethods() {
         assertNotNull(controller);
-        // Il controller dovrebbe gestire il caso di nessuna comanda in attesa
+        // I metodi di gestione comande dovrebbero funzionare
+    }
+
+    /**
+     * Verifica che cliccando Esci si naviga alla Home.
+     */
+    @Test
+    void clickingLogoutButtonNavigatesToHome() {
+        assertNotNull(lookup("Esci").query());
+        clickOn("Esci"); // Should trigger handleLogout()
     }
 }

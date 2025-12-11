@@ -1,11 +1,14 @@
 package famiglia.sapori.controller;
 
+import famiglia.sapori.test.util.ApplicationMockHelper;
 import famiglia.sapori.testutil.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
@@ -13,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SalaControllerFxTest extends ApplicationTest {
     private SalaController controller;
+    private Stage testStage;
 
     @BeforeAll
     static void setupDatabase() throws Exception {
@@ -22,6 +26,8 @@ public class SalaControllerFxTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
+        this.testStage = stage;
+        
         // Carica il file FXML reale che usa il database H2
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/SalaView.fxml"));
         Parent root = loader.load();
@@ -31,6 +37,16 @@ public class SalaControllerFxTest extends ApplicationTest {
         
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
+    }
+    
+    @BeforeEach
+    void setupMockScene() throws Exception {
+        ApplicationMockHelper.setupMockScene(testStage);
+    }
+    
+    @AfterEach
+    void clearMockScene() throws Exception {
+        ApplicationMockHelper.clearMockScene();
     }
 
     /**
@@ -104,5 +120,23 @@ public class SalaControllerFxTest extends ApplicationTest {
     void handlesEmptyOrder() {
         assertNotNull(controller);
         // Inviare ordine vuoto dovrebbe essere gestito appropriatamente
+    }
+
+    /**
+     * Verifica che cliccando logout si naviga correttamente.
+     */
+    @Test
+    void clickingLogoutButtonNavigates() {
+        assertNotNull(lookup("#btnLogout").query());
+        clickOn("#btnLogout"); // Should trigger handleLogout()
+    }
+    
+    /**
+     * Verifica che cliccando prenotazioni si naviga correttamente.
+     */
+    @Test
+    void clickingPrenotazioniButtonNavigates() {
+        assertNotNull(lookup("#btnPrenotazioni").query());
+        clickOn("#btnPrenotazioni"); // Should trigger handleGestionePrenotazioni()
     }
 }

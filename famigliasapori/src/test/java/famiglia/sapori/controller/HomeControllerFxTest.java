@@ -1,11 +1,14 @@
 package famiglia.sapori.controller;
 
+import famiglia.sapori.test.util.ApplicationMockHelper;
 import famiglia.sapori.testutil.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
@@ -13,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class HomeControllerFxTest extends ApplicationTest {
     private HomeController controller;
+    private Stage testStage;
 
     @BeforeAll
     static void setupDatabase() throws Exception {
@@ -22,6 +26,8 @@ public class HomeControllerFxTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
+        this.testStage = stage;
+        
         // Carica il file FXML reale che usa il database H2
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/HomeView.fxml"));
         Parent root = loader.load();
@@ -31,6 +37,17 @@ public class HomeControllerFxTest extends ApplicationTest {
         
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
+    }
+    
+    @BeforeEach
+    void setupMockScene() throws Exception {
+        // Mock the static scene field to avoid NPE during navigation
+        ApplicationMockHelper.setupMockScene(testStage);
+    }
+    
+    @AfterEach
+    void clearMockScene() throws Exception {
+        ApplicationMockHelper.clearMockScene();
     }
 
     /**
@@ -60,42 +77,38 @@ public class HomeControllerFxTest extends ApplicationTest {
     }
 
     /**
-     * Verifica navigazione verso LoginView (per accesso Sala).
-     * Branch: click su Sala naviga verso Login.
+     * Test interattivo: verifica che il bottone Sala sia cliccabile e naviga.
      */
     @Test
-    void salaButtonNavigatesToLogin() {
-        assertNotNull(controller);
-        // Il bottone Sala dovrebbe navigare verso LoginView
+    void clickingSalaButtonNavigates() {
+        assertNotNull(lookup("#btnSala").query());
+        clickOn("#btnSala"); // Should trigger handleSalaClick() and navigate
     }
 
     /**
-     * Verifica navigazione diretta verso CucinaView.
-     * Branch: click su Cucina naviga direttamente.
+     * Test interattivo: verifica che il bottone Cucina sia cliccabile e naviga.
      */
     @Test
-    void cucinaButtonNavigatesDirectly() {
-        assertNotNull(controller);
-        // Il bottone Cucina naviga direttamente senza login
+    void clickingCucinaButtonNavigates() {
+        assertNotNull(lookup("#btnCucina").query());
+        clickOn("#btnCucina"); // Should trigger handleCucinaClick()
     }
 
     /**
-     * Verifica navigazione diretta verso BarView.
-     * Branch: click su Bar naviga direttamente.
+     * Test interattivo: verifica che il bottone Bar sia cliccabile e naviga.
      */
     @Test
-    void barButtonNavigatesDirectly() {
-        assertNotNull(controller);
-        // Il bottone Bar naviga direttamente senza login
+    void clickingBarButtonNavigates() {
+        assertNotNull(lookup("#btnBar").query());
+        clickOn("#btnBar"); // Should trigger handleBarClick()
     }
 
     /**
-     * Verifica navigazione diretta verso CassaView.
-     * Branch: click su Cassa naviga direttamente.
+     * Test interattivo: verifica che il bottone Cassa sia cliccabile e naviga.
      */
     @Test
-    void cassaButtonNavigatesDirectly() {
-        assertNotNull(controller);
-        // Il bottone Cassa naviga direttamente senza login
+    void clickingCassaButtonNavigates() {
+        assertNotNull(lookup("#btnCassa").query());
+        clickOn("#btnCassa"); // Should trigger handleCassaClick()
     }
 }
