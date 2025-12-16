@@ -1,7 +1,6 @@
 package famiglia.sapori.dao;
  
 import famiglia.sapori.database.DatabaseConnection;
-import famiglia.sapori.model.Piatto;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
