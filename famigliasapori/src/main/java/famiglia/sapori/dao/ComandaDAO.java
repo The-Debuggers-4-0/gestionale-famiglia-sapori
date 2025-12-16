@@ -45,7 +45,7 @@ public class ComandaDAO {
                         rs.getDouble("totale"),
                         rs.getString("tipo"),
                         rs.getString("stato"),
-                        rs.getTimestamp("data_ora").toLocalDateTime(),
+                        rs.getTimestamp("data_ora").toLocalDateTime().plusHours(1),
                         rs.getString("note"),
                         rs.getInt("id_cameriere")
                     ));
@@ -74,7 +74,7 @@ public class ComandaDAO {
                         rs.getDouble("totale"),
                         rs.getString("tipo"),
                         rs.getString("stato"),
-                        rs.getTimestamp("data_ora").toLocalDateTime(),
+                        rs.getTimestamp("data_ora").toLocalDateTime().plusHours(1),
                         rs.getString("note"),
                         rs.getInt("id_cameriere")
                     ));
@@ -115,7 +115,7 @@ public class ComandaDAO {
                             rs.getDouble("totale"),
                             rs.getString("tipo"),
                             rs.getString("stato"),
-                            rs.getTimestamp("data_ora").toLocalDateTime(),
+                            rs.getTimestamp("data_ora").toLocalDateTime().plusHours(1),
                             rs.getString("note"),
                             rs.getInt("id_cameriere")
                     ));
