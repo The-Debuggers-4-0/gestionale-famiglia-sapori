@@ -43,7 +43,21 @@ public class DatabaseConnection {
  
     public Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
-            throw new SQLException("Connessione al database non disponibile");
+            // Riconnetti automaticamente se la connessione è chiusa
+            synchronized (DatabaseConnection.class) {
+                if (connection == null || connection.isClosed()) {
+                    try {
+                        Class.forName(dbProperties.getProperty("db.driver"));
+                        this.connection = DriverManager.getConnection(
+                            dbProperties.getProperty("db.url"),
+                            dbProperties.getProperty("db.username"),
+                            dbProperties.getProperty("db.password")
+                        );
+                    } catch (ClassNotFoundException e) {
+                        throw new SQLException("Driver non trovato durante la riconnessione", e);
+                    }
+                }
+            }
         }
         return connection;
     }

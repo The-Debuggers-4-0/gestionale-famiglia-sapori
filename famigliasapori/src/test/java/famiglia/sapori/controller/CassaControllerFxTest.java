@@ -26,12 +26,14 @@ public class CassaControllerFxTest extends ApplicationTest {
     private CassaController controller;
     private Stage testStage;
 
+    // Configura il database di test H2 prima di tutti i test
     @BeforeAll
     static void setupDatabase() throws Exception {
         TestDatabase.setupSchema();
         TestDatabase.seedData();
     }
 
+    // Imposta l'applicazione di test
     @Override
     public void start(Stage stage) throws Exception {
         this.testStage = stage;
@@ -47,11 +49,13 @@ public class CassaControllerFxTest extends ApplicationTest {
         stage.show();
     }
     
+    // Imposta la scena di test prima di ogni test
     @BeforeEach
     void setupMockScene() throws Exception {
         ApplicationMockHelper.setupMockScene(testStage);
     }
     
+    //pulisce la scena di test dopo ogni test
     @AfterEach
     void clearMockScene() throws Exception {
         ApplicationMockHelper.clearMockScene();
@@ -246,6 +250,7 @@ public class CassaControllerFxTest extends ApplicationTest {
         Spinner<Integer> spinner = lookup("#spinDiviso").query();
         Label lblQuota = lookup("#lblQuotaTesta").query();
         
+        // Verifica che gli elementi esistano
         assertNotNull(spinner);
         assertNotNull(lblQuota);
         

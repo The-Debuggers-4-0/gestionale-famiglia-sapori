@@ -65,7 +65,7 @@ public class CucinaController implements Initializable {
         pollingTimeline.play();
     }
 
-    private void stopPolling() {
+    void stopPolling() {
         if (pollingTimeline != null) {
             pollingTimeline.stop();
         }
@@ -80,7 +80,7 @@ public class CucinaController implements Initializable {
         }
     }
 
-    private void loadComande() {
+    void loadComande() {
         try {
             List<Comanda> comande = comandaDAO.getComandeByStatoAndTipo("In Attesa", "Cucina");
             comande.addAll(comandaDAO.getComandeByStatoAndTipo("In Preparazione", "Cucina"));
