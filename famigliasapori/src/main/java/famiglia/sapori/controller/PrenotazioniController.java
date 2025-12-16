@@ -40,6 +40,7 @@ public class PrenotazioniController implements Initializable {
     @FXML private TextField txtTelefono;
     @FXML private Spinner<Integer> spinPax;
     @FXML private DatePicker datePicker;
+    @FXML private DatePicker filterDatePicker;
     @FXML private TextField txtOra; // Formato HH:mm
     @FXML private TextArea txtNote;
     @FXML private TextField txtCerca;
@@ -76,15 +77,19 @@ public class PrenotazioniController implements Initializable {
         // Configurazione input default
         spinPax.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 20, 2));
         datePicker.setValue(LocalDate.now());
+        filterDatePicker.setValue(LocalDate.now());
         txtOra.setText(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
  
         loadTavoli();
         loadPrenotazioni();
  
         // Listener per la ricerca
-        txtCerca.textProperty().addListener((observable, oldValue, newValue) -> filterList(newValue));
+        txtCerca.textProperty().addListener((observable, oldValue, newValue) -> updateFilter());
         
-        // Listener per il cambio data
+        // Listener per il filtro data
+        filterDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> updateFilter());
+
+        // Listener per il cambio data (form creazione)
         datePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 loadTavoli();
@@ -95,7 +100,7 @@ public class PrenotazioniController implements Initializable {
     private void loadPrenotazioni() {
         try {
             masterData.setAll(prenotazioneDAO.getAllPrenotazioni());
-            tablePrenotazioni.setItems(masterData);
+            updateFilter();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -143,13 +148,30 @@ public class PrenotazioniController implements Initializable {
         }
     }
  
-    private void filterList(String query) {
+    private void updateFilter() {
+        String query = txtCerca.getText();
+        LocalDate filterDate = filterDatePicker.getValue();
+
         FilteredList<Prenotazione> filtered = new FilteredList<>(masterData, p -> {
-            if (query == null || query.isEmpty()) return true;
-            String lower = query.toLowerCase();
-            return p.getNomeCliente().toLowerCase().contains(lower);
+            boolean matchDate = true;
+            if (filterDate != null) {
+                matchDate = p.getDataOra().toLocalDate().equals(filterDate);
+            }
+
+            boolean matchText = true;
+            if (query != null && !query.isEmpty()) {
+                String lower = query.toLowerCase();
+                matchText = p.getNomeCliente().toLowerCase().contains(lower);
+            }
+
+            return matchDate && matchText;
         });
         tablePrenotazioni.setItems(filtered);
+    }
+
+    private void filterList(String query) {
+        // Deprecated, replaced by updateFilter
+        updateFilter();
     }
  
     @FXML
@@ -181,7 +203,8 @@ public class PrenotazioniController implements Initializable {
             prenotazioneDAO.insertPrenotazione(p);
            
             if (selectedTavolo != null) {
-                tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), "Prenotato");
+                // Non aggiorniamo lo stato del tavolo nel DB, è calcolato dinamicamente
+                // tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), "Prenotato");
                 loadTavoli(); // Ricarica stato tavoli
             }
  
@@ -201,7 +224,8 @@ public class PrenotazioniController implements Initializable {
             try {
                 // Se la prenotazione ha un tavolo associato, lo liberiamo
                 if (selected.getIdTavolo() != null) {
-                    tavoloDAO.updateStatoTavolo(selected.getIdTavolo(), "Libero");
+                    // Non aggiorniamo lo stato del tavolo nel DB
+                    // tavoloDAO.updateStatoTavolo(selected.getIdTavolo(), "Libero");
                 }
 
                 prenotazioneDAO.deletePrenotazione(selected.getId());
@@ -211,6 +235,8 @@ public class PrenotazioniController implements Initializable {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        } else {
+            showAlert("Attenzione", "Nessuna prenotazione selezionata");
         }
     }
    

@@ -33,6 +33,7 @@
                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                     <Label styleClass="section-title" text="Prenotazioni Future" />
                     <HBox HBox.hgrow="ALWAYS" />
+                    <DatePicker fx:id="filterDatePicker" promptText="Filtra per data" styleClass="input-field" prefWidth="150"/>
                     <TextField fx:id="txtCerca" promptText="Cerca cliente..." styleClass="input-field" />
                 </HBox>
  

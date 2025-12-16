@@ -3,6 +3,7 @@ package famiglia.sapori.controller;
 import famiglia.sapori.FamigliaSaporiApplication;
 import famiglia.sapori.dao.ComandaDAO;
 import famiglia.sapori.dao.MenuDAO;
+import famiglia.sapori.dao.PrenotazioneDAO;
 import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.model.Comanda;
 import famiglia.sapori.model.Piatto;
@@ -16,10 +17,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
- 
+
 import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +49,7 @@ public class SalaController implements Initializable {
     private TavoloDAO tavoloDAO;
     private MenuDAO menuDAO;
     private ComandaDAO comandaDAO;
+    private PrenotazioneDAO prenotazioneDAO;
  
     private Tavolo selectedTavolo;
     private Map<Piatto, Integer> currentOrder;
@@ -57,6 +60,7 @@ public class SalaController implements Initializable {
         tavoloDAO = new TavoloDAO();
         menuDAO = new MenuDAO();
         comandaDAO = new ComandaDAO();
+        prenotazioneDAO = new PrenotazioneDAO();
         currentOrder = new HashMap<>();
  
         if (FamigliaSaporiApplication.currentUser != null) {
@@ -89,16 +93,30 @@ public class SalaController implements Initializable {
         tavoliContainer.getChildren().clear();
         try {
             List<Tavolo> tavoli = tavoloDAO.getAllTavoli();
+            List<Integer> reservedIds = prenotazioneDAO.getReservedTableIdsForDate(LocalDate.now());
+
             for (Tavolo t : tavoli) {
-                VBox tavoloBox = createTavoloBox(t);
+                String status = t.getStato();
+                
+                // Se lo stato nel DB è "Prenotato", lo consideriamo "Libero" di base,
+                // perché la prenotazione deve dipendere dalla data odierna.
+                if ("Prenotato".equalsIgnoreCase(status)) {
+                    status = "Libero";
+                }
+
+                // Se il tavolo non è occupato ma è prenotato per oggi, mostralo come prenotato
+                if (!"Occupato".equalsIgnoreCase(status) && reservedIds.contains(t.getId())) {
+                    status = "Prenotato";
+                }
+                VBox tavoloBox = createTavoloBox(t, status);
                 tavoliContainer.getChildren().add(tavoloBox);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
- 
-    private VBox createTavoloBox(Tavolo t) {
+
+    private VBox createTavoloBox(Tavolo t, String status) {
         VBox box = new VBox(5);
         box.setAlignment(Pos.CENTER);
        
@@ -106,9 +124,9 @@ public class SalaController implements Initializable {
         rect.setArcWidth(10);
         rect.setArcHeight(10);
        
-        if ("Occupato".equalsIgnoreCase(t.getStato())) {
+        if ("Occupato".equalsIgnoreCase(status)) {
             rect.setFill(Color.RED);
-        } else if ("Prenotato".equalsIgnoreCase(t.getStato())) {
+        } else if ("Prenotato".equalsIgnoreCase(status)) {
             rect.setFill(Color.web("#f39c12"));
         } else {
             rect.setFill(Color.GREEN);
