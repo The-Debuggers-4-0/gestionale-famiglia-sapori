@@ -2,7 +2,7 @@ package famiglia.sapori.dao;
 
 import famiglia.sapori.model.Comanda;
 import famiglia.sapori.model.Piatto;
-import famiglia.sapori.testutil.DatabaseTestBase;
+import famiglia.sapori.database.DatabaseTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +32,7 @@ public class GestoreDAOTest extends DatabaseTestBase {
     @Test
     void getBestSellers_returnsNonEmptyMap() throws SQLException {
         // Inserisci una comanda pagata per avere dati
-        Comanda comanda = new Comanda(0, 1, "2x Pizza Margherita\n1x Carbonara", "Cucina", "Pagato", 
+        Comanda comanda = new Comanda(0, 1, "2x Pizza Margherita\n1x Carbonara", 25.00, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         
@@ -48,11 +48,11 @@ public class GestoreDAOTest extends DatabaseTestBase {
     @Test
     void getBestSellers_countsQuantitiesCorrectly() throws SQLException {
         // Inserisci comande con quantità specifiche
-        Comanda comanda1 = new Comanda(0, 1, "3x Pizza Margherita", "Cucina", "Pagato", 
+        Comanda comanda1 = new Comanda(0, 1, "3x Pizza Margherita", 21.00, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda1);
         
-        Comanda comanda2 = new Comanda(0, 2, "2x Pizza Margherita\n1x Pasta Carbonara", "Cucina", "Pagato", 
+        Comanda comanda2 = new Comanda(0, 2, "2x Pizza Margherita\n1x Pasta Carbonara", 26.00, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda2);
         
@@ -73,12 +73,12 @@ public class GestoreDAOTest extends DatabaseTestBase {
     @Test
     void getBestSellers_ignoresNonPaidComande() throws SQLException {
         // Comanda non pagata
-        Comanda nonPagata = new Comanda(0, 1, "5x Pizza Margherita", "Cucina", "In attesa", 
+        Comanda nonPagata = new Comanda(0, 1, "5x Pizza Margherita", 35.00, "Cucina", "In attesa", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(nonPagata);
         
         // Comanda pagata
-        Comanda pagata = new Comanda(0, 2, "1x Pasta Carbonara", "Cucina", "Pagato", 
+        Comanda pagata = new Comanda(0, 2, "1x Pasta Carbonara", 12.00, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(pagata);
         
@@ -95,7 +95,7 @@ public class GestoreDAOTest extends DatabaseTestBase {
      */
     @Test
     void getBestSellers_handlesProductsWithoutQuantity() throws SQLException {
-        Comanda comanda = new Comanda(0, 1, "Pizza Margherita\nPasta Carbonara", "Cucina", "Pagato", 
+        Comanda comanda = new Comanda(0, 1, "Pizza Margherita\nPasta Carbonara", 19.00, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         
@@ -123,12 +123,12 @@ public class GestoreDAOTest extends DatabaseTestBase {
         
         // Inserisci comanda pagata con questi piatti
         String prodotti = String.format("2x %s\n1x %s", piatto1.getNome(), piatto2.getNome());
-        Comanda comanda = new Comanda(0, 1, prodotti, "Cucina", "Pagato", 
+        Comanda comanda = new Comanda(0, 1, prodotti, (piatto1.getPrezzo() * 2) + piatto2.getPrezzo(), "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         
         double expectedTotal = (piatto1.getPrezzo() * 2) + piatto2.getPrezzo();
-        double actualTotal = gestoreDAO.calculateTotalIncome();
+        double actualTotal = gestoreDAO.calculateDailyIncome();
         
         assertTrue(actualTotal >= expectedTotal, 
             String.format("Expected at least %.2f but got %.2f", expectedTotal, actualTotal));
@@ -140,12 +140,12 @@ public class GestoreDAOTest extends DatabaseTestBase {
     @Test
     void calculateTotalIncome_returnsZeroWhenNoPayments() throws SQLException {
         // Inserisci solo comande non pagate
-        Comanda comanda = new Comanda(0, 1, "1x Pizza", "Cucina", "In attesa", 
+        Comanda comanda = new Comanda(0, 1, "1x Pizza", 7.00, "Cucina", "In attesa", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         
         // Il totale dovrebbe essere >= 0 (potrebbero esserci dati seed)
-        double total = gestoreDAO.calculateTotalIncome();
+        double total = gestoreDAO.calculateDailyIncome();
         assertTrue(total >= 0);
     }
 
@@ -161,19 +161,19 @@ public class GestoreDAOTest extends DatabaseTestBase {
         Piatto piatto1 = piatti.get(0);
         Piatto piatto2 = piatti.get(1);
         
-        double initialTotal = gestoreDAO.calculateTotalIncome();
+        double initialTotal = gestoreDAO.calculateDailyIncome();
         
         // Inserisci 2 comande pagate
-        Comanda comanda1 = new Comanda(0, 1, "1x " + piatto1.getNome(), "Cucina", "Pagato", 
+        Comanda comanda1 = new Comanda(0, 1, "1x " + piatto1.getNome(), piatto1.getPrezzo(), "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda1);
         
-        Comanda comanda2 = new Comanda(0, 2, "2x " + piatto2.getNome(), "Cucina", "Pagato", 
+        Comanda comanda2 = new Comanda(0, 2, "2x " + piatto2.getNome(), piatto2.getPrezzo() * 2, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda2);
         
         double expectedIncrease = piatto1.getPrezzo() + (piatto2.getPrezzo() * 2);
-        double finalTotal = gestoreDAO.calculateTotalIncome();
+        double finalTotal = gestoreDAO.calculateDailyIncome();
         
         assertEquals(initialTotal + expectedIncrease, finalTotal, 0.01);
     }
@@ -197,13 +197,13 @@ public class GestoreDAOTest extends DatabaseTestBase {
     @Test
     void calculateTotalIncome_handlesUnknownProducts() throws SQLException {
         // Inserisci comanda con prodotto non nel menu
-        Comanda comanda = new Comanda(0, 1, "1x Prodotto Inesistente", "Cucina", "Pagato", 
+        Comanda comanda = new Comanda(0, 1, "1x Prodotto Inesistente", 0.0, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         
         // Non deve lanciare eccezioni, semplicemente ignora il prodotto
         assertDoesNotThrow(() -> {
-            double total = gestoreDAO.calculateTotalIncome();
+            double total = gestoreDAO.calculateDailyIncome();
             assertTrue(total >= 0);
         });
     }
@@ -215,7 +215,7 @@ public class GestoreDAOTest extends DatabaseTestBase {
     void getBestSellers_aggregatesAcrossMultipleComande() throws SQLException {
         // 3 comande pagate con stesso piatto
         for (int i = 0; i < 3; i++) {
-            Comanda comanda = new Comanda(0, i + 1, "1x Pizza Margherita", "Cucina", "Pagato", 
+            Comanda comanda = new Comanda(0, i + 1, "1x Pizza Margherita", 7.00, "Cucina", "Pagato", 
                 LocalDateTime.now(), "", 1);
             comandaDAO.insertComanda(comanda);
         }

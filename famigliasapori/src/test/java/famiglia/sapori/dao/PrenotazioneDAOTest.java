@@ -1,7 +1,7 @@
 package famiglia.sapori.dao;
 
 import famiglia.sapori.model.Prenotazione;
-import famiglia.sapori.testutil.DatabaseTestBase;
+import famiglia.sapori.database.DatabaseTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;

@@ -2,7 +2,7 @@ package famiglia.sapori.dao;
 
 import famiglia.sapori.database.DatabaseConnection;
 import famiglia.sapori.model.Comanda;
-import famiglia.sapori.testutil.DatabaseTestBase;
+import famiglia.sapori.database.DatabaseTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -47,18 +47,17 @@ public class DAOExceptionTest extends DatabaseTestBase {
     }
 
     /**
-     * Verifica che inserimento con constraint violation (FK) causi SQLException.
-     * Nota: H2 potrebbe non avere FK constraint abilitati di default.
+     * Verifica che inserimento con constraint violation (FK) sollevi SQLException.
+     * Con i foreign key abilitati, H2 correttamente solleva un'eccezione.
      */
     @Test
     void insertWithInvalidForeignKey_handlesGracefully() {
         ComandaDAO dao = new ComandaDAO();
         // idTavolo 9999 non esiste nel database di test
-        Comanda c = new Comanda(0, 9999, "Test", "Cucina", "In Attesa", LocalDateTime.now(), "", 1);
+        Comanda c = new Comanda(0, 9999, "Test", 5.00, "Cucina", "In Attesa", LocalDateTime.now(), "", 1);
         
-        // H2 potrebbe non lanciare eccezione se FK non sono abilitati
-        // Verifichiamo solo che il metodo non causi crash
-        assertDoesNotThrow(() -> dao.insertComanda(c));
+        // Con FK abilitati, deve sollevare SQLException per violazione constraint
+        assertThrows(SQLException.class, () -> dao.insertComanda(c));
     }
 
     /**
