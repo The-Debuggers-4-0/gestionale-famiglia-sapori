@@ -5,7 +5,7 @@ import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.model.Prenotazione;
 import famiglia.sapori.model.Tavolo;
 import famiglia.sapori.test.util.ApplicationMockHelper;
-import famiglia.sapori.testutil.TestDatabase;
+import famiglia.sapori.database.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -20,10 +20,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;

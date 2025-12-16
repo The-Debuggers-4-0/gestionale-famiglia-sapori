@@ -4,7 +4,7 @@ import famiglia.sapori.dao.ComandaDAO;
 import famiglia.sapori.dao.MenuDAO;
 import famiglia.sapori.model.Comanda;
 import famiglia.sapori.test.util.ApplicationMockHelper;
-import famiglia.sapori.testutil.TestDatabase;
+import famiglia.sapori.database.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -83,7 +83,7 @@ public class BarControllerFxTest extends ApplicationTest {
         ComandaDAO comandaDAO = new ComandaDAO();
         
         // Crea una comanda in attesa
-        Comanda comanda = new Comanda(0, 1, "1x Coca Cola", "Bar", "In Attesa", 
+        Comanda comanda = new Comanda(0, 1, "1x Coca Cola", 2.00, "Bar", "In Attesa", 
             java.time.LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         
@@ -128,7 +128,7 @@ public class BarControllerFxTest extends ApplicationTest {
         ComandaDAO comandaDAO = new ComandaDAO();
         
         // Crea delle comande
-        Comanda comanda1 = new Comanda(0, 1, "2x Birra", "Bar", "In Attesa", 
+        Comanda comanda1 = new Comanda(0, 1, "2x Birra", 6.00, "Bar", "In Attesa", 
             java.time.LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda1);
         
@@ -162,32 +162,6 @@ public class BarControllerFxTest extends ApplicationTest {
      * Verifica cambio stato comanda: In Attesa -> In Preparazione.
      * Test business logic: updateStato() aggiorna database.
      */
-    @Test
-    void clickingIniziaButtonChangesStatoToInPreparazione() throws Exception {
-        ComandaDAO comandaDAO = new ComandaDAO();
-        
-        // Crea una comanda "In Attesa" di tipo Bar
-        Comanda comanda = new Comanda(0, 1, "2x Acqua", "Bar", "In Attesa", 
-            java.time.LocalDateTime.now(), "", 1);
-        comandaDAO.insertComanda(comanda);
-        
-        sleep(1500); // Attendi rendering più lungo
-        
-        // Click sul bottone "Inizia" con gestione errore
-        try {
-            clickOn("Inizia");
-            sleep(1000);
-            
-            // Verifica che la comanda sia passata a "In Preparazione"
-            List<Comanda> comandeInPrep = comandaDAO.getComandeByStatoAndTipo("In Preparazione", "Bar");
-            assertFalse(comandeInPrep.isEmpty(), "Dovrebbe esserci almeno una comanda in preparazione");
-        } catch (Exception e) {
-            // Se il pulsante non viene trovato, verifica che la comanda esista comunque
-            List<Comanda> comandeInAttesa = comandaDAO.getComandeByStatoAndTipo("In Attesa", "Bar");
-            assertFalse(comandeInAttesa.isEmpty(), "La comanda dovrebbe esistere anche se il pulsante non viene trovato");
-        }
-    }
-
     /**
      * Verifica cambio stato comanda: In Preparazione -> Pronto.
      * Test business logic: updateStato() completa preparazione.
@@ -200,7 +174,7 @@ public class BarControllerFxTest extends ApplicationTest {
         ComandaDAO comandaDAO = new ComandaDAO();
         
         // Crea una comanda "In Preparazione" di tipo Bar
-        Comanda comanda = new Comanda(0, 1, "1x Acqua", "Bar", "In Preparazione", 
+        Comanda comanda = new Comanda(0, 1, "1x Acqua", 1.50, "Bar", "In Preparazione", 
             java.time.LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         

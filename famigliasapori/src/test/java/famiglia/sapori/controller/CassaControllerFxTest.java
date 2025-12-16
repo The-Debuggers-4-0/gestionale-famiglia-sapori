@@ -5,7 +5,7 @@ import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.model.Comanda;
 import famiglia.sapori.model.Tavolo;
 import famiglia.sapori.test.util.ApplicationMockHelper;
-import famiglia.sapori.testutil.TestDatabase;
+import famiglia.sapori.database.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -151,7 +151,7 @@ public class CassaControllerFxTest extends ApplicationTest {
         
         // Crea una comanda con prezzo per il Tavolo 2
         Comanda comanda = new Comanda(0, tavolo2 != null ? tavolo2.getId() : 2, 
-            "1x Pizza Margherita €8.50", "Cucina", "Pronto", 
+            "1x Pizza Margherita €8.50", 8.50, "Cucina", "Pronto", 
             java.time.LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         

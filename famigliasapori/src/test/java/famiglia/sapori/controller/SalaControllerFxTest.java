@@ -6,7 +6,7 @@ import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.model.Piatto;
 import famiglia.sapori.model.Tavolo;
 import famiglia.sapori.test.util.ApplicationMockHelper;
-import famiglia.sapori.testutil.TestDatabase;
+import famiglia.sapori.database.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;

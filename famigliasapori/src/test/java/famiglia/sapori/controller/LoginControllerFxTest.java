@@ -1,7 +1,7 @@
 package famiglia.sapori.controller;
 
 import famiglia.sapori.FamigliaSaporiApplication;
-import famiglia.sapori.testutil.TestDatabase;
+import famiglia.sapori.database.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;

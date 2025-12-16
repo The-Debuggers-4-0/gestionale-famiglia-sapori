@@ -1,6 +1,5 @@
 package famiglia.sapori.database;
 
-import famiglia.sapori.testutil.DatabaseTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;

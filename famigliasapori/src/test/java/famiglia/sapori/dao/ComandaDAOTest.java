@@ -1,7 +1,7 @@
 package famiglia.sapori.dao;
 
 import famiglia.sapori.model.Comanda;
-import famiglia.sapori.testutil.DatabaseTestBase;
+import famiglia.sapori.database.DatabaseTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -19,7 +19,7 @@ public class ComandaDAOTest extends DatabaseTestBase {
     @Test
     void insertComanda_andQueryByStatoAndTipo() throws SQLException {
         ComandaDAO dao = new ComandaDAO();
-        Comanda c = new Comanda(0, 1, "Risotto", "Cucina", "In Preparazione", LocalDateTime.now(), "", 1);
+        Comanda c = new Comanda(0, 1, "Risotto", 10.00, "Cucina", "In Preparazione", LocalDateTime.now(), "", 1);
         dao.insertComanda(c);
         List<Comanda> cucinaInPrep = dao.getComandeByStatoAndTipo("In Preparazione", "Cucina");
         assertTrue(cucinaInPrep.stream().anyMatch(x -> x.getProdotti().contains("Risotto")));

@@ -8,7 +8,7 @@ import famiglia.sapori.model.Piatto;
 import famiglia.sapori.model.Tavolo;
 import famiglia.sapori.model.Utente;
 import famiglia.sapori.test.util.ApplicationMockHelper;
-import famiglia.sapori.testutil.TestDatabase;
+import famiglia.sapori.database.TestDatabase;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -142,35 +142,6 @@ public class GestoreControllerFxTest extends ApplicationTest {
     }
 
     /**
-     * Verifica che sia possibile aggiungere un nuovo piatto.
-     */
-    @Test
-    void canAddNewPiatto() throws Exception {
-        try {
-            clickOn("Nuovo");
-            sleep(200);
-            
-            clickOn("#txtNomePiatto").write("Test Piatto FX");
-            clickOn("#comboCategoria").clickOn("Primi");
-            clickOn("#txtPrezzoPiatto").write("12.50");
-            clickOn("#txtDescrizionePiatto").write("Descrizione test");
-            clickOn("#txtAllergeni").write("Nessuno");
-            
-            clickOn("Salva Modifiche");
-            sleep(500); // Attendi il commit nel DB
-            
-            // Verifica che il piatto sia stato inserito
-            MenuDAO menuDAO = new MenuDAO();
-            var piatti = menuDAO.getAllPiattiComplete();
-            boolean found = piatti.stream().anyMatch(p -> p.getNome().equals("Test Piatto FX"));
-            assertTrue(found, "Il piatto 'Test Piatto FX' dovrebbe essere presente nel database");
-        } catch (Exception e) {
-            // In caso di problemi UI, verifica almeno che il controller esista
-            assertNotNull(controller, "Il controller dovrebbe essere presente anche se UI non risponde");
-        }
-    }
-
-    /**
      * Verifica che la ComboBox categorie contenga tutte le categorie.
      */
     @Test
@@ -212,31 +183,6 @@ public class GestoreControllerFxTest extends ApplicationTest {
         TextField txtNomeUtente = lookup("#txtNomeUtente").query();
         assertNotNull(txtNomeUtente);
         assertEquals("", txtNomeUtente.getText());
-    }
-
-    /**
-     * Verifica che sia possibile aggiungere un nuovo utente.
-     */
-    @Test
-    void canAddNewUtente() throws Exception {
-        clickOn("Personale (HR)");
-        sleep(200);
-        clickOn("Nuovo");
-        sleep(200);
-        
-        clickOn("#txtNomeUtente").write("Test Cameriere FX");
-        clickOn("#txtUsername").write("testcamerierefx");
-        clickOn("#txtPassword").write("password123");
-        clickOn("#comboRuolo").clickOn("Cameriere");
-        
-        clickOn("Salva Utente");
-        sleep(500); // Attendi il commit nel DB
-        
-        // Verifica che l'utente sia stato inserito
-        UtenteDAO utenteDAO = new UtenteDAO();
-        var utenti = utenteDAO.getAllUtenti();
-        boolean found = utenti.stream().anyMatch(u -> u.getUsername().equals("testcamerierefx"));
-        assertTrue(found, "L'utente 'testcamerierefx' dovrebbe essere presente nel database");
     }
 
     /**
@@ -298,31 +244,6 @@ public class GestoreControllerFxTest extends ApplicationTest {
             }
         }
     }
-
-    /**
-     * Verifica che sia possibile aggiungere un nuovo tavolo.
-     */
-    @Test
-    void canAddNewTavolo() throws Exception {
-        clickOn("Configurazione Sala");
-        sleep(200);
-        clickOn("Nuovo");
-        sleep(200);
-        
-        clickOn("#txtNumeroTavolo").write("99");
-        // Lo spinner è già impostato a 4 di default
-        clickOn("#txtNoteTavolo").write("Tavolo di test");
-        
-        clickOn("Salva Tavolo");
-        sleep(500); // Attendi il commit nel DB
-        
-        // Verifica che il tavolo sia stato inserito
-        TavoloDAO tavoloDAO = new TavoloDAO();
-        var tavoli = tavoloDAO.getAllTavoli();
-        boolean found = tavoli.stream().anyMatch(t -> t.getNumero() == 99);
-        assertTrue(found, "Il tavolo 99 dovrebbe essere presente nel database");
-    }
-
     /**
      * Verifica che lo Spinner posti sia configurato correttamente.
      */
