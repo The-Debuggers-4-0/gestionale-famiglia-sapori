@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS `Comande` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `id_tavolo` INT NOT NULL,
   `prodotti` TEXT NOT NULL, -- Conterrà la lista piatti (es. JSON o testo semplice)
+  `totale` DECIMAL(10,2) NOT NULL DEFAULT 0.00, -- Totale della comanda al momento dell'ordine
   `tipo` ENUM('Cucina', 'Bar') NOT NULL,
   `stato` ENUM('In Attesa', 'In Preparazione', 'Pronto', 'Servito', 'Pagato') DEFAULT 'In Attesa',
   `data_ora` DATETIME DEFAULT CURRENT_TIMESTAMP,
