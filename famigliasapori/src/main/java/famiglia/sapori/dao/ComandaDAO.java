@@ -10,17 +10,18 @@ public class ComandaDAO {
     
     // Inserisce una nuova comanda nel database
     public void insertComanda(Comanda comanda) throws SQLException {
-        String query = "INSERT INTO Comande (id_tavolo, prodotti, tipo, stato, note, id_cameriere) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO Comande (id_tavolo, prodotti, totale, tipo, stato, note, id_cameriere) VALUES (?, ?, ?, ?, ?, ?, ?)";
        
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
            
             stmt.setInt(1, comanda.getIdTavolo());
             stmt.setString(2, comanda.getProdotti());
-            stmt.setString(3, comanda.getTipo());
-            stmt.setString(4, comanda.getStato());
-            stmt.setString(5, comanda.getNote());
-            stmt.setInt(6, comanda.getIdCameriere());
+            stmt.setDouble(3, comanda.getTotale());
+            stmt.setString(4, comanda.getTipo());
+            stmt.setString(5, comanda.getStato());
+            stmt.setString(6, comanda.getNote());
+            stmt.setInt(7, comanda.getIdCameriere());
            
             stmt.executeUpdate();
         }
@@ -41,6 +42,7 @@ public class ComandaDAO {
                         rs.getInt("id"),
                         rs.getInt("id_tavolo"),
                         rs.getString("prodotti"),
+                        rs.getDouble("totale"),
                         rs.getString("tipo"),
                         rs.getString("stato"),
                         rs.getTimestamp("data_ora").toLocalDateTime(),
@@ -69,6 +71,7 @@ public class ComandaDAO {
                         rs.getInt("id"),
                         rs.getInt("id_tavolo"),
                         rs.getString("prodotti"),
+                        rs.getDouble("totale"),
                         rs.getString("tipo"),
                         rs.getString("stato"),
                         rs.getTimestamp("data_ora").toLocalDateTime(),
@@ -109,6 +112,7 @@ public class ComandaDAO {
                             rs.getInt("id"),
                             rs.getInt("id_tavolo"),
                             rs.getString("prodotti"),
+                            rs.getDouble("totale"),
                             rs.getString("tipo"),
                             rs.getString("stato"),
                             rs.getTimestamp("data_ora").toLocalDateTime(),

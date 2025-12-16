@@ -299,15 +299,21 @@ public class SalaController implements Initializable {
     
     private void sendComanda(Map<Piatto, Integer> items, String tipo) throws SQLException {
         StringBuilder prodottiStr = new StringBuilder();
+        double totaleComanda = 0.0;
+
         for (Map.Entry<Piatto, Integer> entry : items.entrySet()) {
             if (prodottiStr.length() > 0) prodottiStr.append(", ");
             prodottiStr.append(entry.getValue()).append("x ").append(entry.getKey().getNome());
+            
+            // Calcola il totale parziale per questa comanda
+            totaleComanda += entry.getKey().getPrezzo() * entry.getValue();
         }
 
         Comanda comanda = new Comanda(
             0, // ID auto-generated
             selectedTavolo.getId(),
             prodottiStr.toString(),
+            totaleComanda,
             tipo,
             "In Attesa",
             null, // Date auto-generated

@@ -428,8 +428,8 @@ public class GestoreController implements Initializable {
             }
             pieBestSellers.setData(pieData);
 
-            // Total Income
-            double total = gestoreDAO.calculateTotalIncome();
+            // Daily Income
+            double total = gestoreDAO.calculateDailyIncome();
             lblIncassoTotale.setText(String.format("€ %.2f", total));
 
         } catch (SQLException e) {

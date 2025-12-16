@@ -218,7 +218,7 @@
                             <Label styleClass="highlight-label" text="Riepilogo Incassi" />
                            
                             <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: #34495e; -fx-padding: 20; -fx-background-radius: 10;">
-                                <Label style="-fx-text-fill: #bdc3c7; -fx-font-size: 14px;" text="INCASSO TOTALE STIMATO" />
+                                <Label style="-fx-text-fill: #bdc3c7; -fx-font-size: 14px;" text="INCASSO GIORNALIERO" />
                                 <Label fx:id="lblIncassoTotale" style="-fx-text-fill: #2ecc71; -fx-font-size: 32px; -fx-font-weight: bold;" text="€ 0.00" />
                             </VBox>
                            

@@ -39,35 +39,17 @@ public class GestoreDAO {
         return stats;
     }
  
-    public double calculateTotalIncome() throws SQLException {
+    public double calculateDailyIncome() throws SQLException {
         double total = 0.0;
-        Map<String, Double> prezzi = getPrezziMenu();
-        String query = "SELECT prodotti FROM Comande WHERE stato = 'Pagato'";
+        // Usa la colonna 'totale' appena aggiunta
+        String query = "SELECT SUM(totale) as incasso FROM Comande WHERE stato = 'Pagato' AND DATE(data_ora) = CURDATE()";
  
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
  
-            while (rs.next()) {
-                String prodottiStr = rs.getString("prodotti");
-                if (prodottiStr != null && !prodottiStr.isEmpty()) {
-                    String[] prodotti = prodottiStr.split("[,\\n]");
-                    for (String p : prodotti) {
-                        String nomePiatto = p.trim();
-                        int qty = 1;
-                        if (nomePiatto.matches("\\d+x .*")) {
-                            String[] parts = nomePiatto.split("x ", 2);
-                            qty = Integer.parseInt(parts[0]);
-                            nomePiatto = parts[1];
-                        }
-                       
-                        // Cerca il prezzo (anche parziale se il nome nel DB è leggermente diverso)
-                        // Qui assumiamo corrispondenza esatta per semplicità
-                        if (prezzi.containsKey(nomePiatto)) {
-                            total += prezzi.get(nomePiatto) * qty;
-                        }
-                    }
-                }
+            if (rs.next()) {
+                total = rs.getDouble("incasso");
             }
         }
         return total;

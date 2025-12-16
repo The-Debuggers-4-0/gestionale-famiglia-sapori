@@ -105,9 +105,6 @@ public class CassaController implements Initializable {
             // 1. Prendi tutte le comande non pagate
             List<Comanda> comande = comandaDAO.getComandeDaPagare(t.getId());
 
-            // 2. Prendi il menu per sapere i prezzi
-            List<Piatto> menu = menuDAO.getAllPiattiComplete();
-
             if (comande.isEmpty()) {
                 txtScontrino.setText("Nessuna comanda da pagare.");
                 lblTotale.setText("€ 0.00");
@@ -116,35 +113,16 @@ public class CassaController implements Initializable {
 
             scontrino.append("--- RIEPILOGO TAVOLO ").append(t.getNumero()).append(" ---\n\n");
 
-            // 3. Analizza le stringhe dei prodotti (es: "2x Carbonara, 1x Acqua")
             for (Comanda c : comande) {
-                String[] items = c.getProdotti().split(", ");
-                for (String item : items) {
-                    // item è tipo "2x Carbonara"
-                    try {
-                        String[] parts = item.split("x ");
-                        int qty = Integer.parseInt(parts[0]);
-                        String nomePiatto = parts[1];
-
-                        // Cerca il prezzo nel menu
-                        double prezzoUnitario = 0.0;
-                        for (Piatto p : menu) {
-                            if (p.getNome().equalsIgnoreCase(nomePiatto)) {
-                                prezzoUnitario = p.getPrezzo();
-                                break;
-                            }
-                        }
-
-                        double subTotale = qty * prezzoUnitario;
-                        totaleCorrente += subTotale;
-
-                        scontrino.append(String.format("%-20s %2d x €%5.2f = €%6.2f\n",
-                                nomePiatto, qty, prezzoUnitario, subTotale));
-
-                    } catch (Exception e) {
-                        scontrino.append("Errore riga: ").append(item).append("\n");
-                    }
-                }
+                // Usa il totale salvato nella comanda
+                totaleCorrente += c.getTotale();
+                
+                // Visualizza i dettagli (opzionale: potremmo anche solo mostrare il totale della comanda)
+                scontrino.append("Comanda #").append(c.getId())
+                         .append(" (").append(c.getTipo()).append("): ")
+                         .append(c.getProdotti())
+                         .append("\n   -> Totale Parziale: €").append(String.format("%.2f", c.getTotale()))
+                         .append("\n\n");
             }
 
             txtScontrino.setText(scontrino.toString());
