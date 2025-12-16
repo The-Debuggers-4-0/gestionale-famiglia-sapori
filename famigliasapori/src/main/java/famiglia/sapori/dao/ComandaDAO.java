@@ -3,6 +3,7 @@ package famiglia.sapori.dao;
 import famiglia.sapori.database.DatabaseConnection;
 import famiglia.sapori.model.Comanda;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
  
@@ -133,5 +134,20 @@ public class ComandaDAO {
             stmt.setInt(1, idTavolo);
             stmt.executeUpdate();
         }
+    }
+
+    public boolean hasPaidComandaAfter(int idTavolo, LocalDateTime after) throws SQLException {
+        String query = "SELECT COUNT(*) FROM Comande WHERE id_tavolo = ? AND stato = 'Pagato' AND data_ora >= ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, idTavolo);
+            stmt.setTimestamp(2, Timestamp.valueOf(after));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
     }
 }
