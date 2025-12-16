@@ -181,7 +181,8 @@ public class PrenotazioniController implements Initializable {
             prenotazioneDAO.insertPrenotazione(p);
            
             if (selectedTavolo != null) {
-                tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), "Prenotato");
+                // Non aggiorniamo lo stato del tavolo nel DB, è calcolato dinamicamente
+                // tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), "Prenotato");
                 loadTavoli(); // Ricarica stato tavoli
             }
  
@@ -201,7 +202,8 @@ public class PrenotazioniController implements Initializable {
             try {
                 // Se la prenotazione ha un tavolo associato, lo liberiamo
                 if (selected.getIdTavolo() != null) {
-                    tavoloDAO.updateStatoTavolo(selected.getIdTavolo(), "Libero");
+                    // Non aggiorniamo lo stato del tavolo nel DB
+                    // tavoloDAO.updateStatoTavolo(selected.getIdTavolo(), "Libero");
                 }
 
                 prenotazioneDAO.deletePrenotazione(selected.getId());
