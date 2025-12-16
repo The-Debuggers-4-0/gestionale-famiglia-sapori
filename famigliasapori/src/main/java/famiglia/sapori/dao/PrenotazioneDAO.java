@@ -77,4 +77,28 @@ public class PrenotazioneDAO {
         }
         return reservedIds;
     }
+
+    public List<Prenotazione> getReservationsForDate(java.time.LocalDate date) throws SQLException {
+        List<Prenotazione> lista = new ArrayList<>();
+        String query = "SELECT * FROM Prenotazioni WHERE DATE(data_ora) = ? AND id_tavolo IS NOT NULL";
+        
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setDate(1, java.sql.Date.valueOf(date));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new Prenotazione(
+                        rs.getInt("id"),
+                        rs.getString("nome_cliente"),
+                        rs.getString("telefono"),
+                        rs.getInt("numero_persone"),
+                        rs.getTimestamp("data_ora").toLocalDateTime(),
+                        rs.getString("note"),
+                        rs.getInt("id_tavolo")
+                    ));
+                }
+            }
+        }
+        return lista;
+    }
 }

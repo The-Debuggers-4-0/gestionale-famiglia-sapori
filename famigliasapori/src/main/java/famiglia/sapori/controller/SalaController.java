@@ -7,6 +7,7 @@ import famiglia.sapori.dao.PrenotazioneDAO;
 import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.model.Comanda;
 import famiglia.sapori.model.Piatto;
+import famiglia.sapori.model.Prenotazione;
 import famiglia.sapori.model.Tavolo;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -93,7 +94,12 @@ public class SalaController implements Initializable {
         tavoliContainer.getChildren().clear();
         try {
             List<Tavolo> tavoli = tavoloDAO.getAllTavoli();
-            List<Integer> reservedIds = prenotazioneDAO.getReservedTableIdsForDate(LocalDate.now());
+            List<Prenotazione> prenotazioniOggi = prenotazioneDAO.getReservationsForDate(LocalDate.now());
+            
+            // Mappa ID Tavolo -> Lista Prenotazioni
+            Map<Integer, List<Prenotazione>> mapPrenotazioni = prenotazioniOggi.stream()
+                .filter(p -> p.getIdTavolo() != null)
+                .collect(Collectors.groupingBy(Prenotazione::getIdTavolo));
 
             for (Tavolo t : tavoli) {
                 String status = t.getStato();
@@ -104,8 +110,22 @@ public class SalaController implements Initializable {
                     status = "Libero";
                 }
 
-                // Se il tavolo non è occupato ma è prenotato per oggi, mostralo come prenotato
-                if (!"Occupato".equalsIgnoreCase(status) && reservedIds.contains(t.getId())) {
+                // Verifica se c'è una prenotazione attiva e non ancora "soddisfatta" (pagata)
+                boolean isReserved = false;
+                if (mapPrenotazioni.containsKey(t.getId())) {
+                    for (Prenotazione p : mapPrenotazioni.get(t.getId())) {
+                        // Una prenotazione è considerata "soddisfatta" se esiste una comanda pagata
+                        // creata dopo l'orario della prenotazione (con 1 ora di tolleranza prima)
+                        boolean fulfilled = comandaDAO.hasPaidComandaAfter(t.getId(), p.getDataOra().minusHours(1));
+                        if (!fulfilled) {
+                            isReserved = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Se il tavolo non è occupato ma è prenotato per oggi (e non ancora pagato), mostralo come prenotato
+                if (!"Occupato".equalsIgnoreCase(status) && isReserved) {
                     status = "Prenotato";
                 }
                 VBox tavoloBox = createTavoloBox(t, status);
