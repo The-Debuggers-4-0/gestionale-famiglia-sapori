@@ -28,8 +28,8 @@
                             <Image url="@../images/cameriere.png" />
                         </image>
                     </ImageView>
-                    <Label styleClass="card-title" text="Sala &amp; Ordini" />
-                    <Text styleClass="card-description" text="Gestisci ordini e servizio" />
+                    <Label styleClass="card-title" text="Cameriere &amp; Gestore" />
+                    <Text styleClass="card-description" text="Gestisci il locale e il servizio" />
                 </VBox>
             </graphic>
         </Button>

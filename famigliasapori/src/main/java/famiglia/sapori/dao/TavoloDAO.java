@@ -41,4 +41,38 @@ public class TavoloDAO {
             stmt.executeUpdate();
         }
     }
+
+    public void insertTavolo(Tavolo tavolo) throws SQLException {
+        String query = "INSERT INTO Tavoli (numero, posti, stato, note) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, tavolo.getNumero());
+            stmt.setInt(2, tavolo.getPosti());
+            stmt.setString(3, tavolo.getStato());
+            stmt.setString(4, tavolo.getNote());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void updateTavolo(Tavolo tavolo) throws SQLException {
+        String query = "UPDATE Tavoli SET numero = ?, posti = ?, stato = ?, note = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, tavolo.getNumero());
+            stmt.setInt(2, tavolo.getPosti());
+            stmt.setString(3, tavolo.getStato());
+            stmt.setString(4, tavolo.getNote());
+            stmt.setInt(5, tavolo.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteTavolo(int id) throws SQLException {
+        String query = "DELETE FROM Tavoli WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
 }

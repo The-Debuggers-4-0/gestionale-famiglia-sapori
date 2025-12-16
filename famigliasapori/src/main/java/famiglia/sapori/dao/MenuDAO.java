@@ -82,4 +82,42 @@ public class MenuDAO {
             pstmt.executeUpdate();
         }
     }
+
+    public void insertPiatto(Piatto piatto) throws SQLException {
+        String query = "INSERT INTO Menu (nome, descrizione, prezzo, categoria, disponibile, allergeni) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, piatto.getNome());
+            pstmt.setString(2, piatto.getDescrizione());
+            pstmt.setDouble(3, piatto.getPrezzo());
+            pstmt.setString(4, piatto.getCategoria());
+            pstmt.setInt(5, piatto.isDisponibile() ? 1 : 0);
+            pstmt.setString(6, piatto.getAllergeni());
+            pstmt.executeUpdate();
+        }
+    }
+
+    public void updatePiatto(Piatto piatto) throws SQLException {
+        String query = "UPDATE Menu SET nome = ?, descrizione = ?, prezzo = ?, categoria = ?, disponibile = ?, allergeni = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, piatto.getNome());
+            pstmt.setString(2, piatto.getDescrizione());
+            pstmt.setDouble(3, piatto.getPrezzo());
+            pstmt.setString(4, piatto.getCategoria());
+            pstmt.setInt(5, piatto.isDisponibile() ? 1 : 0);
+            pstmt.setString(6, piatto.getAllergeni());
+            pstmt.setInt(7, piatto.getId());
+            pstmt.executeUpdate();
+        }
+    }
+
+    public void deletePiatto(int id) throws SQLException {
+        String query = "DELETE FROM Menu WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        }
+    }
 }

@@ -53,10 +53,14 @@ public class LoginController implements Initializable {
         }
 
         try {
-            Utente utente = utenteDAO.login(username, password);
+           Utente utente = utenteDAO.login(username, password);
             if (utente != null) {
                 FamigliaSaporiApplication.currentUser = utente;
-                FamigliaSaporiApplication.setRoot("SalaView");
+                if ("Gestore".equalsIgnoreCase(utente.getRuolo())) {
+                    FamigliaSaporiApplication.setRoot("GestoreView");
+                } else {
+                    FamigliaSaporiApplication.setRoot("SalaView");
+                }
             } else {
                 showError("Credenziali non valide");
             }

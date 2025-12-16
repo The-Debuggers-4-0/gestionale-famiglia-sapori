@@ -117,21 +117,22 @@
 
 /* Etichette sopra i campi (USERNAME, PASSWORD) */
 .field-label {
-    -fx-font-family: 'Segoe UI Fromt', sans-serif;
-    -fx-font-size: 11px;
+    -fx-font-family: 'Segoe UI', sans-serif;
+    -fx-font-size: 12px;
     -fx-font-weight: bold;
-    -fx-text-fill: #95a5a6; /* Grigio più scuro */
+    -fx-text-fill: #ecf0f1; /* Testo molto più chiaro per contrasto */
     -fx-padding: 0 0 0 5;
 }
 
 /* CAMPI DI TESTO (TextField e PasswordField) */
 .input-field {
-    -fx-background-color: #2c3e50; /* Sfondo scuro per l'input */
+    -fx-background-color: #1a252f; /* Sfondo più scuro del pannello per risaltare */
     -fx-text-fill: #ecf0f1;
-    -fx-prompt-text-fill: #7f8c8d;
+    -fx-prompt-text-fill: #95a5a6;
     -fx-background-radius: 8;
     -fx-border-radius: 8;
-    -fx-border-color: transparent;
+    -fx-border-color: #7f8c8d; /* Bordo sottile per definire l'area */
+    -fx-border-width: 1;
     -fx-padding: 12;
     -fx-font-size: 14px;
 }
@@ -284,6 +285,9 @@
 }
 .tab-pane .tab {
     -fx-background-color: #34495e;
+}
+
+.tab-pane .tab .tab-label {
     -fx-text-fill: white;
 }
 .tab-pane .tab:selected {
@@ -294,6 +298,89 @@
 }
 .menu-list-container {
     -fx-padding: 10;
+}
+
+/* ==========================================================================
+   STILI TABELLE (TableView)
+   ========================================================================== */
+
+.table-view {
+    -fx-background-color: transparent; /* Sfondo trasparente per integrarsi */
+    -fx-border-color: rgba(255,255,255,0.1);
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+}
+
+/* Intestazione colonne */
+.table-view .column-header-background {
+    -fx-background-color: #2c3e50;
+    -fx-background-radius: 5px 5px 0 0;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: rgba(255,255,255,0.1);
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-size: 40px; /* Altezza header */
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* Righe della tabella */
+.table-row-cell {
+    -fx-background-color: #34495e; /* Colore base riga */
+    -fx-border-color: transparent transparent rgba(0,0,0,0.1) transparent;
+}
+
+/* Righe dispari (alternanza) */
+.table-row-cell:odd {
+    -fx-background-color: #3a5066;
+}
+
+/* Riga selezionata */
+.table-row-cell:selected {
+    -fx-background-color: #3498db; /* Azzurro selezione */
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+/* Testo nelle celle */
+.table-cell {
+    -fx-text-fill: #ecf0f1;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 10 0 10;
+}
+
+/* Testo nella riga selezionata */
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+/* Scrollbar della tabella (stile dark) */
+.table-view .scroll-bar:vertical,
+.table-view .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+.table-view .scroll-bar:vertical .thumb,
+.table-view .scroll-bar:horizontal .thumb {
+    -fx-background-color: rgba(255,255,255,0.2);
+    -fx-background-radius: 5em;
+}
+.table-view .scroll-bar:vertical .thumb:hover,
+.table-view .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: rgba(255,255,255,0.4);
+}
+
+/* Placeholder (quando la tabella è vuota) */
+.table-view .placeholder .label {
+    -fx-text-fill: #7f8c8d;
+    -fx-font-size: 14px;
 }
 
 /* --- SINGOLA RIGA PIATTO (Da generare via Java) --- */
@@ -508,5 +595,23 @@
 .combo-box-popup .list-cell:filled:hover, 
 .combo-box-popup .list-cell:filled:selected {
     -fx-background-color: #3498db; /* Azzurro selezione */
+    -fx-text-fill: white;
+}
+
+/* ==========================================================================
+   STILI GRAFICI (PieChart)
+   ========================================================================== */
+
+.chart-pie-label {
+    -fx-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.chart-legend-item {
     -fx-text-fill: white;
 }
