@@ -1,9 +1,7 @@
 package famiglia.sapori.controller;
 
 import famiglia.sapori.FamigliaSaporiApplication;
-import famiglia.sapori.dao.MenuDAO;
 import famiglia.sapori.dao.TavoloDAO;
-import famiglia.sapori.dao.UtenteDAO;
 import famiglia.sapori.model.Piatto;
 import famiglia.sapori.model.Tavolo;
 import famiglia.sapori.model.Utente;

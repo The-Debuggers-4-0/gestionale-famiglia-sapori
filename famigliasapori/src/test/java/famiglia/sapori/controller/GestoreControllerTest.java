@@ -1,10 +1,177 @@
 package famiglia.sapori.controller;
 
+import famiglia.sapori.dao.GestoreDAO;
+import famiglia.sapori.dao.MenuDAO;
+import famiglia.sapori.dao.TavoloDAO;
+import famiglia.sapori.dao.UtenteDAO;
+import famiglia.sapori.model.Piatto;
+import famiglia.sapori.model.Tavolo;
+import famiglia.sapori.model.Utente;
+import javafx.application.Platform;
+import javafx.scene.chart.PieChart;
+import javafx.scene.control.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GestoreControllerTest {
+
+    private static final AtomicBoolean FX_INITIALIZED = new AtomicBoolean(false);
+
+    @BeforeAll
+    static void initJavaFx() {
+        if (FX_INITIALIZED.compareAndSet(false, true)) {
+            try {
+                Platform.startup(() -> {});
+            } catch (IllegalStateException ignored) {
+                // JavaFX runtime already started
+            }
+        }
+    }
+
+    private static void runOnFxThread(Runnable action) throws Exception {
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+            return;
+        }
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> error = new AtomicReference<>();
+        Platform.runLater(() -> {
+            try {
+                action.run();
+            } catch (Throwable t) {
+                error.set(t);
+            } finally {
+                latch.countDown();
+            }
+        });
+        assertTrue(latch.await(10, TimeUnit.SECONDS), "Timed out waiting for FX thread");
+        if (error.get() != null) {
+            throw new AssertionError(error.get());
+        }
+    }
+
+    private static void setField(Object target, String fieldName, Object value) throws Exception {
+        Field f = target.getClass().getDeclaredField(fieldName);
+        f.setAccessible(true);
+        f.set(target, value);
+    }
+
+    private static Object getField(Object target, String fieldName) throws Exception {
+        Field f = target.getClass().getDeclaredField(fieldName);
+        f.setAccessible(true);
+        return f.get(target);
+    }
+
+    private static void invokeNoArg(Object target, String methodName) throws Exception {
+        Method m = target.getClass().getDeclaredMethod(methodName);
+        m.setAccessible(true);
+        m.invoke(target);
+    }
+
+    private static String normalizeEuro(String s) {
+        return s == null ? null : s.replace('\u00A0', ' ').trim();
+    }
+
+    private static final class FakeMenuDAO extends MenuDAO {
+        int insertCalls;
+        int updateCalls;
+
+        @Override
+        public List<Piatto> getAllPiattiComplete() {
+            return List.of();
+        }
+
+        @Override
+        public void insertPiatto(Piatto p) {
+            insertCalls++;
+        }
+
+        @Override
+        public void updatePiatto(Piatto p) {
+            updateCalls++;
+        }
+    }
+
+    private static final class FakeUtenteDAO extends UtenteDAO {
+        int insertCalls;
+        int updateCalls;
+
+        @Override
+        public List<Utente> getAllUtenti() {
+            return List.of();
+        }
+
+        @Override
+        public void insertUtente(Utente u) {
+            insertCalls++;
+        }
+
+        @Override
+        public void updateUtente(Utente u) {
+            updateCalls++;
+        }
+    }
+
+    private static final class FakeTavoloDAO extends TavoloDAO {
+        int insertCalls;
+        int updateCalls;
+        int resetCalls;
+
+        @Override
+        public List<Tavolo> getAllTavoli() {
+            return List.of();
+        }
+
+        @Override
+        public void insertTavolo(Tavolo tavolo) {
+            insertCalls++;
+        }
+
+        @Override
+        public void updateTavolo(Tavolo tavolo) {
+            updateCalls++;
+        }
+
+        @Override
+        public void updateStatoTavolo(int id, String stato) {
+            if ("Libero".equalsIgnoreCase(stato)) {
+                resetCalls++;
+            }
+        }
+    }
+
+    private static final class FakeGestoreDAO extends GestoreDAO {
+        private final Map<String, Integer> bestSellers;
+        private final double dailyIncome;
+
+        FakeGestoreDAO(Map<String, Integer> bestSellers, double dailyIncome) {
+            this.bestSellers = bestSellers;
+            this.dailyIncome = dailyIncome;
+        }
+
+        @Override
+        public Map<String, Integer> getBestSellers() throws SQLException {
+            return bestSellers;
+        }
+
+        @Override
+        public double calculateDailyIncome() throws SQLException {
+            return dailyIncome;
+        }
+    }
 
     /**
      * Verifica che il controller possa essere istanziato correttamente.
@@ -211,5 +378,210 @@ public class GestoreControllerTest {
         assertNotNull(GestoreController.class.getDeclaredField("colNumeroTavolo"));
         assertNotNull(GestoreController.class.getDeclaredField("colPostiTavolo"));
         assertNotNull(GestoreController.class.getDeclaredField("colStatoTavolo"));
+    }
+
+    @Test
+    void handleRefreshStats_populatesPieAndIncomeLabel() throws Exception {
+        runOnFxThread(() -> {
+            try {
+                GestoreController controller = new GestoreController();
+
+                PieChart pie = new PieChart();
+                Label income = new Label();
+                setField(controller, "pieBestSellers", pie);
+                setField(controller, "lblIncassoTotale", income);
+
+                Map<String, Integer> best = new LinkedHashMap<>();
+                best.put("Pizza", 3);
+                best.put("Acqua", 5);
+                setField(controller, "gestoreDAO", new FakeGestoreDAO(best, 12.5));
+
+                invokeNoArg(controller, "handleRefreshStats");
+
+                assertEquals(2, pie.getData().size());
+                String txt = normalizeEuro(income.getText());
+                assertNotNull(txt);
+                assertTrue(txt.matches("€\\s*12[,.]50"), "Unexpected income label: " + txt);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Test
+    void handleSalvaPiatto_callsInsertThenUpdate() throws Exception {
+        runOnFxThread(() -> {
+            try {
+                GestoreController controller = new GestoreController();
+
+                FakeMenuDAO fakeMenuDAO = new FakeMenuDAO();
+                setField(controller, "menuDAO", fakeMenuDAO);
+
+                TableView<Piatto> tbl = new TableView<>();
+                setField(controller, "tblMenu", tbl);
+                setField(controller, "colNomePiatto", new TableColumn<Piatto, String>());
+                setField(controller, "colCategoriaPiatto", new TableColumn<Piatto, String>());
+                setField(controller, "colPrezzoPiatto", new TableColumn<Piatto, Double>());
+                setField(controller, "colDispPiatto", new TableColumn<Piatto, Boolean>());
+
+                TextField txtNome = new TextField("Test Piatto");
+                ComboBox<String> comboCat = new ComboBox<>();
+                comboCat.setValue("Primi");
+                TextField txtPrezzo = new TextField("3.50");
+                TextArea txtDesc = new TextArea("desc");
+                TextField txtAll = new TextField("glutine");
+                CheckBox chk = new CheckBox();
+                chk.setSelected(true);
+
+                setField(controller, "txtNomePiatto", txtNome);
+                setField(controller, "comboCategoria", comboCat);
+                setField(controller, "txtPrezzoPiatto", txtPrezzo);
+                setField(controller, "txtDescrizionePiatto", txtDesc);
+                setField(controller, "txtAllergeni", txtAll);
+                setField(controller, "chkDisponibile", chk);
+
+                setField(controller, "selectedPiatto", null);
+                invokeNoArg(controller, "handleSalvaPiatto");
+                assertEquals(1, fakeMenuDAO.insertCalls);
+                assertEquals(0, fakeMenuDAO.updateCalls);
+
+                setField(controller, "selectedPiatto", new Piatto(99, "Old", "d", 1.0, "Primi", true, ""));
+                txtPrezzo.setText("4.00");
+                invokeNoArg(controller, "handleSalvaPiatto");
+                assertEquals(1, fakeMenuDAO.insertCalls);
+                assertEquals(1, fakeMenuDAO.updateCalls);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Test
+    void handleSalvaUtente_callsInsertThenUpdate() throws Exception {
+        runOnFxThread(() -> {
+            try {
+                GestoreController controller = new GestoreController();
+
+                FakeUtenteDAO fakeUtenteDAO = new FakeUtenteDAO();
+                setField(controller, "utenteDAO", fakeUtenteDAO);
+                setField(controller, "tblUtenti", new TableView<Utente>());
+                setField(controller, "colNomeUtente", new TableColumn<Utente, String>());
+                setField(controller, "colUsername", new TableColumn<Utente, String>());
+                setField(controller, "colRuolo", new TableColumn<Utente, String>());
+
+                TextField txtNome = new TextField("Mario");
+                TextField txtUser = new TextField("mario_test");
+                PasswordField txtPass = new PasswordField();
+                txtPass.setText("pwd");
+                ComboBox<String> comboRuolo = new ComboBox<>();
+                comboRuolo.setValue("Cameriere");
+
+                setField(controller, "txtNomeUtente", txtNome);
+                setField(controller, "txtUsername", txtUser);
+                setField(controller, "txtPassword", txtPass);
+                setField(controller, "comboRuolo", comboRuolo);
+
+                setField(controller, "selectedUtente", null);
+                invokeNoArg(controller, "handleSalvaUtente");
+                assertEquals(1, fakeUtenteDAO.insertCalls);
+                assertEquals(0, fakeUtenteDAO.updateCalls);
+
+                setField(controller, "selectedUtente", new Utente(7, "Old", "old", "x", "Gestore"));
+                invokeNoArg(controller, "handleSalvaUtente");
+                assertEquals(1, fakeUtenteDAO.insertCalls);
+                assertEquals(1, fakeUtenteDAO.updateCalls);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Test
+    void handleSalvaAndResetTavolo_callsDaoMethods() throws Exception {
+        runOnFxThread(() -> {
+            try {
+                GestoreController controller = new GestoreController();
+
+                FakeTavoloDAO fakeTavoloDAO = new FakeTavoloDAO();
+                setField(controller, "tavoloDAO", fakeTavoloDAO);
+
+                setField(controller, "tblTavoli", new TableView<Tavolo>());
+                setField(controller, "colNumeroTavolo", new TableColumn<Tavolo, Integer>());
+                setField(controller, "colPostiTavolo", new TableColumn<Tavolo, Integer>());
+                setField(controller, "colStatoTavolo", new TableColumn<Tavolo, String>());
+
+                TextField txtNumero = new TextField("10");
+                Spinner<Integer> spinPosti = new Spinner<>(1, 20, 4);
+                TextArea txtNote = new TextArea("note");
+                setField(controller, "txtNumeroTavolo", txtNumero);
+                setField(controller, "spinPostiTavolo", spinPosti);
+                setField(controller, "txtNoteTavolo", txtNote);
+
+                setField(controller, "selectedTavolo", null);
+                invokeNoArg(controller, "handleSalvaTavolo");
+                assertEquals(1, fakeTavoloDAO.insertCalls);
+                assertEquals(0, fakeTavoloDAO.updateCalls);
+
+                setField(controller, "selectedTavolo", new Tavolo(5, 10, "Occupato", 4, ""));
+                txtNumero.setText("11");
+                invokeNoArg(controller, "handleSalvaTavolo");
+                assertEquals(1, fakeTavoloDAO.insertCalls);
+                assertEquals(1, fakeTavoloDAO.updateCalls);
+
+                // handleSalvaTavolo -> handleNuovoTavolo clears selection/selectedTavolo
+                setField(controller, "selectedTavolo", new Tavolo(5, 11, "Occupato", 4, ""));
+                invokeNoArg(controller, "handleResetTavolo");
+                assertEquals(1, fakeTavoloDAO.resetCalls);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Test
+    void statoTavoloCellFactory_setsExpectedStyles() throws Exception {
+        runOnFxThread(() -> {
+            try {
+                GestoreController controller = new GestoreController();
+                setField(controller, "tavoloDAO", new FakeTavoloDAO());
+
+                TableColumn<Tavolo, Integer> colNum = new TableColumn<>();
+                TableColumn<Tavolo, Integer> colPosti = new TableColumn<>();
+                TableColumn<Tavolo, String> colStato = new TableColumn<>();
+                setField(controller, "colNumeroTavolo", colNum);
+                setField(controller, "colPostiTavolo", colPosti);
+                setField(controller, "colStatoTavolo", colStato);
+                setField(controller, "tblTavoli", new TableView<Tavolo>());
+                setField(controller, "txtNumeroTavolo", new TextField());
+                Spinner<Integer> spin = new Spinner<>();
+                spin.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 20, 4));
+                setField(controller, "spinPostiTavolo", spin);
+                setField(controller, "txtNoteTavolo", new TextArea());
+
+                invokeNoArg(controller, "initTavoliTab");
+
+                TableCell<Tavolo, String> cell = colStato.getCellFactory().call(colStato);
+                Method updateItem = cell.getClass().getDeclaredMethod("updateItem", String.class, boolean.class);
+                updateItem.setAccessible(true);
+
+                updateItem.invoke(cell, "Libero", false);
+                assertEquals("Libero", cell.getText());
+                assertTrue(cell.getStyle().contains("#2ecc71"));
+
+                updateItem.invoke(cell, "Occupato", false);
+                assertEquals("Occupato", cell.getText());
+                assertTrue(cell.getStyle().contains("#e74c3c"));
+
+                updateItem.invoke(cell, "Prenotato", false);
+                assertEquals("Prenotato", cell.getText());
+                assertTrue(cell.getStyle().contains("#f39c12"));
+
+                updateItem.invoke(cell, null, true);
+                assertNull(cell.getText());
+                assertEquals("", cell.getStyle());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

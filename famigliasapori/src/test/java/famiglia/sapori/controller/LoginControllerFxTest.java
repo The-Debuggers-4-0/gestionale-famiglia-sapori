@@ -2,10 +2,12 @@ package famiglia.sapori.controller;
 
 import famiglia.sapori.FamigliaSaporiApplication;
 import famiglia.sapori.database.TestDatabase;
+import famiglia.sapori.test.util.ApplicationMockHelper;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
@@ -36,12 +38,18 @@ public class LoginControllerFxTest extends ApplicationTest {
         controller = loader.getController();
         
         stage.setScene(new Scene(root, 800, 600));
+        ApplicationMockHelper.setupMockScene(stage);
         stage.show();
     }
 
     @AfterEach
     void cleanupUser() {
         FamigliaSaporiApplication.currentUser = null;
+        try {
+            ApplicationMockHelper.clearMockScene();
+        } catch (Exception ignored) {
+            // ignore
+        }
     }
 
     @Test
@@ -67,6 +75,19 @@ public class LoginControllerFxTest extends ApplicationTest {
         assertTrue(err.isVisible());
         assertTrue(err.getText().contains("Credenziali non valide"));
         assertNull(FamigliaSaporiApplication.currentUser);
+    }
+
+    @Test
+    void login_withValidGestoreCredentials_navigatesToGestoreAndSetsCurrentUser() {
+        writeInto("#usernameField", "admin");
+        writeInto("#passwordField", "admin");
+        clickOn("#btnLogin");
+
+        assertNotNull(FamigliaSaporiApplication.currentUser);
+        assertEquals("Gestore", FamigliaSaporiApplication.currentUser.getRuolo());
+
+        TabPane tabPane = lookup("#tabPaneGestore").queryAs(TabPane.class);
+        assertNotNull(tabPane, "Dopo login Gestore, dovrebbe essere caricata GestoreView");
     }
 
     /**

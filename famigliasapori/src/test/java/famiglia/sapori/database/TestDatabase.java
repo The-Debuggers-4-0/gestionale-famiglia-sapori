@@ -3,6 +3,7 @@ package famiglia.sapori.database;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.ResultSet;
 
 public final class TestDatabase {
     private TestDatabase() {}
@@ -12,8 +13,22 @@ public final class TestDatabase {
 
     public static void setupSchema() throws SQLException {
         synchronized (LOCK) {
-            try (Connection conn = DatabaseConnection.getInstance().getConnection();
-                 Statement st = conn.createStatement()) {
+            Connection conn = DatabaseConnection.getInstance().getConnection();
+
+            // If we've already created the schema, verify it still exists and return.
+            if (schemaCreated) {
+                try (Statement verify = conn.createStatement();
+                     ResultSet rs = verify.executeQuery(
+                             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'TAVOLI'")) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        return;
+                    }
+                } catch (SQLException ignored) {
+                    // Fall through and recreate schema.
+                }
+            }
+
+            try (Statement st = conn.createStatement()) {
                 // Drop existing tables to ensure a clean slate
                 // Order is important: drop tables with foreign keys first
                 st.execute("DROP TABLE IF EXISTS Comande");
@@ -69,6 +84,8 @@ public final class TestDatabase {
                     "FOREIGN KEY (id_tavolo) REFERENCES Tavoli(id) ON DELETE NO ACTION ON UPDATE NO ACTION, " +
                     "FOREIGN KEY (id_cameriere) REFERENCES Utenti(id) ON DELETE NO ACTION ON UPDATE NO ACTION)");
             }
+
+            schemaCreated = true;
         }
     }
 
@@ -79,41 +96,51 @@ public final class TestDatabase {
             try {
                 conn = DatabaseConnection.getInstance().getConnection();
                 st = conn.createStatement();
-                
-                // Temporarily disable foreign key constraints for seeding
-                st.execute("SET REFERENTIAL_INTEGRITY FALSE");
-                
+
+            // Temporarily disable foreign key constraints for cleanup + seeding.
+            // This method is called by multiple tests; keep it idempotent.
+            st.execute("SET REFERENTIAL_INTEGRITY FALSE");
+            try {
+                // Clear existing rows to avoid duplicate PKs on fixed-ID seed inserts
+                // (order matters because of foreign keys).
+                st.execute("DELETE FROM Comande");
+                st.execute("DELETE FROM Prenotazioni");
+                st.execute("DELETE FROM Tavoli");
+                st.execute("DELETE FROM Utenti");
+                st.execute("DELETE FROM Menu");
+
                 // Seed Menu with explicit IDs
                 st.execute("INSERT INTO Menu (id, nome, descrizione, prezzo, categoria, disponibile, allergeni) VALUES " +
-                        "(1, 'Acqua', 'Naturale', 1.50, 'Bevande', 1, '')," +
-                        "(2, 'Pizza Margherita', 'Pomodoro e mozzarella', 6.00, 'Primi', 1, 'lattosio, glutine')," +
-                        "(3, 'Carbonara', 'Guanciale, uova, pecorino, pepe', 12.00, 'Primi', 1, 'Uova, Glutine, Lattosio')," +
-                        "(4, 'Risotto', 'Risotto allo zafferano', 8.50, 'Primi', 0, 'glutine')," +
-                        "(5, 'Caffe', 'Espresso', 1.00, 'Bevande', 1, '')");
+                    "(1, 'Acqua', 'Naturale', 1.50, 'Bevande', 1, '')," +
+                    "(2, 'Pizza Margherita', 'Pomodoro e mozzarella', 6.00, 'Primi', 1, 'lattosio, glutine')," +
+                    "(3, 'Carbonara', 'Guanciale, uova, pecorino, pepe', 12.00, 'Primi', 1, 'Uova, Glutine, Lattosio')," +
+                    "(4, 'Risotto', 'Risotto allo zafferano', 8.50, 'Primi', 0, 'glutine')," +
+                    "(5, 'Caffe', 'Espresso', 1.00, 'Bevande', 1, '')");
 
                 // Seed Utenti with explicit IDs
                 st.execute("INSERT INTO Utenti (id, nome, username, password, ruolo) VALUES " +
-                        "(1, 'Mario Rossi', 'mario', 'pwd123', 'Cameriere')," +
-                        "(2, 'Admin User', 'admin', 'admin', 'Gestore')");
+                    "(1, 'Mario Rossi', 'mario', 'pwd123', 'Cameriere')," +
+                    "(2, 'Admin User', 'admin', 'admin', 'Gestore')");
 
                 // Seed Tavoli with explicit IDs
                 st.execute("INSERT INTO Tavoli (id, numero, stato, posti, note) VALUES " +
-                        "(1, 1, 'Libero', 4, '')," +
-                        "(2, 2, 'Occupato', 2, 'Finestra')," +
-                        "(3, 3, 'Libero', 6, '')");
+                    "(1, 1, 'Libero', 4, '')," +
+                    "(2, 2, 'Occupato', 2, 'Finestra')," +
+                    "(3, 3, 'Libero', 6, '')");
 
                 // Seed Prenotazioni: one in future, one in past
                 st.execute("INSERT INTO Prenotazioni (nome_cliente, telefono, numero_persone, data_ora, note, id_tavolo) VALUES " +
-                        "('Luca Bianchi', '123456789', 2, DATEADD('DAY', 1, CURRENT_TIMESTAMP()), 'Compleanno', NULL)," +
-                        "('Giulia Verdi', '987654321', 4, DATEADD('DAY', -1, CURRENT_TIMESTAMP()), 'Anniversario', 1)");
+                    "('Luca Bianchi', '123456789', 2, DATEADD('DAY', 1, CURRENT_TIMESTAMP()), 'Compleanno', NULL)," +
+                    "('Giulia Verdi', '987654321', 4, DATEADD('DAY', -1, CURRENT_TIMESTAMP()), 'Anniversario', 1)");
 
                 // Seed Comande
                 st.execute("INSERT INTO Comande (id_tavolo, prodotti, totale, tipo, stato, note, id_cameriere) VALUES " +
-                        "(1, '1x Acqua Naturale, 1x Pizza Margherita', 7.50, 'Cucina', 'In Preparazione', '', 1)," +
-                        "(2, '1x Caffe', 1.00, 'Bar', 'Servito', '', 1)");
-                
-                // Re-enable foreign key constraints
+                    "(1, '1x Acqua Naturale, 1x Pizza Margherita', 7.50, 'Cucina', 'In Preparazione', '', 1)," +
+                    "(2, '1x Caffe', 1.00, 'Bar', 'Servito', '', 1)");
+            } finally {
+                // Always re-enable constraints even if inserts fail
                 st.execute("SET REFERENTIAL_INTEGRITY TRUE");
+            }
             } finally {
                 if (st != null) {
                     try { st.close(); } catch (SQLException e) { /* ignore */ }

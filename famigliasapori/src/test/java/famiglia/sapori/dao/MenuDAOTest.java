@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,5 +61,37 @@ public class MenuDAOTest extends DatabaseTestBase {
         List<Piatto> allAfter = dao.getAllPiattiComplete();
         Piatto updated = allAfter.stream().filter(p -> p.getId() == target.getId()).findFirst().orElseThrow();
         assertFalse(updated.isDisponibile());
+    }
+
+    @Test
+    void insertUpdateDeletePiatto_roundTrip() throws SQLException {
+        MenuDAO dao = new MenuDAO();
+
+        String uniqueName = "TestPiatto-" + UUID.randomUUID();
+        Piatto toInsert = new Piatto(0, uniqueName, "Descr", 9.99, "Primi", true, "glutine");
+        dao.insertPiatto(toInsert);
+
+        List<Piatto> afterInsert = dao.getAllPiattiComplete();
+        Piatto inserted = afterInsert.stream()
+                .filter(p -> uniqueName.equals(p.getNome()))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(inserted.isDisponibile());
+        assertEquals("Primi", inserted.getCategoria());
+
+        Piatto toUpdate = new Piatto(inserted.getId(), uniqueName + "-UPD", "Descr2", 11.50, "Bevande", false, "");
+        dao.updatePiatto(toUpdate);
+
+        List<Piatto> afterUpdate = dao.getAllPiattiComplete();
+        Piatto updated = afterUpdate.stream().filter(p -> p.getId() == inserted.getId()).findFirst().orElseThrow();
+        assertEquals(uniqueName + "-UPD", updated.getNome());
+        assertEquals("Descr2", updated.getDescrizione());
+        assertEquals(11.50, updated.getPrezzo(), 0.0001);
+        assertEquals("Bevande", updated.getCategoria());
+        assertFalse(updated.isDisponibile());
+
+        dao.deletePiatto(inserted.getId());
+        List<Piatto> afterDelete = dao.getAllPiattiComplete();
+        assertTrue(afterDelete.stream().noneMatch(p -> p.getId() == inserted.getId()));
     }
 }

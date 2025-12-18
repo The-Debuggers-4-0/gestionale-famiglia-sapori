@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -68,6 +69,36 @@ public class TavoloDAOTest extends DatabaseTestBase {
         dao.updateStatoTavolo(t.getId(), currentState);
         Tavolo after = dao.getAllTavoli().stream().filter(x -> x.getId() == t.getId()).findFirst().orElseThrow();
         assertEquals(currentState, after.getStato(), "Aggiornare con lo stesso stato dovrebbe essere idempotente");
+    }
+
+    @Test
+    void insertUpdateDeleteTavolo_roundTrip() throws SQLException {
+        TavoloDAO dao = new TavoloDAO();
+
+        int uniqueNumero = 10_000 + ThreadLocalRandom.current().nextInt(1_000);
+        Tavolo toInsert = new Tavolo(0, uniqueNumero, "Libero", 5, "note test");
+        dao.insertTavolo(toInsert);
+
+        List<Tavolo> afterInsert = dao.getAllTavoli();
+        Tavolo inserted = afterInsert.stream()
+                .filter(t -> t.getNumero() == uniqueNumero)
+                .findFirst()
+                .orElseThrow();
+        assertEquals(5, inserted.getPosti());
+        assertEquals("Libero", inserted.getStato());
+
+        Tavolo toUpdate = new Tavolo(inserted.getId(), uniqueNumero + 1, "Occupato", 2, "note upd");
+        dao.updateTavolo(toUpdate);
+
+        Tavolo updated = dao.getAllTavoli().stream().filter(t -> t.getId() == inserted.getId()).findFirst().orElseThrow();
+        assertEquals(uniqueNumero + 1, updated.getNumero());
+        assertEquals("Occupato", updated.getStato());
+        assertEquals(2, updated.getPosti());
+        assertEquals("note upd", updated.getNote());
+
+        dao.deleteTavolo(inserted.getId());
+        List<Tavolo> afterDelete = dao.getAllTavoli();
+        assertTrue(afterDelete.stream().noneMatch(t -> t.getId() == inserted.getId()));
     }
 }
 

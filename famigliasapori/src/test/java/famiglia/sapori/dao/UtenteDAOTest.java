@@ -5,6 +5,7 @@ import famiglia.sapori.database.DatabaseTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -73,5 +74,37 @@ public class UtenteDAOTest extends DatabaseTestBase {
         
         Utente invalidUser = dao.login("MARIO", "pwd123");
         assertNull(invalidUser, "Username dovrebbe essere case-sensitive");
+    }
+
+    @Test
+    void getAllInsertUpdateDeleteUtente_roundTrip() throws SQLException {
+        UtenteDAO dao = new UtenteDAO();
+
+        assertTrue(dao.getAllUtenti().size() >= 2, "Dovrebbero esserci utenti seed");
+
+        String uniqueUsername = "user_" + UUID.randomUUID();
+        Utente toInsert = new Utente(0, "Test User", uniqueUsername, "pw", "Cameriere");
+        dao.insertUtente(toInsert);
+
+        Utente inserted = dao.getAllUtenti().stream()
+                .filter(u -> uniqueUsername.equals(u.getUsername()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals("Test User", inserted.getNome());
+        assertEquals("Cameriere", inserted.getRuolo());
+
+        Utente toUpdate = new Utente(inserted.getId(), "Test User 2", uniqueUsername, "pw2", "Gestore");
+        dao.updateUtente(toUpdate);
+
+        Utente updated = dao.getAllUtenti().stream()
+                .filter(u -> u.getId() == inserted.getId())
+                .findFirst()
+                .orElseThrow();
+        assertEquals("Test User 2", updated.getNome());
+        assertEquals("pw2", updated.getPassword());
+        assertEquals("Gestore", updated.getRuolo());
+
+        dao.deleteUtente(inserted.getId());
+        assertTrue(dao.getAllUtenti().stream().noneMatch(u -> u.getId() == inserted.getId()));
     }
 }

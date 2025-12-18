@@ -5,8 +5,12 @@ import famiglia.sapori.database.DatabaseTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -86,5 +90,48 @@ public class PrenotazioneDAOTest extends DatabaseTestBase {
         List<Prenotazione> all = dao.getAllPrenotazioni();
         Prenotazione created = all.stream().filter(pr -> "AssignTest".equals(pr.getNomeCliente())).findFirst().orElseThrow();
         assertNull(created.getIdTavolo(), "Inizialmente idTavolo dovrebbe essere null");
+    }
+
+    @Test
+    void getReservedTableIdsForDate_returnsOnlyNonNullAndDistinctForThatDate() throws SQLException {
+        PrenotazioneDAO dao = new PrenotazioneDAO();
+
+        LocalDate targetDate = LocalDate.now().plusDays(10);
+        LocalDateTime atLunch = LocalDateTime.of(targetDate, LocalTime.of(13, 0));
+        LocalDateTime atDinner = LocalDateTime.of(targetDate, LocalTime.of(20, 0));
+        LocalDateTime otherDay = LocalDateTime.of(targetDate.plusDays(1), LocalTime.of(13, 0));
+
+        dao.insertPrenotazione(new Prenotazione(0, "R1", "100", 2, atLunch, "", 1));
+        dao.insertPrenotazione(new Prenotazione(0, "R2", "101", 4, atDinner, "", 2));
+        // stessa data, ma id_tavolo null: non deve comparire
+        dao.insertPrenotazione(new Prenotazione(0, "R_NULL", "102", 3, atDinner.plusMinutes(15), "", null));
+        // data diversa: non deve comparire
+        dao.insertPrenotazione(new Prenotazione(0, "R_OTHER", "103", 2, otherDay, "", 3));
+
+        List<Integer> reservedIds = dao.getReservedTableIdsForDate(targetDate);
+        Set<Integer> set = new HashSet<>(reservedIds);
+
+        assertEquals(Set.of(1, 2), set);
+    }
+
+    @Test
+    void getReservationsForDate_returnsOnlyReservationsWithAssignedTableOnThatDate() throws SQLException {
+        PrenotazioneDAO dao = new PrenotazioneDAO();
+
+        LocalDate targetDate = LocalDate.now().plusDays(12);
+        LocalDateTime atLunch = LocalDateTime.of(targetDate, LocalTime.of(12, 30));
+        LocalDateTime otherDay = LocalDateTime.of(targetDate.plusDays(2), LocalTime.of(12, 30));
+
+        dao.insertPrenotazione(new Prenotazione(0, "RES_A", "200", 2, atLunch, "", 1));
+        dao.insertPrenotazione(new Prenotazione(0, "RES_NULL", "201", 2, atLunch.plusHours(1), "", null));
+        dao.insertPrenotazione(new Prenotazione(0, "RES_OTHER", "202", 2, otherDay, "", 2));
+
+        List<Prenotazione> reservations = dao.getReservationsForDate(targetDate);
+
+        assertTrue(reservations.stream().anyMatch(p -> "RES_A".equals(p.getNomeCliente())));
+        assertTrue(reservations.stream().allMatch(p -> p.getIdTavolo() != null));
+        assertTrue(reservations.stream().allMatch(p -> p.getDataOra().toLocalDate().equals(targetDate)));
+        assertTrue(reservations.stream().noneMatch(p -> "RES_NULL".equals(p.getNomeCliente())));
+        assertTrue(reservations.stream().noneMatch(p -> "RES_OTHER".equals(p.getNomeCliente())));
     }
 }

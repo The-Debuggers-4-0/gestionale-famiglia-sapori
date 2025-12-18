@@ -5,9 +5,13 @@ import famiglia.sapori.model.Comanda;
 import famiglia.sapori.database.DatabaseTestBase;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,13 +21,35 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class DAOExceptionTest extends DatabaseTestBase {
 
+    private static Properties loadDbProperties() throws IOException {
+        Properties props = new Properties();
+        try (InputStream input = DAOExceptionTest.class.getResourceAsStream("/database.properties")) {
+            if (input == null) {
+                throw new IOException("database.properties not found on classpath");
+            }
+            props.load(input);
+        }
+        return props;
+    }
+
     /**
      * Verifica che operazioni su connessione chiusa causino SQLException.
      */
     @Test
     void operationOnClosedConnection_throwsSQLException() throws SQLException {
-        // Ottieni connessione e chiudila
-        Connection conn = DatabaseConnection.getInstance().getConnection();
+        // Crea una connessione indipendente e chiudila (non toccare il singleton condiviso)
+        Properties props;
+        try {
+            props = loadDbProperties();
+        } catch (IOException e) {
+            throw new SQLException("Impossibile caricare database.properties", e);
+        }
+
+        Connection conn = DriverManager.getConnection(
+                props.getProperty("db.url"),
+                props.getProperty("db.username"),
+                props.getProperty("db.password")
+        );
         conn.close();
         
         // Verifica che la connessione sia chiusa
