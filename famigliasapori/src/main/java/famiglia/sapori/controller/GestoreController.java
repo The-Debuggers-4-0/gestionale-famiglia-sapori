@@ -447,6 +447,16 @@ public class GestoreController implements Initializable {
         }
     }
 
+    @FXML
+    private void handleGestionePrenotazioni() {
+        try {
+            FamigliaSaporiApplication.setRoot("PrenotazioneView");
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Impossibile caricare la vista prenotazioni: " + e.getMessage());
+        }
+    }
+
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Errore");

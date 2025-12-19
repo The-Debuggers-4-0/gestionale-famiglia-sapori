@@ -318,6 +318,15 @@ public class SalaController implements Initializable {
             // Update table status to Occupato
             tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), "Occupato");
            
+            // Rimuovi la prenotazione per questo tavolo (se esiste per oggi)
+            // Così quando il tavolo verrà liberato, non tornerà "Prenotato" (Giallo)
+            List<Prenotazione> prenotazioni = prenotazioneDAO.getReservationsForDate(LocalDate.now());
+            for (Prenotazione p : prenotazioni) {
+                if (p.getIdTavolo() != null && p.getIdTavolo() == selectedTavolo.getId()) {
+                    prenotazioneDAO.deletePrenotazione(p.getId());
+                }
+            }
+
             showAlert("Successo", "Comanda inviata!");
            
             // Reset UI

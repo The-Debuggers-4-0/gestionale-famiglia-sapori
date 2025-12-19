@@ -9,6 +9,7 @@ import famiglia.sapori.model.Piatto;
 import famiglia.sapori.model.Tavolo;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,6 +50,10 @@ public class BarController implements Initializable {
     private Timeline pollingTimeline;
     private ObservableList<Piatto> allDrinks;
 
+    private Map<Integer, VBox> activeCards = new java.util.HashMap<>();
+    private AnimationTimer timerUpdateTimer;
+    private long lastTimerUpdate = 0;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         comandaDAO = new ComandaDAO();
@@ -59,6 +64,7 @@ public class BarController implements Initializable {
         loadComande();
         loadDrinks();
         startPolling();
+        startTimerUpdates();
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             filterDrinks(newValue);
@@ -66,17 +72,29 @@ public class BarController implements Initializable {
     }
 
     private void startPolling() {
-        pollingTimeline = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
+        pollingTimeline = new Timeline(new KeyFrame(Duration.seconds(5), e -> {
             Platform.runLater(this::loadComande);
         }));
         pollingTimeline.setCycleCount(Timeline.INDEFINITE);
         pollingTimeline.play();
     }
 
+    private void startTimerUpdates() {
+        timerUpdateTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                if (now - lastTimerUpdate >= 1_000_000_000) {
+                    updateTimers();
+                    lastTimerUpdate = now;
+                }
+            }
+        };
+        timerUpdateTimer.start();
+    }
+
     public void stopPolling() {
-        if (pollingTimeline != null) {
-            pollingTimeline.stop();
-        }
+        if (pollingTimeline != null) pollingTimeline.stop();
+        if (timerUpdateTimer != null) timerUpdateTimer.stop();
     }
 
     private void loadTavoliMap() {
@@ -93,21 +111,102 @@ public class BarController implements Initializable {
             List<Comanda> comande = comandaDAO.getComandeByStatoAndTipo("In Attesa", "Bar");
             comande.addAll(comandaDAO.getComandeByStatoAndTipo("In Preparazione", "Bar"));
 
-            ordersContainer.getChildren().clear();
+            List<Integer> currentIds = comande.stream().map(Comanda::getId).collect(Collectors.toList());
+            List<Integer> toRemove = activeCards.keySet().stream()
+                .filter(id -> !currentIds.contains(id))
+                .collect(Collectors.toList());
 
-            if (comande.isEmpty()) {
-                Label emptyLabel = new Label("Nessuna comanda in attesa");
-                emptyLabel.setStyle("-fx-text-fill: #34495e; -fx-font-size: 18px;");
-                ordersContainer.getChildren().add(emptyLabel);
-                return;
+            for (Integer id : toRemove) {
+                VBox card = activeCards.remove(id);
+                ordersContainer.getChildren().remove(card);
+            }
+
+            if (!comande.isEmpty()) {
+                ordersContainer.getChildren().removeIf(node -> node instanceof Label && ((Label)node).getText().startsWith("Nessuna"));
             }
 
             for (Comanda c : comande) {
-                ordersContainer.getChildren().add(createComandaCard(c));
+                if (!activeCards.containsKey(c.getId())) {
+                    VBox card = createComandaCard(c);
+                    activeCards.put(c.getId(), card);
+                    ordersContainer.getChildren().add(card);
+                } else {
+                    updateCardState(activeCards.get(c.getId()), c);
+                }
+            }
+
+            if (activeCards.isEmpty() && ordersContainer.getChildren().isEmpty()) {
+                 Label emptyLabel = new Label("Nessuna comanda in attesa");
+                 emptyLabel.setStyle("-fx-text-fill: #34495e; -fx-font-size: 18px;");
+                 ordersContainer.getChildren().add(emptyLabel);
             }
         } catch (SQLException e) {
             System.err.println("Errore durante il caricamento delle comande: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void updateCardState(VBox card, Comanda c) {
+        if (card.getChildren().size() > 3) {
+            HBox footer = (HBox) card.getChildren().get(3);
+            
+            // Controlla se il bottone attuale corrisponde già allo stato desiderato
+            String currentButtonText = "";
+            if (!footer.getChildren().isEmpty() && footer.getChildren().get(0) instanceof Button) {
+                currentButtonText = ((Button) footer.getChildren().get(0)).getText();
+            }
+
+            String expectedButtonText = "";
+            if ("In Attesa".equals(c.getStato())) {
+                expectedButtonText = "Inizia";
+            } else if ("In Preparazione".equals(c.getStato())) {
+                expectedButtonText = "Pronto";
+            }
+
+            // Aggiorna solo se necessario per evitare di perdere il focus o il click
+            if (!currentButtonText.equals(expectedButtonText)) {
+                footer.getChildren().clear();
+                
+                if ("In Attesa".equals(c.getStato())) {
+                    Button btnPrepara = new Button("Inizia");
+                    btnPrepara.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-cursor: hand;");
+                    btnPrepara.setOnAction(e -> updateStato(c, "In Preparazione"));
+                    footer.getChildren().add(btnPrepara);
+                } else if ("In Preparazione".equals(c.getStato())) {
+                    Button btnPronto = new Button("Pronto");
+                    btnPronto.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand;");
+                    btnPronto.setOnAction(e -> updateStato(c, "Pronto"));
+                    footer.getChildren().add(btnPronto);
+                }
+            }
+        }
+    }
+
+    private void updateTimers() {
+        for (Map.Entry<Integer, VBox> entry : activeCards.entrySet()) {
+            VBox card = entry.getValue();
+            if (!card.getChildren().isEmpty() && card.getChildren().get(0) instanceof HBox) {
+                HBox header = (HBox) card.getChildren().get(0);
+                if (!header.getChildren().isEmpty()) {
+                    javafx.scene.Node lastNode = header.getChildren().get(header.getChildren().size() - 1);
+                    if (lastNode instanceof Label) {
+                        Label lblTime = (Label) lastNode;
+                        if (lblTime.getUserData() instanceof java.time.LocalDateTime) {
+                            java.time.LocalDateTime orderTime = (java.time.LocalDateTime) lblTime.getUserData();
+                            java.time.Duration duration = java.time.Duration.between(orderTime, java.time.LocalDateTime.now());
+                            long minutes = duration.toMinutes();
+                            long seconds = duration.minusMinutes(minutes).getSeconds();
+                            lblTime.setText(String.format("%02d:%02d", minutes, seconds));
+                            
+                            if (minutes >= 15) {
+                                lblTime.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-font-size: 14px;");
+                            } else {
+                                lblTime.setStyle("-fx-text-fill: #bdc3c7; -fx-font-size: 14px;");
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -126,9 +225,9 @@ public class BarController implements Initializable {
         HBox spacer = new HBox();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        String timeStr = c.getDataOra().format(DateTimeFormatter.ofPattern("HH:mm"));
-        Label lblTime = new Label(timeStr);
+        Label lblTime = new Label("00:00");
         lblTime.setStyle("-fx-text-fill: #bdc3c7;");
+        lblTime.setUserData(c.getDataOra());
 
         header.getChildren().addAll(lblTavolo, spacer, lblTime);
 
@@ -171,6 +270,7 @@ public class BarController implements Initializable {
     private void updateStato(Comanda c, String nuovoStato) {
         try {
             comandaDAO.updateStatoComanda(c.getId(), nuovoStato);
+            // Non rimuovere manualmente da activeCards, lascia che loadComande gestisca la sincronizzazione
             loadComande();
         } catch (SQLException e) {
             e.printStackTrace();

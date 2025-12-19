@@ -45,11 +45,14 @@ public class PrenotazioniController implements Initializable {
     @FXML private TextArea txtNote;
     @FXML private TextField txtCerca;
     @FXML private ComboBox<Tavolo> comboTavolo;
+    @FXML private Button btnSalva;
+    @FXML private Button btnAnnulla;
  
     private PrenotazioneDAO prenotazioneDAO;
     private TavoloDAO tavoloDAO;
     private ObservableList<Prenotazione> masterData = FXCollections.observableArrayList();
     private Map<Integer, Integer> tavoloMap = new HashMap<>();
+    private Integer editingReservationId = null;
  
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -95,6 +98,43 @@ public class PrenotazioniController implements Initializable {
                 loadTavoli();
             }
         });
+
+        // Listener selezione tabella per modifica
+        tablePrenotazioni.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                populateForm(newVal);
+            }
+        });
+    }
+
+    private void populateForm(Prenotazione p) {
+        editingReservationId = p.getId();
+        txtNome.setText(p.getNomeCliente());
+        txtTelefono.setText(p.getTelefono());
+        spinPax.getValueFactory().setValue(p.getNumeroPersone());
+        txtNote.setText(p.getNote());
+        
+        datePicker.setValue(p.getDataOra().toLocalDate());
+        txtOra.setText(p.getDataOra().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+        
+        // Seleziona tavolo
+        comboTavolo.setValue(null); // Reset prima
+        if (p.getIdTavolo() != null) {
+            // Dobbiamo trovare l'oggetto Tavolo corrispondente nella combo
+            // Nota: la combo potrebbe non contenere il tavolo se è filtrato via perché "occupato", 
+            // ma se stiamo modificando QUESTA prenotazione, quel tavolo dovrebbe essere valido per noi.
+            // Per semplicità, proviamo a selezionarlo se c'è.
+            for (Tavolo t : comboTavolo.getItems()) {
+                if (t.getId() == p.getIdTavolo()) {
+                    comboTavolo.setValue(t);
+                    break;
+                }
+            }
+        }
+
+        btnSalva.setText("Aggiorna Prenotazione");
+        btnAnnulla.setVisible(true);
+        btnAnnulla.setManaged(true);
     }
  
     private void loadPrenotazioni() {
@@ -119,6 +159,19 @@ public class PrenotazioniController implements Initializable {
             if (selectedDate != null) {
                 List<Integer> reservedIds = prenotazioneDAO.getReservedTableIdsForDate(selectedDate);
                 
+                // Se stiamo modificando una prenotazione e la data coincide, 
+                // rimuoviamo il tavolo attuale dalla lista dei "già prenotati" per permettere di mantenerlo.
+                if (editingReservationId != null) {
+                    Prenotazione current = masterData.stream()
+                        .filter(p -> p.getId() == editingReservationId)
+                        .findFirst()
+                        .orElse(null);
+                    
+                    if (current != null && current.getIdTavolo() != null && current.getDataOra().toLocalDate().equals(selectedDate)) {
+                        reservedIds.remove(Integer.valueOf(current.getIdTavolo()));
+                    }
+                }
+
                 // Se la data è oggi, consideriamo anche i tavoli attualmente occupati
                 if (selectedDate.equals(LocalDate.now())) {
                     for (Tavolo t : tavoli) {
@@ -198,9 +251,18 @@ public class PrenotazioniController implements Initializable {
 
             Integer idTavolo = selectedTavolo != null ? selectedTavolo.getId() : null;
  
-            Prenotazione p = new Prenotazione(0, nome, txtTelefono.getText(), spinPax.getValue(), dataOra, txtNote.getText(), idTavolo);
+            Prenotazione p = new Prenotazione(
+                editingReservationId != null ? editingReservationId : 0, 
+                nome, txtTelefono.getText(), spinPax.getValue(), dataOra, txtNote.getText(), idTavolo
+            );
            
-            prenotazioneDAO.insertPrenotazione(p);
+            if (editingReservationId != null) {
+                prenotazioneDAO.updatePrenotazione(p);
+                showAlert("Successo", "Prenotazione aggiornata correttamente.");
+            } else {
+                prenotazioneDAO.insertPrenotazione(p);
+                showAlert("Successo", "Prenotazione creata correttamente.");
+            }
            
             if (selectedTavolo != null) {
                 // Non aggiorniamo lo stato del tavolo nel DB, è calcolato dinamicamente
@@ -210,11 +272,18 @@ public class PrenotazioniController implements Initializable {
  
             loadPrenotazioni();
             clearForm();
+            tablePrenotazioni.getSelectionModel().clearSelection();
            
         } catch (Exception e) {
             showAlert("Errore", "Controlla i dati inseriti (es. orario HH:mm).");
             e.printStackTrace();
         }
+    }
+
+    @FXML
+    private void handleAnnulla() {
+        clearForm();
+        tablePrenotazioni.getSelectionModel().clearSelection();
     }
  
     @FXML
@@ -243,17 +312,29 @@ public class PrenotazioniController implements Initializable {
     @FXML
     private void handleBack() {
         try {
-            FamigliaSaporiApplication.setRoot("SalaView");
+            // Controlla il ruolo dell'utente corrente per decidere dove tornare
+            if (FamigliaSaporiApplication.currentUser != null && 
+                "Gestore".equalsIgnoreCase(FamigliaSaporiApplication.currentUser.getRuolo())) {
+                FamigliaSaporiApplication.setRoot("GestoreView");
+            } else {
+                FamigliaSaporiApplication.setRoot("SalaView");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
  
     private void clearForm() {
+        editingReservationId = null;
         txtNome.clear();
         txtTelefono.clear();
         txtNote.clear();
         spinPax.getValueFactory().setValue(2);
+        comboTavolo.setValue(null);
+        
+        btnSalva.setText("Registra Prenotazione");
+        btnAnnulla.setVisible(false);
+        btnAnnulla.setManaged(false);
     }
  
     private void showAlert(String title, String content) {

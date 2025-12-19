@@ -51,6 +51,25 @@ public class PrenotazioneDAO {
             stmt.executeUpdate();
         }
     }
+
+    public void updatePrenotazione(Prenotazione p) throws SQLException {
+        String query = "UPDATE Prenotazioni SET nome_cliente=?, telefono=?, numero_persone=?, data_ora=?, note=?, id_tavolo=? WHERE id=?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, p.getNomeCliente());
+            stmt.setString(2, p.getTelefono());
+            stmt.setInt(3, p.getNumeroPersone());
+            stmt.setTimestamp(4, Timestamp.valueOf(p.getDataOra()));
+            stmt.setString(5, p.getNote());
+            if (p.getIdTavolo() != null) {
+                stmt.setInt(6, p.getIdTavolo());
+            } else {
+                stmt.setNull(6, Types.INTEGER);
+            }
+            stmt.setInt(7, p.getId());
+            stmt.executeUpdate();
+        }
+    }
  
     public void deletePrenotazione(int id) throws SQLException {
         String query = "DELETE FROM Prenotazioni WHERE id = ?";

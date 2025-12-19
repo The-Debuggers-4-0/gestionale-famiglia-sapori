@@ -31,6 +31,7 @@
             <Label styleClass="header-title" text="Pannello di Gestione" />
             <HBox HBox.hgrow="ALWAYS" />
             <Label fx:id="lblUtente" styleClass="user-label" text="Gestore: Admin" />
+            <Button mnemonicParsing="false" onAction="#handleGestionePrenotazioni" styleClass="secondary-button" text="Prenotazioni" />
             <Button mnemonicParsing="false" onAction="#handleLogout" styleClass="logout-button" text="Logout" />
         </HBox>
     </top>

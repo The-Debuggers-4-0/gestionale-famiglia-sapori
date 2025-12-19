@@ -96,7 +96,10 @@
                     <TextArea fx:id="txtNote" styleClass="input-field" style="-fx-text-fill: black;" prefHeight="80.0" wrapText="true" promptText="Intolleranze, seggioloni..." />
                 </VBox>
  
-                <Button onAction="#handleSalva" text="Registra Prenotazione" styleClass="primary-button" maxWidth="Infinity" />
+                <HBox spacing="10.0">
+                    <Button fx:id="btnAnnulla" onAction="#handleAnnulla" text="Annulla" styleClass="secondary-button" maxWidth="Infinity" HBox.hgrow="ALWAYS" visible="false" managed="false"/>
+                    <Button fx:id="btnSalva" onAction="#handleSalva" text="Registra Prenotazione" styleClass="primary-button" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                </HBox>
             </VBox>
         </HBox>
     </center>

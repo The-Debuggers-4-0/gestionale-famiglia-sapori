@@ -77,6 +77,6 @@
         </Button>
     </HBox>
     
-    <Label styleClass="footer-label" text="Versione 2.0" />
+    <Label styleClass="footer-label" text="Versione 3.0" />
 
 </VBox>
