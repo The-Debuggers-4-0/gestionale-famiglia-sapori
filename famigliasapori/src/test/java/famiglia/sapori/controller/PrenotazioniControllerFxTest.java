@@ -30,12 +30,14 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
     private PrenotazioniController controller;
     private Stage testStage;
 
+    // Configurazione del database di test prima di tutti i test
     @BeforeAll
     static void setupDatabase() throws Exception {
         TestDatabase.setupSchema();
         TestDatabase.seedData();
     }
 
+    // Caricamento dell'interfaccia utente prima di ogni test
     @Override
     public void start(Stage stage) throws Exception {
         this.testStage = stage;
@@ -47,15 +49,18 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
         // Ottieni il controller dalla FXML
         controller = loader.getController();
         
+        // Configura la scena di test
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
     }
     
+    // Setup e cleanup della scena mock
     @BeforeEach
     void setupMockScene() throws Exception {
         ApplicationMockHelper.setupMockScene(testStage);
     }
     
+    // Pulizia dopo ogni test
     @AfterEach
     void clearMockScene() throws Exception {
         ApplicationMockHelper.clearMockScene();

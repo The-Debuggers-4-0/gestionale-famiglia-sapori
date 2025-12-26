@@ -24,12 +24,14 @@ public class BarControllerFxTest extends ApplicationTest {
     private BarController controller;
     private Stage testStage;
 
+    // Prepara lo schema del database prima di tutti i test
     @BeforeAll
     static void setupDatabase() throws Exception {
         TestDatabase.setupSchema();
         TestDatabase.seedData();
     }
 
+    // Avvia l'applicazione prima dei test
     @Override
     public void start(Stage stage) throws Exception {
         this.testStage = stage;
@@ -44,12 +46,14 @@ public class BarControllerFxTest extends ApplicationTest {
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
     }
-    
+
+    // Prepara la scena di test prima di ogni test
     @BeforeEach
     void setupMockScene() throws Exception {
         ApplicationMockHelper.setupMockScene(testStage);
     }
-    
+
+    // Pulizia dopo ogni test
     @AfterEach
     void clearMockScene() throws Exception {
         ApplicationMockHelper.clearMockScene();
@@ -231,6 +235,7 @@ public class BarControllerFxTest extends ApplicationTest {
         List<Comanda> comande = comandaDAO.getComandeByStatoAndTipo("In Attesa", "Bar");
         comande.addAll(comandaDAO.getComandeByStatoAndTipo("In Preparazione", "Bar"));
         
+        // Imposta tutte le comande a "Servita" per rimuoverle dalla vista
         for (Comanda c : comande) {
             comandaDAO.updateStatoComanda(c.getId(), "Servita");
         }

@@ -30,6 +30,7 @@ public class GestoreControllerTest {
 
     private static final AtomicBoolean FX_INITIALIZED = new AtomicBoolean(false);
 
+    // Inizializza JavaFX una volta per tutti i test
     @BeforeAll
     static void initJavaFx() {
         if (FX_INITIALIZED.compareAndSet(false, true)) {
@@ -40,7 +41,8 @@ public class GestoreControllerTest {
             }
         }
     }
-
+    
+    // Esegue un'azione sul thread JavaFX e attende il completamento
     private static void runOnFxThread(Runnable action) throws Exception {
         if (Platform.isFxApplicationThread()) {
             action.run();
@@ -57,34 +59,40 @@ public class GestoreControllerTest {
                 latch.countDown();
             }
         });
-        assertTrue(latch.await(10, TimeUnit.SECONDS), "Timed out waiting for FX thread");
+        // Attende il completamento con timeout
+        assertTrue(latch.await(10, TimeUnit.SECONDS), "Timeout in attesa del thread FX");
         if (error.get() != null) {
             throw new AssertionError(error.get());
         }
     }
 
+    // Metodi di utilità per reflection
     private static void setField(Object target, String fieldName, Object value) throws Exception {
         Field f = target.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(target, value);
     }
 
+    // Ottiene il valore di un campo tramite reflection
     private static Object getField(Object target, String fieldName) throws Exception {
         Field f = target.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         return f.get(target);
     }
-
+    
+    // Invoca un metodo senza argomenti tramite reflection
     private static void invokeNoArg(Object target, String methodName) throws Exception {
         Method m = target.getClass().getDeclaredMethod(methodName);
         m.setAccessible(true);
         m.invoke(target);
     }
 
+    // Normalizza stringhe di euro rimuovendo spazi non standard
     private static String normalizeEuro(String s) {
         return s == null ? null : s.replace('\u00A0', ' ').trim();
     }
 
+    // Fake DAO per test
     private static final class FakeMenuDAO extends MenuDAO {
         int insertCalls;
         int updateCalls;

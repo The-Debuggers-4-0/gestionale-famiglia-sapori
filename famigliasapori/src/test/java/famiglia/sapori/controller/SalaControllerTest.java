@@ -38,6 +38,7 @@ public class SalaControllerTest {
 
     private static final AtomicBoolean FX_INITIALIZED = new AtomicBoolean(false);
 
+    // Inizializza JavaFX una volta prima di tutti i test
     @BeforeAll
     static void initJavaFx() {
         if (FX_INITIALIZED.compareAndSet(false, true)) {
@@ -50,11 +51,13 @@ public class SalaControllerTest {
         }
     }
 
+    // Resetta l'utente corrente dopo ogni test
     @AfterEach
     void resetCurrentUser() {
         FamigliaSaporiApplication.currentUser = null;
     }
 
+    // Esegue un'azione sul thread JavaFX e attende il completamento
     private static void runOnFxThread(Runnable action) throws Exception {
         if (Platform.isFxApplicationThread()) {
             action.run();
@@ -77,24 +80,28 @@ public class SalaControllerTest {
         }
     }
 
+    // Imposta il valore di un campo privato tramite reflection
     private static void setField(Object target, String fieldName, Object value) throws Exception {
         Field f = target.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(target, value);
     }
 
+    // Invoca un metodo privato senza argomenti tramite reflection
     private static void invokeNoArg(Object target, String methodName) throws Exception {
         Method m = target.getClass().getDeclaredMethod(methodName);
         m.setAccessible(true);
         m.invoke(target);
     }
 
+    // Invoca il metodo privato sendComanda tramite reflection
     private static void invokeSendComanda(SalaController controller, Map<Piatto, Integer> items, String tipo) throws Exception {
         Method m = SalaController.class.getDeclaredMethod("sendComanda", Map.class, String.class);
         m.setAccessible(true);
         m.invoke(controller, items, tipo);
     }
 
+    // Fake DAO per i test
     private static final class FakeTavoloDAO extends TavoloDAO {
         private final List<Tavolo> tavoli;
 
@@ -108,6 +115,7 @@ public class SalaControllerTest {
         }
     }
 
+    // Fake DAO per i test
     private static final class FakePrenotazioneDAO extends PrenotazioneDAO {
         private final List<Prenotazione> prenotazioni;
 
@@ -135,6 +143,7 @@ public class SalaControllerTest {
         }
     }
 
+    // Fake DAO che simula comande pagate per un tavolo specifico
     private static final class FakeComandaDAOWithFulfilled extends FakeComandaDAO {
         private final int fulfilledTableId;
 
@@ -166,21 +175,25 @@ public class SalaControllerTest {
         assertFalse((boolean) m.invoke(controller, "Secondi"));
     }
 
+    // Test del metodo loadTavoli per verificare gli stati dei tavoli
     @Test
     void loadTavoli_appliesReservedOccupiedAndFreeStatuses() throws Exception {
         runOnFxThread(() -> {
             try {
                 SalaController controller = new SalaController();
 
+                // Configura il container dei tavoli
                 FlowPane container = new FlowPane();
                 setField(controller, "tavoliContainer", container);
 
+                // Configura i dati di test
                 List<Tavolo> tavoli = List.of(
                         new Tavolo(1, 1, "Prenotato", 4, ""),
                         new Tavolo(2, 2, "Occupato", 2, ""),
                         new Tavolo(3, 3, "Libero", 6, "")
                 );
 
+                // Configura le prenotazioni per il giorno corrente
                 LocalDateTime now = LocalDateTime.now();
                 List<Prenotazione> prenotazioni = List.of(
                         new Prenotazione(11, "A", "1", 2, now.plusHours(2), "", 1),
@@ -188,14 +201,17 @@ public class SalaControllerTest {
                         new Prenotazione(13, "C", "3", 2, now.plusHours(4), "", 3)
                 );
 
+                // Configura i DAO fittizi
                 setField(controller, "tavoloDAO", new FakeTavoloDAO(tavoli));
                 setField(controller, "prenotazioneDAO", new FakePrenotazioneDAO(prenotazioni));
                 setField(controller, "comandaDAO", new FakeComandaDAOWithFulfilled(3));
 
                 invokeNoArg(controller, "loadTavoli");
 
+                // Verifica che i tavoli siano stati caricati correttamente
                 assertEquals(3, container.getChildren().size());
 
+                // Verifica i colori degli stati
                 VBox box1 = (VBox) container.getChildren().get(0);
                 Rectangle r1 = (Rectangle) box1.getChildren().get(0);
                 assertEquals(Color.web("#f39c12"), r1.getFill());
@@ -213,30 +229,37 @@ public class SalaControllerTest {
         });
     }
 
+    // Test del metodo sendComanda per verificare la costruzione della comanda
     @Test
     void sendComanda_buildsProductsAndTotalAndCopiesNote() throws Exception {
         runOnFxThread(() -> {
             try {
                 SalaController controller = new SalaController();
 
+                //  Configura il FakeComandaDAO
                 FakeComandaDAO fake = new FakeComandaDAO();
                 setField(controller, "comandaDAO", fake);
 
+                // Configura il tavolo selezionato e le note
                 setField(controller, "selectedTavolo", new Tavolo(5, 5, "Libero", 4, ""));
                 TextArea note = new TextArea("nota prova");
                 setField(controller, "txtNote", note);
 
                 FamigliaSaporiApplication.currentUser = new Utente(9, "Test", "u", "p", "Cameriere");
 
+                // Prepara gli elementi della comanda
                 Piatto p1 = new Piatto(1, "Pizza", "", 6.00, "Primi", true, "");
                 Piatto p2 = new Piatto(2, "Acqua", "", 1.50, "Bevande", true, "");
 
+                // Costruisci la mappa degli elementi
                 Map<Piatto, Integer> items = new LinkedHashMap<>();
                 items.put(p1, 2);
                 items.put(p2, 1);
 
+                // Invia la comanda
                 invokeSendComanda(controller, items, "Cucina");
 
+                // Verifica che la comanda sia stata costruita correttamente
                 assertNotNull(fake.lastInserted);
                 assertEquals(5, fake.lastInserted.getIdTavolo());
                 assertEquals("Cucina", fake.lastInserted.getTipo());
@@ -244,10 +267,12 @@ public class SalaControllerTest {
                 assertEquals("nota prova", fake.lastInserted.getNote());
                 assertEquals(9, fake.lastInserted.getIdCameriere());
 
+                // Verifica i prodotti e il totale
                 String prodotti = fake.lastInserted.getProdotti();
                 assertTrue(prodotti.contains("2x Pizza"), "Prodotti: " + prodotti);
                 assertTrue(prodotti.contains("1x Acqua"), "Prodotti: " + prodotti);
 
+                // Totale: 2*6.00 + 1*1.50 = 13.50
                 assertEquals(13.50, fake.lastInserted.getTotale(), 0.0001);
             } catch (Exception e) {
                 throw new RuntimeException(e);

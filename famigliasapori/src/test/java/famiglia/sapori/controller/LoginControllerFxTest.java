@@ -18,9 +18,11 @@ import org.testfx.framework.junit5.ApplicationTest;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class LoginControllerFxTest extends ApplicationTest {
+    // Riferimento al controller per testare metodi specifici
     @SuppressWarnings("unused")
     private LoginController controller;
 
+    // Configurazione del database di test prima di tutti i test
     @BeforeAll
     static void setupDatabase() throws Exception {
         // Configura il database H2 in-memory
@@ -28,6 +30,7 @@ public class LoginControllerFxTest extends ApplicationTest {
         TestDatabase.seedData();
     }
 
+    // Caricamento dell'interfaccia utente prima di ogni test
     @Override
     public void start(Stage stage) throws Exception {
         // Carica il file FXML reale che usa il database H2
@@ -37,11 +40,13 @@ public class LoginControllerFxTest extends ApplicationTest {
         // Ottieni il controller istanziato dalla FXML
         controller = loader.getController();
         
+        // Configura la scena di test
         stage.setScene(new Scene(root, 800, 600));
         ApplicationMockHelper.setupMockScene(stage);
         stage.show();
     }
 
+    // Pulizia dopo ogni test
     @AfterEach
     void cleanupUser() {
         FamigliaSaporiApplication.currentUser = null;
@@ -52,6 +57,7 @@ public class LoginControllerFxTest extends ApplicationTest {
         }
     }
 
+    // Test dei comportamenti UI
     @Test
     void showsError_whenFieldsEmpty() {
         clickOn("#btnLogin");
@@ -63,9 +69,11 @@ public class LoginControllerFxTest extends ApplicationTest {
     /**
      * Nota: evitiamo il percorso con credenziali valide perché il controller
      * esegue la navigazione verso SalaView con caricamento FXML/DAO.
-     * Manteniamo il focus su comportamenti UI locali (validazione campi/errore).
+     * Manteniamo il focus su comportamenti UI locali (validazione campi/errore),
+     * cioe: testiamo che l'errore venga mostrato per credenziali non valide.
      */
 
+    // Test di login con credenziali non valide
     @Test
     void showsError_onInvalidCredentials() {
         writeInto("#usernameField", "invaliduser");
@@ -77,15 +85,21 @@ public class LoginControllerFxTest extends ApplicationTest {
         assertNull(FamigliaSaporiApplication.currentUser);
     }
 
+    // Test di login con credenziali valide per Utente
     @Test
     void login_withValidGestoreCredentials_navigatesToGestoreAndSetsCurrentUser() {
+        // Inserisci credenziali valide per Gestore
         writeInto("#usernameField", "admin");
         writeInto("#passwordField", "admin");
+
+        // Esegui il login
         clickOn("#btnLogin");
 
+        // Verifica che l'utente corrente sia impostato correttamente
         assertNotNull(FamigliaSaporiApplication.currentUser);
         assertEquals("Gestore", FamigliaSaporiApplication.currentUser.getRuolo());
 
+        // Verifica che la vista Gestore sia caricata
         TabPane tabPane = lookup("#tabPaneGestore").queryAs(TabPane.class);
         assertNotNull(tabPane, "Dopo login Gestore, dovrebbe essere caricata GestoreView");
     }
@@ -96,12 +110,13 @@ public class LoginControllerFxTest extends ApplicationTest {
     @Test
     void handleLoginValidatesCredentials() {
         assertNotNull(controller);
+        // Inserisci credenziali
         writeInto("#usernameField", "testuser");
         writeInto("#passwordField", "testpass");
         // Il metodo handleLogin viene eseguito al click
     }
 
-    // Helper to clear and write text
+    // Metodo di utilità per scrivere testo in un TextField
     private void writeInto(String selector, String text) {
         TextField tf = lookup(selector).query();
         clickOn(selector);

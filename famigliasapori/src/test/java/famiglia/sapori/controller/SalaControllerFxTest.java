@@ -28,12 +28,14 @@ public class SalaControllerFxTest extends ApplicationTest {
     private SalaController controller;
     private Stage testStage;
 
+    // Configurazione del database di test prima di tutti i test
     @BeforeAll
     static void setupDatabase() throws Exception {
         TestDatabase.setupSchema();
         TestDatabase.seedData();
     }
 
+    // Caricamento dell'interfaccia utente prima di ogni test
     @Override
     public void start(Stage stage) throws Exception {
         this.testStage = stage;
@@ -45,15 +47,18 @@ public class SalaControllerFxTest extends ApplicationTest {
         // Ottieni il controller dalla FXML
         controller = loader.getController();
         
+        // Configura la scena di test
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
     }
     
+    // Setup e cleanup della scena mock
     @BeforeEach
     void setupMockScene() throws Exception {
         ApplicationMockHelper.setupMockScene(testStage);
     }
     
+    // Pulizia dopo ogni test
     @AfterEach
     void clearMockScene() throws Exception {
         ApplicationMockHelper.clearMockScene();
@@ -124,14 +129,20 @@ public class SalaControllerFxTest extends ApplicationTest {
      */
     @Test
     void loadsMenuWithCategories() throws Exception {
+
+        // Verifica che il controller sia inizializzato
         assertNotNull(controller);
+        // Attesa per caricamento menu
         sleep(500);
+
         // Verifica che il TabPane menu esista
         try {
             assertNotNull(lookup("#menuTabPane").query(), "Il menu TabPane dovrebbe essere caricato");
         } catch (Exception e) {
             // Se non trova #menuTabPane, prova con i tab delle categorie
             boolean hasCategoryTabs = false;
+
+            // Controlla la presenza di tab per alcune categorie comuni
             for (String category : new String[]{"Antipasti", "Primi", "Secondi", "Birre", "Vini"}) {
                 try {
                     if (lookup(category).query() != null) {
@@ -142,6 +153,7 @@ public class SalaControllerFxTest extends ApplicationTest {
                     // Continue
                 }
             }
+            // Se non trova neanche i tab delle categorie, verifica che il controller sia valido
             assertTrue(hasCategoryTabs || controller != null, "Dovrebbero essere presenti categorie del menu");
         }
     }
@@ -193,6 +205,8 @@ public class SalaControllerFxTest extends ApplicationTest {
         // Verifica che la label totale esista e contenga il simbolo €
         Label lblTotale = lookup("#lblTotale").queryAs(Label.class);
         assertNotNull(lblTotale, "La label totale dovrebbe esistere");
+
+        // Verifica che il testo contenga "€" o "TOTALE"
         assertTrue(lblTotale.getText().contains("€") || lblTotale.getText().contains("TOTALE"), 
             "La label totale dovrebbe contenere € o TOTALE");
     }
@@ -382,7 +396,7 @@ public class SalaControllerFxTest extends ApplicationTest {
             .filter(p -> p.getCategoria().equals("Primi") && p.isDisponibile())
             .findFirst()
             .orElse(null);
-        
+
         if (primo != null) {
             Set<Button> plusButtons = lookup(".button").queryAll().stream()
                 .filter(b -> b instanceof Button && ((Button)b).getText().equals("+"))

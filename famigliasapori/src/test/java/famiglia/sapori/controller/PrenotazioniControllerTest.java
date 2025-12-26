@@ -12,7 +12,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PrenotazioniControllerTest {
 
     /**
-     * Verifica parsing corretto dell'ora da TextField nel formato "HH:mm".
+     * Verifica parsing corretto dell'ora da TextField nel formato "HH:mm",
+     * cioe': ore e minuti separati da due punti.
      */
     @Test
     public void testParseTime_validFormat() {
@@ -36,7 +37,8 @@ public class PrenotazioniControllerTest {
     }
 
     /**
-     * Verifica filtraggio ricerca case-insensitive con match.
+     * Verifica filtraggio ricerca case-insensitive con match, cioe: se la query
+     * è presente nel nome del cliente indipendentemente da maiuscole/minuscole.
      */
     @Test
     public void testFilterSearch_caseInsensitiveMatch() {

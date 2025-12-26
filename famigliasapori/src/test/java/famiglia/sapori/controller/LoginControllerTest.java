@@ -13,9 +13,16 @@ public class LoginControllerTest {
      */
     @Test
     public void testInitializeSetsDAOWithoutUI() throws Exception {
+        // Crea un'istanza del controller
         LoginController controller = new LoginController();
+
+        // Chiama il metodo initialize
         assertDoesNotThrow(() -> controller.initialize(null, null));
+
+        // Usa reflection per accedere al campo privato utenteDAO
         Field f = LoginController.class.getDeclaredField("utenteDAO");
+
+        // Rendi il campo accessibile e verifica che non sia null
         f.setAccessible(true);
         assertNotNull(f.get(controller));
     }
