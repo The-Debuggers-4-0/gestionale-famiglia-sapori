@@ -56,8 +56,7 @@ public class DAOExceptionTest extends DatabaseTestBase {
         assertTrue(conn.isClosed(), "La connessione dovrebbe essere chiusa");
 
         // Tentativo di operazione su connessione chiusa dovrebbe causare errore
-        // Tentativo di operazione su connessione chiusa dovrebbe causare errore
-        assertThrows(SQLException.class, () -> conn.createStatement());
+        assertThrows(SQLException.class, conn::createStatement);
     }
 
     /**
