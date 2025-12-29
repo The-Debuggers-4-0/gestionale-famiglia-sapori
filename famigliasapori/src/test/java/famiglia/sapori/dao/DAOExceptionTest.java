@@ -37,7 +37,8 @@ public class DAOExceptionTest extends DatabaseTestBase {
      */
     @Test
     void operationOnClosedConnection_throwsSQLException() throws SQLException {
-        // Crea una connessione indipendente e chiudila (non toccare il singleton condiviso)
+        // Crea una connessione indipendente e chiudila (non toccare il singleton
+        // condiviso)
         Properties props;
         try {
             props = loadDbProperties();
@@ -48,17 +49,15 @@ public class DAOExceptionTest extends DatabaseTestBase {
         Connection conn = DriverManager.getConnection(
                 props.getProperty("db.url"),
                 props.getProperty("db.username"),
-                props.getProperty("db.password")
-        );
+                props.getProperty("db.password"));
         conn.close();
-        
+
         // Verifica che la connessione sia chiusa
         assertTrue(conn.isClosed(), "La connessione dovrebbe essere chiusa");
-        
+
         // Tentativo di operazione su connessione chiusa dovrebbe causare errore
-        assertThrows(SQLException.class, () -> {
-            conn.createStatement().executeQuery("SELECT 1");
-        });
+        // Tentativo di operazione su connessione chiusa dovrebbe causare errore
+        assertThrows(SQLException.class, () -> conn.createStatement());
     }
 
     /**
@@ -67,8 +66,9 @@ public class DAOExceptionTest extends DatabaseTestBase {
     @Test
     void invalidSQLQuery_throwsSQLException() {
         assertThrows(SQLException.class, () -> {
-            Connection conn = DatabaseConnection.getInstance().getConnection();
-            conn.createStatement().executeQuery("SELECT * FROM NonExistentTable");
+            DatabaseConnection.getInstance().getConnection()
+                    .createStatement()
+                    .executeQuery("SELECT * FROM NonExistentTable");
         });
     }
 
@@ -81,7 +81,7 @@ public class DAOExceptionTest extends DatabaseTestBase {
         ComandaDAO dao = new ComandaDAO();
         // idTavolo 9999 non esiste nel database di test
         Comanda c = new Comanda(0, 9999, "Test", 5.00, "Cucina", "In Attesa", LocalDateTime.now(), "", 1);
-        
+
         // Con FK abilitati, deve sollevare SQLException per violazione constraint
         assertThrows(SQLException.class, () -> dao.insertComanda(c));
     }
