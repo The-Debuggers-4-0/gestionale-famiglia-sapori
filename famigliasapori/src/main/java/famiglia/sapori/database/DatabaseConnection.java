@@ -1,33 +1,32 @@
 package famiglia.sapori.database;
- 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
- 
+
 public class DatabaseConnection {
     private static volatile DatabaseConnection instance;
     private Connection connection;
     private Properties dbProperties;
-   
+
     private DatabaseConnection() throws SQLException {
         loadDatabaseProperties();
         try {
             Class.forName(dbProperties.getProperty("db.driver"));
             this.connection = DriverManager.getConnection(
-                dbProperties.getProperty("db.url"),
-                dbProperties.getProperty("db.username"),
-                dbProperties.getProperty("db.password")
-            );
+                    dbProperties.getProperty("db.url"),
+                    dbProperties.getProperty("db.username"),
+                    dbProperties.getProperty("db.password"));
         } catch (ClassNotFoundException e) {
             throw new SQLException("Driver MySQL non trovato", e);
         } catch (SQLException e) {
             throw new SQLException("Errore nella connessione al database: " + e.getMessage(), e);
         }
     }
- 
+
     private void loadDatabaseProperties() throws SQLException {
         dbProperties = new Properties();
         // Usa getResourceAsStream con path assoluto per sicurezza
@@ -40,7 +39,7 @@ public class DatabaseConnection {
             throw new SQLException("Errore nel caricamento del file database.properties", e);
         }
     }
- 
+
     public Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
             // Riconnetti automaticamente se la connessione è chiusa
@@ -49,10 +48,9 @@ public class DatabaseConnection {
                     try {
                         Class.forName(dbProperties.getProperty("db.driver"));
                         this.connection = DriverManager.getConnection(
-                            dbProperties.getProperty("db.url"),
-                            dbProperties.getProperty("db.username"),
-                            dbProperties.getProperty("db.password")
-                        );
+                                dbProperties.getProperty("db.url"),
+                                dbProperties.getProperty("db.username"),
+                                dbProperties.getProperty("db.password"));
                     } catch (ClassNotFoundException e) {
                         throw new SQLException("Driver non trovato durante la riconnessione", e);
                     }
@@ -61,7 +59,7 @@ public class DatabaseConnection {
         }
         return connection;
     }
- 
+
     public static DatabaseConnection getInstance() throws SQLException {
         if (instance == null) {
             synchronized (DatabaseConnection.class) {
@@ -69,26 +67,10 @@ public class DatabaseConnection {
                     instance = new DatabaseConnection();
                 }
             }
-        } else {
-            // Verifica se la connessione è chiusa e riconnetti se necessario
-            try {
-                if (instance.connection == null || instance.connection.isClosed()) {
-                    synchronized (DatabaseConnection.class) {
-                        if (instance.connection == null || instance.connection.isClosed()) {
-                            instance = new DatabaseConnection();
-                        }
-                    }
-                }
-            } catch (SQLException e) {
-                // Se c'è un errore nel controllo, prova a ricreare l'istanza
-                synchronized (DatabaseConnection.class) {
-                    instance = new DatabaseConnection();
-                }
-            }
         }
         return instance;
     }
- 
+
     public void closeConnection() {
         try {
             if (connection != null && !connection.isClosed()) {
