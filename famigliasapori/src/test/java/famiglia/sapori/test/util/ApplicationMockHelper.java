@@ -9,7 +9,7 @@ import java.lang.reflect.Field;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Utility class to mock static FamigliaSaporiApplication fields for testing.
+ * Classe di utilita per il mocking dei campi statici di FamigliaSaporiApplication durante i test.
  */
 public class ApplicationMockHelper {
 
@@ -19,9 +19,9 @@ public class ApplicationMockHelper {
         sceneField.set(null, scene); // null because it's static
     }
 
-    /**
-     * Sets up a mock Scene in FamigliaSaporiApplication.scene field using reflection.
-     * This allows controllers to call FamigliaSaporiApplication.setRoot() without NPE.
+    /** 
+     * Configura una scena mock nel campo scene di FamigliaSaporiApplication usando reflection.
+     * Questo permette ai controller di chiamare FamigliaSaporiApplication.setRoot() senza NullPointerException.
      *
      * @param stage the TestFX stage to associate with the mock scene
      * @throws Exception if reflection fails
@@ -29,12 +29,12 @@ public class ApplicationMockHelper {
     public static void setupMockScene(Stage stage) throws Exception {
         Scene mockScene = stage.getScene();
         if (Platform.isFxApplicationThread()) {
-            // Avoid deadlock: we're already on FX thread.
+            // Evita deadlock: siamo già sul thread FX
             setSceneField(mockScene);
             return;
         }
 
-        // JavaFX scene manipulation must happen on FX Application Thread
+        // La manipolazione della scena JavaFX deve avvenire sul thread dell'applicazione FX
         CountDownLatch latch = new CountDownLatch(1);
         Platform.runLater(() -> {
             try {
@@ -49,7 +49,7 @@ public class ApplicationMockHelper {
     }
 
     /**
-     * Clears the mock scene after tests.
+     * Pulisce la scena di mock dopo i test.
      * 
      * @throws Exception if reflection fails
      */
@@ -59,7 +59,9 @@ public class ApplicationMockHelper {
             return;
         }
 
+        // La manipolazione della scena JavaFX deve avvenire sul thread dell'applicazione FX
         CountDownLatch latch = new CountDownLatch(1);
+        // Esegui sul thread FX
         Platform.runLater(() -> {
             try {
                 setSceneField(null);
@@ -69,6 +71,7 @@ public class ApplicationMockHelper {
                 latch.countDown();
             }
         });
+        // Attendi il completamento
         latch.await();
     }
 }
