@@ -114,7 +114,15 @@ public class PrenotazioniController implements Initializable {
         spinPax.getValueFactory().setValue(p.getNumeroPersone());
         txtNote.setText(p.getNote());
         
+        boolean dateChanged = !p.getDataOra().toLocalDate().equals(datePicker.getValue());
         datePicker.setValue(p.getDataOra().toLocalDate());
+        
+        // Se la data non è cambiata, il listener del datePicker non scatta,
+        // quindi dobbiamo ricaricare i tavoli manualmente per includere quello della prenotazione corrente.
+        if (!dateChanged) {
+            loadTavoli();
+        }
+
         txtOra.setText(p.getDataOra().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
         
         // Seleziona tavolo
@@ -159,6 +167,15 @@ public class PrenotazioniController implements Initializable {
             if (selectedDate != null) {
                 List<Integer> reservedIds = prenotazioneDAO.getReservedTableIdsForDate(selectedDate);
                 
+                // Se la data è oggi, consideriamo anche i tavoli attualmente occupati
+                if (selectedDate.equals(LocalDate.now())) {
+                    for (Tavolo t : tavoli) {
+                        if ("Occupato".equalsIgnoreCase(t.getStato())) {
+                            reservedIds.add(t.getId());
+                        }
+                    }
+                }
+
                 // Se stiamo modificando una prenotazione e la data coincide, 
                 // rimuoviamo il tavolo attuale dalla lista dei "già prenotati" per permettere di mantenerlo.
                 if (editingReservationId != null) {
@@ -168,16 +185,8 @@ public class PrenotazioniController implements Initializable {
                         .orElse(null);
                     
                     if (current != null && current.getIdTavolo() != null && current.getDataOra().toLocalDate().equals(selectedDate)) {
-                        reservedIds.remove(Integer.valueOf(current.getIdTavolo()));
-                    }
-                }
-
-                // Se la data è oggi, consideriamo anche i tavoli attualmente occupati
-                if (selectedDate.equals(LocalDate.now())) {
-                    for (Tavolo t : tavoli) {
-                        if ("Occupato".equalsIgnoreCase(t.getStato())) {
-                            reservedIds.add(t.getId());
-                        }
+                        Integer idTavolo = current.getIdTavolo();
+                        reservedIds.removeIf(id -> id.equals(idTavolo));
                     }
                 }
                 
