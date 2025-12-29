@@ -16,6 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
+import org.testfx.util.WaitForAsyncUtils;
+
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -55,7 +57,18 @@ public class BarControllerFxTest extends ApplicationTest {
 
     // Pulizia dopo ogni test
     @AfterEach
-    void clearMockScene() throws Exception {
+    void tearDown() throws Exception {
+        // Stop polling via reflection to prevent database interference
+        if (controller != null) {
+            try {
+                java.lang.reflect.Method stopPolling = controller.getClass().getDeclaredMethod("stopPolling");
+                stopPolling.setAccessible(true);
+                stopPolling.invoke(controller);
+            } catch (Exception ignored) {
+                // Ignore if method not found or fails
+            }
+        }
+        WaitForAsyncUtils.waitForFxEvents();
         ApplicationMockHelper.clearMockScene();
     }
 
