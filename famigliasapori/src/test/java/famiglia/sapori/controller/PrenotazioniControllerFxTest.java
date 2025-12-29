@@ -41,25 +41,25 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
     @Override
     public void start(Stage stage) throws Exception {
         this.testStage = stage;
-        
+
         // Carica il file FXML reale che usa il database H2
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/PrenotazioneView.fxml"));
         Parent root = loader.load();
-        
+
         // Ottieni il controller dalla FXML
         controller = loader.getController();
-        
+
         // Configura la scena di test
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
     }
-    
+
     // Setup e cleanup della scena mock
     @BeforeEach
     void setupMockScene() throws Exception {
         ApplicationMockHelper.setupMockScene(testStage);
     }
-    
+
     // Pulizia dopo ogni test
     @AfterEach
     void clearMockScene() throws Exception {
@@ -75,7 +75,8 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
     }
 
     /**
-     * Verifica che il controller inizializzi correttamente colonne, spinner e date picker.
+     * Verifica che il controller inizializzi correttamente colonne, spinner e date
+     * picker.
      */
     @Test
     void controllerInitializesAllComponents() {
@@ -142,18 +143,20 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
         assertNotNull(lookup("Torna in Sala").query());
         clickOn("Torna in Sala"); // Should trigger handleBack()
     }
-    
+
     /**
-     * Verifica che cliccando "Registra Prenotazione" con campi vuoti non crea prenotazione.
+     * Verifica che cliccando "Registra Prenotazione" con campi vuoti non crea
+     * prenotazione.
      */
     @Test
     void clickingSalvaButtonWithEmptyFieldsShowsError() {
         assertNotNull(lookup("Registra Prenotazione").query());
         clickOn("Registra Prenotazione"); // Should trigger handleSalvaPrenotazione() with validation
     }
-    
+
     /**
-     * Verifica che cliccando "Elimina Selezionata" senza selezione non elimina nulla.
+     * Verifica che cliccando "Elimina Selezionata" senza selezione non elimina
+     * nulla.
      */
     @Test
     void clickingEliminaButtonWithNoSelectionDoesNothing() {
@@ -169,11 +172,11 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
     void clickingSalvaButtonWithValidDataSavesReservation() throws Exception {
         PrenotazioneDAO prenotazioneDAO = new PrenotazioneDAO();
         TavoloDAO tavoloDAO = new TavoloDAO();
-        
+
         int initialSize = prenotazioneDAO.getAllPrenotazioni().size();
-        
+
         sleep(500);
-        
+
         // Compila form con dati validi
         TextField txtNome = lookup("#txtNome").query();
         TextField txtTelefono = lookup("#txtTelefono").query();
@@ -181,7 +184,7 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
         DatePicker datePicker = lookup("#datePicker").query();
         Spinner<Integer> spinPax = lookup("#spinPax").query();
         ComboBox<Tavolo> comboTavolo = lookup("#comboTavolo").query();
-        
+
         interact(() -> {
             txtNome.setText("Mario Rossi");
             txtTelefono.setText("3331234567");
@@ -192,19 +195,19 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
                 comboTavolo.setValue(comboTavolo.getItems().get(0));
             }
         });
-        
+
         sleep(300);
         clickOn("Registra Prenotazione");
         sleep(500);
-        
+
         // Verifica che prenotazione sia salvata
         List<Prenotazione> prenotazioni = prenotazioneDAO.getAllPrenotazioni();
         assertEquals(initialSize + 1, prenotazioni.size());
-        
+
         Prenotazione saved = prenotazioni.stream()
-            .filter(p -> p.getNomeCliente().equals("Mario Rossi"))
-            .findFirst()
-            .orElse(null);
+                .filter(p -> p.getNomeCliente().equals("Mario Rossi"))
+                .findFirst()
+                .orElse(null);
         assertNotNull(saved);
         assertEquals(4, saved.getNumeroPersone());
     }
@@ -213,29 +216,30 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
      * Verifica eliminazione prenotazione con conferma.
      * Test business logic: handleElimina() rimuove dal DB.
      * 
-     * Nota: Commentato perché la selezione delle righe tramite text non funziona nei test
+     * Nota: Commentato perché la selezione delle righe tramite text non funziona
+     * nei test
      */
     // @Test
     void clickingEliminaButtonWithSelectionDeletesReservation() throws Exception {
         PrenotazioneDAO prenotazioneDAO = new PrenotazioneDAO();
-        
+
         // Crea prenotazione di test
-        Prenotazione test = new Prenotazione(0, "Test Delete", "123456789", 2, 
-            LocalDateTime.now().plusDays(2), "Test note", null);
+        Prenotazione test = new Prenotazione(0, "Test Delete", "123456789", 2,
+                LocalDateTime.now().plusDays(2), "Test note", null);
         prenotazioneDAO.insertPrenotazione(test);
-        
+
         sleep(500);
-        
+
         int initialSize = prenotazioneDAO.getAllPrenotazioni().size();
-        
+
         // Seleziona la prenotazione nella tabella
         clickOn("Test Delete");
         sleep(300);
-        
+
         // Click elimina
         clickOn("Elimina Selezionata");
         sleep(500);
-        
+
         // Verifica rimozione
         int newSize = prenotazioneDAO.getAllPrenotazioni().size();
         assertTrue(newSize < initialSize, "La prenotazione dovrebbe essere stata eliminata");
@@ -248,18 +252,24 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
     @Test
     void filterButtonsShowCorrectReservations() throws Exception {
         PrenotazioneDAO prenotazioneDAO = new PrenotazioneDAO();
-        
+
+        int initialCount = prenotazioneDAO.getAllPrenotazioni().size();
+
         // Crea prenotazioni con date diverse
-        Prenotazione oggi = new Prenotazione(0, "Oggi Client", "111", 2, 
-            LocalDateTime.now().withHour(20).withMinute(0), "", null);
+        Prenotazione oggi = new Prenotazione(0, "Oggi Client", "111", 2,
+                LocalDateTime.now().withHour(20).withMinute(0), "", null);
         prenotazioneDAO.insertPrenotazione(oggi);
-        
-        Prenotazione domani = new Prenotazione(0, "Domani Client", "222", 3, 
-            LocalDateTime.now().plusDays(1).withHour(20).withMinute(0), "", null);
+
+        Prenotazione domani = new Prenotazione(0, "Domani Client", "222", 3,
+                LocalDateTime.now().plusDays(1).withHour(20).withMinute(0), "", null);
         prenotazioneDAO.insertPrenotazione(domani);
-        
+
         sleep(500);
-        
+
+        // Verifica che le prenotazioni siano state create
+        int newCount = prenotazioneDAO.getAllPrenotazioni().size();
+        assertEquals(initialCount + 2, newCount, "Dovrebbero essere state create 2 nuove prenotazioni");
+
         // Click su "Oggi" se esiste
         try {
             clickOn("Oggi");
@@ -268,7 +278,7 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
         } catch (Exception e) {
             // Bottone potrebbe non esistere, skip
         }
-        
+
         // Click su "Domani" se esiste
         try {
             clickOn("Domani");
@@ -285,15 +295,18 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
      */
     @Test
     void selectingPastTimeShowsValidationError() throws Exception {
+        PrenotazioneDAO prenotazioneDAO = new PrenotazioneDAO();
+        int initialCount = prenotazioneDAO.getAllPrenotazioni().size();
+
         sleep(500);
-        
+
         // Compila form con ora passata
         TextField txtNome = lookup("#txtNome").query();
         TextField txtTelefono = lookup("#txtTelefono").query();
         TextField txtOra = lookup("#txtOra").query();
         DatePicker datePicker = lookup("#datePicker").query();
         Spinner<Integer> spinPax = lookup("#spinPax").query();
-        
+
         interact(() -> {
             txtNome.setText("Test Past");
             txtTelefono.setText("999");
@@ -302,9 +315,9 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
             datePicker.setValue(LocalDate.now());
             spinPax.getValueFactory().setValue(2);
         });
-        
+
         sleep(300);
-        
+
         try {
             clickOn("Registra Prenotazione");
             sleep(500);
@@ -313,5 +326,9 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
         } catch (Exception e) {
             // Gestione alert o validazione
         }
+
+        // Verifica che la prenotazione NON sia stata salvata (validazione ha bloccato)
+        int finalCount = prenotazioneDAO.getAllPrenotazioni().size();
+        assertEquals(initialCount, finalCount, "Non dovrebbe essere stata salvata una prenotazione con ora passata");
     }
 }

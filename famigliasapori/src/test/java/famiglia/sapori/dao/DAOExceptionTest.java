@@ -63,12 +63,11 @@ public class DAOExceptionTest extends DatabaseTestBase {
      * Verifica che query con sintassi SQL errata causino SQLException.
      */
     @Test
-    void invalidSQLQuery_throwsSQLException() {
-        assertThrows(SQLException.class, () -> {
-            DatabaseConnection.getInstance().getConnection()
-                    .createStatement()
-                    .executeQuery("SELECT * FROM NonExistentTable");
-        });
+    void invalidSQLQuery_throwsSQLException() throws SQLException {
+        // Ottieni connessione valida prima del test
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        // Testa solo executeQuery con query invalida
+        assertThrows(SQLException.class, () -> conn.createStatement().executeQuery("SELECT * FROM NonExistentTable"));
     }
 
     /**

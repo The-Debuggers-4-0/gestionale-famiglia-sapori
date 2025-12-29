@@ -8,9 +8,21 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class DatabaseConnection {
-    private static volatile DatabaseConnection instance;
     private Connection connection;
     private Properties dbProperties;
+
+    // Static inner class - thread-safe per natura (caricata solo quando richiesta)
+    private static class SingletonHolder {
+        private static final DatabaseConnection INSTANCE;
+
+        static {
+            try {
+                INSTANCE = new DatabaseConnection();
+            } catch (SQLException e) {
+                throw new ExceptionInInitializerError(e);
+            }
+        }
+    }
 
     private DatabaseConnection() throws SQLException {
         loadDatabaseProperties();
@@ -58,17 +70,8 @@ public class DatabaseConnection {
         return connection;
     }
 
-    public static DatabaseConnection getInstance() throws SQLException {
-        DatabaseConnection localInstance = instance;
-        if (localInstance == null) {
-            synchronized (DatabaseConnection.class) {
-                localInstance = instance;
-                if (localInstance == null) {
-                    instance = localInstance = new DatabaseConnection();
-                }
-            }
-        }
-        return localInstance;
+    public static DatabaseConnection getInstance() {
+        return SingletonHolder.INSTANCE;
     }
 
     public void closeConnection() {
