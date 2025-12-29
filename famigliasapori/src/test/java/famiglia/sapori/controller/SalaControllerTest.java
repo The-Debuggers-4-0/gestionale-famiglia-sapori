@@ -10,7 +10,11 @@ import famiglia.sapori.model.Prenotazione;
 import famiglia.sapori.model.Tavolo;
 import famiglia.sapori.model.Utente;
 import javafx.application.Platform;
-import javafx.scene.control.TextArea;
+import famiglia.sapori.dao.MenuDAO;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import java.util.ArrayList;
+import java.util.HashMap;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -82,14 +86,51 @@ public class SalaControllerTest {
 
     // Imposta il valore di un campo privato tramite reflection
     private static void setField(Object target, String fieldName, Object value) throws Exception {
-        Field f = target.getClass().getDeclaredField(fieldName);
+        Class<?> clazz = target.getClass();
+        Field f = null;
+        while (clazz != null) {
+            try {
+                f = clazz.getDeclaredField(fieldName);
+                break;
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        if (f == null) throw new NoSuchFieldException(fieldName);
         f.setAccessible(true);
         f.set(target, value);
     }
 
+    // Ottiene il valore di un campo privato tramite reflection
+    private static Object getField(Object target, String fieldName) throws Exception {
+        Class<?> clazz = target.getClass();
+        Field f = null;
+        while (clazz != null) {
+            try {
+                f = clazz.getDeclaredField(fieldName);
+                break;
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        if (f == null) throw new NoSuchFieldException(fieldName);
+        f.setAccessible(true);
+        return f.get(target);
+    }
+
     // Invoca un metodo privato senza argomenti tramite reflection
     private static void invokeNoArg(Object target, String methodName) throws Exception {
-        Method m = target.getClass().getDeclaredMethod(methodName);
+        Class<?> clazz = target.getClass();
+        Method m = null;
+        while (clazz != null) {
+            try {
+                m = clazz.getDeclaredMethod(methodName);
+                break;
+            } catch (NoSuchMethodException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        if (m == null) throw new NoSuchMethodException(methodName);
         m.setAccessible(true);
         m.invoke(target);
     }
@@ -229,54 +270,170 @@ public class SalaControllerTest {
         });
     }
 
-    // Test del metodo sendComanda per verificare la costruzione della comanda
+    // Fake DAOs
+    private static class FakeMenuDAO extends MenuDAO {
+        @Override public List<String> getAllCategorie() throws SQLException { return List.of("Primi", "Bevande"); }
+        @Override public List<Piatto> getAllPiatti() throws SQLException {
+            return List.of(
+                new Piatto(1, "Pasta", "D", 10.0, "Primi", true, ""),
+                new Piatto(2, "Acqua", "D", 2.0, "Bevande", true, ""),
+                new Piatto(3, "Vino", "D", 5.0, "Bevande", false, "") // Not available
+            );
+        }
+    }
+
+    private static class FakeComandaDAOList extends ComandaDAO {
+        List<Comanda> inserted = new ArrayList<>();
+        @Override public void insertComanda(Comanda c) throws SQLException { inserted.add(c); }
+        @Override public boolean hasPaidComandaAfter(int idTavolo, LocalDateTime after) throws SQLException { return false; }
+    }
+
+    private static class FakeTavoloDAOStatus extends TavoloDAO {
+        boolean statusUpdated = false;
+        @Override public void updateStatoTavolo(int id, String stato) throws SQLException { statusUpdated = true; }
+        @Override public List<Tavolo> getAllTavoli() throws SQLException { return List.of(); }
+    }
+
+    private static class FakePrenotazioneDAODelete extends PrenotazioneDAO {
+        boolean deleted = false;
+        @Override public List<Prenotazione> getReservationsForDate(LocalDate date) throws SQLException { return List.of(); }
+        @Override public void deletePrenotazione(int id) throws SQLException { deleted = true; }
+    }
+
     @Test
-    void sendComanda_buildsProductsAndTotalAndCopiesNote() throws Exception {
+    void testLoadMenuAndInteraction() throws Exception {
         runOnFxThread(() -> {
             try {
                 SalaController controller = new SalaController();
+                setField(controller, "menuDAO", new FakeMenuDAO());
+                setField(controller, "currentOrder", new HashMap<Piatto, Integer>());
+                
+                TabPane tabPane = new TabPane();
+                setField(controller, "menuTabPane", tabPane);
+                setField(controller, "txtRiepilogo", new TextArea());
+                setField(controller, "lblTotale", new Label());
 
-                //  Configura il FakeComandaDAO
-                FakeComandaDAO fake = new FakeComandaDAO();
-                setField(controller, "comandaDAO", fake);
+                invokeNoArg(controller, "loadMenu");
 
-                // Configura il tavolo selezionato e le note
-                setField(controller, "selectedTavolo", new Tavolo(5, 5, "Libero", 4, ""));
-                TextArea note = new TextArea("nota prova");
-                setField(controller, "txtNote", note);
+                assertEquals(2, tabPane.getTabs().size());
+                assertEquals("Primi", tabPane.getTabs().get(0).getText());
+                assertEquals("Bevande", tabPane.getTabs().get(1).getText());
 
-                FamigliaSaporiApplication.currentUser = new Utente(9, "Test", "u", "p", "Cameriere");
+                // Check content of first tab
+                ScrollPane scroll = (ScrollPane) tabPane.getTabs().get(0).getContent();
+                VBox content = (VBox) scroll.getContent();
+                assertEquals(1, content.getChildren().size()); // 1 Primi
 
-                // Prepara gli elementi della comanda
-                Piatto p1 = new Piatto(1, "Pizza", "", 6.00, "Primi", true, "");
-                Piatto p2 = new Piatto(2, "Acqua", "", 1.50, "Bevande", true, "");
+                // Check content of second tab
+                ScrollPane scroll2 = (ScrollPane) tabPane.getTabs().get(1).getContent();
+                VBox content2 = (VBox) scroll2.getContent();
+                assertEquals(2, content2.getChildren().size()); // 2 Bevande
 
-                // Costruisci la mappa degli elementi
-                Map<Piatto, Integer> items = new LinkedHashMap<>();
-                items.put(p1, 2);
-                items.put(p2, 1);
+                // Test interaction with buttons
+                HBox row = (HBox) content.getChildren().get(0); // Pasta
+                Button btnPlus = (Button) row.getChildren().get(4);
+                Label lblQty = (Label) row.getChildren().get(3);
+                
+                btnPlus.fire();
+                assertEquals("1", lblQty.getText());
+                Map<Piatto, Integer> order = (Map<Piatto, Integer>) getField(controller, "currentOrder");
+                assertEquals(1, order.size());
+                
+                btnPlus.fire();
+                assertEquals("2", lblQty.getText());
+                
+                Button btnMinus = (Button) row.getChildren().get(2);
+                btnMinus.fire();
+                assertEquals("1", lblQty.getText());
+                
+                btnMinus.fire();
+                assertEquals("0", lblQty.getText());
+                assertTrue(order.isEmpty());
 
-                // Invia la comanda
-                invokeSendComanda(controller, items, "Cucina");
-
-                // Verifica che la comanda sia stata costruita correttamente
-                assertNotNull(fake.lastInserted);
-                assertEquals(5, fake.lastInserted.getIdTavolo());
-                assertEquals("Cucina", fake.lastInserted.getTipo());
-                assertEquals("In Attesa", fake.lastInserted.getStato());
-                assertEquals("nota prova", fake.lastInserted.getNote());
-                assertEquals(9, fake.lastInserted.getIdCameriere());
-
-                // Verifica i prodotti e il totale
-                String prodotti = fake.lastInserted.getProdotti();
-                assertTrue(prodotti.contains("2x Pizza"), "Prodotti: " + prodotti);
-                assertTrue(prodotti.contains("1x Acqua"), "Prodotti: " + prodotti);
-
-                // Totale: 2*6.00 + 1*1.50 = 13.50
-                assertEquals(13.50, fake.lastInserted.getTotale(), 0.0001);
+                // Test unavailable item
+                HBox rowUnavailable = (HBox) content2.getChildren().get(1); // Vino (index 1 in Bevande)
+                assertTrue(rowUnavailable.isDisabled());
+                
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    @Test
+    void testHandleInviaComanda() throws Exception {
+        runOnFxThread(() -> {
+            try {
+                TestableSalaController controller = new TestableSalaController();
+                FakeComandaDAOList comandaDAO = new FakeComandaDAOList();
+                FakeTavoloDAOStatus tavoloDAO = new FakeTavoloDAOStatus();
+                FakePrenotazioneDAODelete prenotazioneDAO = new FakePrenotazioneDAODelete();
+                
+                setField(controller, "comandaDAO", comandaDAO);
+                setField(controller, "tavoloDAO", tavoloDAO);
+                setField(controller, "prenotazioneDAO", prenotazioneDAO);
+                setField(controller, "txtNote", new TextArea("Note"));
+                setField(controller, "txtRiepilogo", new TextArea());
+                setField(controller, "lblTotale", new Label());
+                setField(controller, "menuTabPane", new TabPane());
+                setField(controller, "menuDAO", new FakeMenuDAO()); // Needed for reset
+                setField(controller, "tavoliContainer", new FlowPane()); // Needed for loadTavoli
+
+                // Case 1: No table selected
+                setField(controller, "selectedTavolo", null);
+                invokeNoArg(controller, "handleInviaComanda");
+                assertTrue(comandaDAO.inserted.isEmpty());
+
+                // Case 2: Empty order
+                Tavolo t = new Tavolo(1, 1, "Libero", 4, "");
+                setField(controller, "selectedTavolo", t);
+                setField(controller, "currentOrder", new HashMap<Piatto, Integer>());
+                invokeNoArg(controller, "handleInviaComanda");
+                assertTrue(comandaDAO.inserted.isEmpty());
+
+                // Case 3: Not logged in
+                Map<Piatto, Integer> order = new HashMap<>();
+                order.put(new Piatto(1, "Pasta", "", 10.0, "Primi", true, ""), 1);
+                setField(controller, "currentOrder", order);
+                FamigliaSaporiApplication.currentUser = null;
+                invokeNoArg(controller, "handleInviaComanda");
+                assertTrue(comandaDAO.inserted.isEmpty());
+
+                // Case 4: Success (Split Kitchen/Bar)
+                FamigliaSaporiApplication.currentUser = new Utente(1, "U", "u", "p", "Cameriere");
+                order.put(new Piatto(2, "Acqua", "", 2.0, "Bevande", true, ""), 2);
+                setField(controller, "currentOrder", order);
+                
+                invokeNoArg(controller, "handleInviaComanda");
+                
+                assertEquals(2, comandaDAO.inserted.size());
+                boolean hasKitchen = comandaDAO.inserted.stream().anyMatch(c -> c.getTipo().equals("Cucina"));
+                boolean hasBar = comandaDAO.inserted.stream().anyMatch(c -> c.getTipo().equals("Bar"));
+                assertTrue(hasKitchen);
+                assertTrue(hasBar);
+                assertTrue(tavoloDAO.statusUpdated);
+                
+                // Verify Alert
+                assertEquals("Successo", controller.lastAlertTitle);
+                
+                // Verify reset
+                Map<Piatto, Integer> orderAfter = (Map<Piatto, Integer>) getField(controller, "currentOrder");
+                assertTrue(orderAfter.isEmpty());
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public static class TestableSalaController extends SalaController {
+        public String lastAlertTitle;
+        public String lastAlertContent;
+
+        @Override
+        protected void showAlert(String title, String content) {
+            this.lastAlertTitle = title;
+            this.lastAlertContent = content;
+        }
     }
 }
