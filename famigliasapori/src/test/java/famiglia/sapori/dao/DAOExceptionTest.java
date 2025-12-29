@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
@@ -64,10 +65,11 @@ public class DAOExceptionTest extends DatabaseTestBase {
      */
     @Test
     void invalidSQLQuery_throwsSQLException() throws SQLException {
-        // Ottieni connessione valida prima del test
+        // Ottieni connessione e statement validi prima del test
         Connection conn = DatabaseConnection.getInstance().getConnection();
-        // Testa solo executeQuery con query invalida
-        assertThrows(SQLException.class, () -> conn.createStatement().executeQuery("SELECT * FROM NonExistentTable"));
+        Statement stmt = conn.createStatement();
+        // Testa SOLO executeQuery con query invalida
+        assertThrows(SQLException.class, () -> stmt.executeQuery("SELECT * FROM NonExistentTable"));
     }
 
     /**
