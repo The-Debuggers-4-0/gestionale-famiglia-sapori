@@ -41,19 +41,17 @@ public class DatabaseConnection {
     }
 
     public Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
-            // Riconnetti automaticamente se la connessione è chiusa
-            synchronized (DatabaseConnection.class) {
-                if (connection == null || connection.isClosed()) {
-                    try {
-                        Class.forName(dbProperties.getProperty("db.driver"));
-                        this.connection = DriverManager.getConnection(
-                                dbProperties.getProperty("db.url"),
-                                dbProperties.getProperty("db.username"),
-                                dbProperties.getProperty("db.password"));
-                    } catch (ClassNotFoundException e) {
-                        throw new SQLException("Driver non trovato durante la riconnessione", e);
-                    }
+        synchronized (DatabaseConnection.class) {
+            if (connection == null || connection.isClosed()) {
+                // Riconnetti automaticamente se la connessione è chiusa
+                try {
+                    Class.forName(dbProperties.getProperty("db.driver"));
+                    this.connection = DriverManager.getConnection(
+                            dbProperties.getProperty("db.url"),
+                            dbProperties.getProperty("db.username"),
+                            dbProperties.getProperty("db.password"));
+                } catch (ClassNotFoundException e) {
+                    throw new SQLException("Driver non trovato durante la riconnessione", e);
                 }
             }
         }
@@ -61,14 +59,16 @@ public class DatabaseConnection {
     }
 
     public static DatabaseConnection getInstance() throws SQLException {
-        if (instance == null) {
+        DatabaseConnection localInstance = instance;
+        if (localInstance == null) {
             synchronized (DatabaseConnection.class) {
-                if (instance == null) {
-                    instance = new DatabaseConnection();
+                localInstance = instance;
+                if (localInstance == null) {
+                    instance = localInstance = new DatabaseConnection();
                 }
             }
         }
-        return instance;
+        return localInstance;
     }
 
     public void closeConnection() {
