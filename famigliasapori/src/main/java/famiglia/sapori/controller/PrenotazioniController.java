@@ -244,6 +244,11 @@ public class PrenotazioniController implements Initializable {
  
             Tavolo selectedTavolo = comboTavolo.getValue();
 
+            if (selectedTavolo == null) {
+                showAlert("Errore", "Devi selezionare un tavolo per salvare la prenotazione.");
+                return;
+            }
+
             if (selectedTavolo != null && spinPax.getValue() > selectedTavolo.getPosti()) {
                 showAlert("Attenzione", "Il numero di persone (" + spinPax.getValue() + ") supera i posti del tavolo (" + selectedTavolo.getPosti() + ").");
                 return;
