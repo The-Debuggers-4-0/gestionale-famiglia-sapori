@@ -1,20 +1,21 @@
 package famiglia.sapori.dao;
- 
+
 import famiglia.sapori.database.DatabaseConnection;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
- 
+
 public class GestoreDAO {
- 
+
     public Map<String, Integer> getBestSellers() throws SQLException {
         Map<String, Integer> stats = new HashMap<>();
-        String query = "SELECT prodotti FROM Comande WHERE stato = 'Pagato'";
- 
+        // Piatti più venduti dell'ultima settimana (7 giorni)
+        String query = "SELECT prodotti FROM Comande WHERE stato = 'Pagato' AND tipo = 'Cucina' AND data_ora >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)";
+
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
- 
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
+
             while (rs.next()) {
                 String prodottiStr = rs.getString("prodotti");
                 if (prodottiStr != null && !prodottiStr.isEmpty()) {
@@ -38,16 +39,32 @@ public class GestoreDAO {
         }
         return stats;
     }
- 
+
+    // Calcola incasso settimanale (ultimi 7 giorni) solo piatti
+    public double calculateWeeklyIncome() throws SQLException {
+        double total = 0.0;
+        String query = "SELECT SUM(totale) as incasso FROM Comande WHERE stato = 'Pagato' AND tipo = 'Cucina' AND data_ora >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)";
+
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
+
+            if (rs.next()) {
+                total = rs.getDouble("incasso");
+            }
+        }
+        return total;
+    }
+
+    // Calcola incasso giornaliero (solo oggi) solo piatti
     public double calculateDailyIncome() throws SQLException {
         double total = 0.0;
-        // Usa la colonna 'totale' appena aggiunta
-        String query = "SELECT SUM(totale) as incasso FROM Comande WHERE stato = 'Pagato' AND DATE(data_ora) = CURDATE()";
- 
+        String query = "SELECT SUM(totale) as incasso FROM Comande WHERE stato = 'Pagato' AND tipo = 'Cucina' AND DATE(data_ora) = CURDATE()";
+
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
- 
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
+
             if (rs.next()) {
                 total = rs.getDouble("incasso");
             }

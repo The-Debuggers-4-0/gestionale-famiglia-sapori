@@ -3,8 +3,8 @@ package famiglia.sapori.controller;
 import famiglia.sapori.dao.ComandaDAO;
 import famiglia.sapori.database.DatabaseConnection;
 import famiglia.sapori.database.TestDatabase;
-import famiglia.sapori.model.Comanda;
 import famiglia.sapori.test.util.ApplicationMockHelper;
+import famiglia.sapori.model.Comanda;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.control.LabeledMatchers.hasText;
 
-public class CucinaControllerFxTest extends ApplicationTest {
+public class CucinaControllerFxTest extends ApplicationTest { 
     private CucinaController controller;
     private Stage testStage;
     private ComandaDAO comandaDAO;
@@ -48,12 +48,12 @@ public class CucinaControllerFxTest extends ApplicationTest {
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
     }
-    
+
     // Prepara la scena di test prima di ogni test
     @BeforeEach
     void setup() throws Exception {
         ApplicationMockHelper.setupMockScene(testStage);
-        
+
         // Stop polling to prevent interference during tests
         if (controller != null) {
             Platform.runLater(() -> controller.stopPolling());
@@ -62,10 +62,9 @@ public class CucinaControllerFxTest extends ApplicationTest {
 
         comandaDAO = new ComandaDAO();
         // Reimposta i dati prima di ogni test per garantire l'isolamento
-        TestDatabase.setupSchema(); 
         TestDatabase.seedData();
     }
-    
+
     // Pulisce la scena di test dopo ogni test
     @AfterEach
     void tearDown() throws Exception {
@@ -93,9 +92,10 @@ public class CucinaControllerFxTest extends ApplicationTest {
     @Test
     void handlesEmptyCommandList() throws Exception {
         // 1. Pulisce tutte le comande esistenti
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             Statement st = conn.createStatement()) {
-            st.execute("DELETE FROM Comande");
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+            try (Statement st = conn.createStatement()) {
+                st.execute("DELETE FROM Comande");
+            }
         }
 
         // 2. Ricarica comande
@@ -103,12 +103,10 @@ public class CucinaControllerFxTest extends ApplicationTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 3. Verifica che venga mostrato il messaggio di nessuna comanda
-        verifyThat("#ordersContainer", (javafx.scene.layout.FlowPane pane) -> 
-            pane.getChildren().stream()
+        verifyThat("#ordersContainer", (javafx.scene.layout.FlowPane pane) -> pane.getChildren().stream()
                 .filter(n -> n instanceof Label)
                 .map(n -> (Label) n)
-                .anyMatch(l -> l.getText().contains("Nessuna comanda"))
-        );
+                .anyMatch(l -> l.getText().contains("Nessuna comanda")));
     }
 
     /**
@@ -117,9 +115,10 @@ public class CucinaControllerFxTest extends ApplicationTest {
     @Test
     void loadsOnlyCucinaTypeComande() throws Exception {
         // 1. Pulisce tutte le comande esistenti
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             Statement st = conn.createStatement()) {
-            st.execute("DELETE FROM Comande");
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+            try (Statement st = conn.createStatement()) {
+                st.execute("DELETE FROM Comande");
+            }
         }
 
         // 2. Inserisce comanda Bar
@@ -136,8 +135,8 @@ public class CucinaControllerFxTest extends ApplicationTest {
 
         // 5. Verifica che venga mostrata solo la comanda Cucina
         verifyThat("#ordersContainer", (javafx.scene.layout.FlowPane pane) -> {
-            boolean hasPasta = pane.lookupAll(".label").stream().anyMatch(n -> ((Label)n).getText().contains("Pasta"));
-            boolean hasCaffe = pane.lookupAll(".label").stream().anyMatch(n -> ((Label)n).getText().contains("Caffe"));
+            boolean hasPasta = pane.lookupAll(".label").stream().anyMatch(n -> ((Label) n).getText().contains("Pasta"));
+            boolean hasCaffe = pane.lookupAll(".label").stream().anyMatch(n -> ((Label) n).getText().contains("Caffe"));
             return hasPasta && !hasCaffe;
         });
     }
@@ -148,9 +147,10 @@ public class CucinaControllerFxTest extends ApplicationTest {
     @Test
     void handlesMultipleComandaStates() throws Exception {
         // 1. Pulisce tutte le comande esistenti
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             Statement st = conn.createStatement()) {
-            st.execute("DELETE FROM Comande");
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+            try (Statement st = conn.createStatement()) {
+                st.execute("DELETE FROM Comande");
+            }
         }
 
         // 2. Inserisce comanda "In Attesa"

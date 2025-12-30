@@ -79,6 +79,13 @@ public class PrenotazioniController implements Initializable {
         prenotazioneDAO = new PrenotazioneDAO();
         tavoloDAO = new TavoloDAO();
 
+        // Elimina automaticamente le prenotazioni passate all'avvio
+        try {
+            prenotazioneDAO.deleteOldReservations();
+        } catch (SQLException e) {
+            System.err.println("Errore nella pulizia delle prenotazioni passate: " + e.getMessage());
+        }
+
         // Configurazione Colonne Tabella
         colNome.setCellValueFactory(new PropertyValueFactory<>("nomeCliente"));
         colPax.setCellValueFactory(new PropertyValueFactory<>("numeroPersone"));
@@ -135,12 +142,12 @@ public class PrenotazioniController implements Initializable {
         spinPax.getValueFactory().setValue(p.getNumeroPersone());
         txtNote.setText(p.getNote());
 
-        
         boolean dateChanged = !p.getDataOra().toLocalDate().equals(datePicker.getValue());
         datePicker.setValue(p.getDataOra().toLocalDate());
-        
+
         // Se la data non è cambiata, il listener del datePicker non scatta,
-        // quindi dobbiamo ricaricare i tavoli manualmente per includere quello della prenotazione corrente.
+        // quindi dobbiamo ricaricare i tavoli manualmente per includere quello della
+        // prenotazione corrente.
         if (!dateChanged) {
             loadTavoli();
         }
@@ -190,7 +197,7 @@ public class PrenotazioniController implements Initializable {
             LocalDate selectedDate = datePicker.getValue();
             if (selectedDate != null) {
                 List<Integer> reservedIds = prenotazioneDAO.getReservedTableIdsForDate(selectedDate);
-                
+
                 // Se la data è oggi, consideriamo anche i tavoli attualmente occupati
                 if (selectedDate.equals(LocalDate.now())) {
                     for (Tavolo t : tavoli) {
@@ -200,15 +207,17 @@ public class PrenotazioniController implements Initializable {
                     }
                 }
 
-                // Se stiamo modificando una prenotazione e la data coincide, 
-                // rimuoviamo il tavolo attuale dalla lista dei "già prenotati" per permettere di mantenerlo.
+                // Se stiamo modificando una prenotazione e la data coincide,
+                // rimuoviamo il tavolo attuale dalla lista dei "già prenotati" per permettere
+                // di mantenerlo.
                 if (editingReservationId != null) {
                     Prenotazione current = masterData.stream()
-                        .filter(p -> p.getId() == editingReservationId)
-                        .findFirst()
-                        .orElse(null);
-                    
-                    if (current != null && current.getIdTavolo() != null && current.getDataOra().toLocalDate().equals(selectedDate)) {
+                            .filter(p -> p.getId() == editingReservationId)
+                            .findFirst()
+                            .orElse(null);
+
+                    if (current != null && current.getIdTavolo() != null
+                            && current.getDataOra().toLocalDate().equals(selectedDate)) {
                         Integer idTavolo = current.getIdTavolo();
                         reservedIds.removeIf(id -> id.equals(idTavolo));
                     }

@@ -41,6 +41,8 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
     @Override
     public void start(Stage stage) throws Exception {
         this.testStage = stage;
+        // Reset DB state for each test run
+        TestDatabase.seedData();
 
         // Carica il file FXML reale che usa il database H2
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/PrenotazioneView.fxml"));

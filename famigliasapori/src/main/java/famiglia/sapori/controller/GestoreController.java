@@ -5,6 +5,7 @@ import famiglia.sapori.dao.GestoreDAO;
 import famiglia.sapori.dao.MenuDAO;
 import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.dao.UtenteDAO;
+import famiglia.sapori.dao.ComandaDAO;
 import famiglia.sapori.model.Piatto;
 import famiglia.sapori.model.Tavolo;
 import famiglia.sapori.model.Utente;
@@ -25,47 +26,77 @@ import java.util.ResourceBundle;
 public class GestoreController implements Initializable {
 
     // --- Common ---
-    @FXML private Label lblUtente;
-    @FXML private TabPane tabPaneGestore;
+    @FXML
+    private Label lblUtente;
+    @FXML
+    private TabPane tabPaneGestore;
 
     // --- Tab Menu ---
-    @FXML private TableView<Piatto> tblMenu;
-    @FXML private TableColumn<Piatto, String> colNomePiatto;
-    @FXML private TableColumn<Piatto, String> colCategoriaPiatto;
-    @FXML private TableColumn<Piatto, Double> colPrezzoPiatto;
-    @FXML private TableColumn<Piatto, Boolean> colDispPiatto;
+    @FXML
+    private TableView<Piatto> tblMenu;
+    @FXML
+    private TableColumn<Piatto, String> colNomePiatto;
+    @FXML
+    private TableColumn<Piatto, String> colCategoriaPiatto;
+    @FXML
+    private TableColumn<Piatto, Double> colPrezzoPiatto;
+    @FXML
+    private TableColumn<Piatto, Boolean> colDispPiatto;
 
-    @FXML private TextField txtNomePiatto;
-    @FXML private ComboBox<String> comboCategoria;
-    @FXML private TextField txtPrezzoPiatto;
-    @FXML private TextArea txtDescrizionePiatto;
-    @FXML private TextField txtAllergeni;
-    @FXML private CheckBox chkDisponibile;
+    @FXML
+    private TextField txtNomePiatto;
+    @FXML
+    private ComboBox<String> comboCategoria;
+    @FXML
+    private TextField txtPrezzoPiatto;
+    @FXML
+    private TextArea txtDescrizionePiatto;
+    @FXML
+    private TextField txtAllergeni;
+    @FXML
+    private CheckBox chkDisponibile;
 
     // --- Tab Personale ---
-    @FXML private TableView<Utente> tblUtenti;
-    @FXML private TableColumn<Utente, String> colNomeUtente;
-    @FXML private TableColumn<Utente, String> colUsername;
-    @FXML private TableColumn<Utente, String> colRuolo;
+    @FXML
+    private TableView<Utente> tblUtenti;
+    @FXML
+    private TableColumn<Utente, String> colNomeUtente;
+    @FXML
+    private TableColumn<Utente, String> colUsername;
+    @FXML
+    private TableColumn<Utente, String> colRuolo;
 
-    @FXML private TextField txtNomeUtente;
-    @FXML private TextField txtUsername;
-    @FXML private PasswordField txtPassword;
-    @FXML private ComboBox<String> comboRuolo;
+    @FXML
+    private TextField txtNomeUtente;
+    @FXML
+    private TextField txtUsername;
+    @FXML
+    private PasswordField txtPassword;
+    @FXML
+    private ComboBox<String> comboRuolo;
 
     // --- Tab Tavoli ---
-    @FXML private TableView<Tavolo> tblTavoli;
-    @FXML private TableColumn<Tavolo, Integer> colNumeroTavolo;
-    @FXML private TableColumn<Tavolo, Integer> colPostiTavolo;
-    @FXML private TableColumn<Tavolo, String> colStatoTavolo;
+    @FXML
+    private TableView<Tavolo> tblTavoli;
+    @FXML
+    private TableColumn<Tavolo, Integer> colNumeroTavolo;
+    @FXML
+    private TableColumn<Tavolo, Integer> colPostiTavolo;
+    @FXML
+    private TableColumn<Tavolo, String> colStatoTavolo;
 
-    @FXML private TextField txtNumeroTavolo;
-    @FXML private Spinner<Integer> spinPostiTavolo;
-    @FXML private TextArea txtNoteTavolo;
+    @FXML
+    private TextField txtNumeroTavolo;
+    @FXML
+    private Spinner<Integer> spinPostiTavolo;
+    @FXML
+    private TextArea txtNoteTavolo;
 
     // --- Tab Statistiche ---
-    @FXML private PieChart pieBestSellers;
-    @FXML private Label lblIncassoTotale;
+    @FXML
+    private PieChart pieBestSellers;
+    @FXML
+    private Label lblIncassoTotale;
 
     // DAOs
     private MenuDAO menuDAO;
@@ -84,6 +115,14 @@ public class GestoreController implements Initializable {
         utenteDAO = new UtenteDAO();
         tavoloDAO = new TavoloDAO();
         gestoreDAO = new GestoreDAO();
+
+        // Elimina automaticamente le comande del giorno precedente all'avvio
+        try {
+            ComandaDAO comandaDAO = new ComandaDAO();
+            comandaDAO.deleteOldComande();
+        } catch (SQLException e) {
+            System.err.println("Errore nella pulizia delle comande vecchie: " + e.getMessage());
+        }
 
         if (FamigliaSaporiApplication.getCurrentUser() != null) {
             lblUtente.setText("Gestore: " + FamigliaSaporiApplication.getCurrentUser().getNome());
@@ -135,7 +174,8 @@ public class GestoreController implements Initializable {
             }
         });
 
-        comboCategoria.setItems(FXCollections.observableArrayList("Antipasti", "Primi", "Secondi", "Contorni", "Dolci", "Bevande"));
+        comboCategoria.setItems(
+                FXCollections.observableArrayList("Antipasti", "Primi", "Secondi", "Contorni", "Dolci", "Bevande"));
 
         tblMenu.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             selectedPiatto = newVal;
@@ -420,7 +460,7 @@ public class GestoreController implements Initializable {
     @FXML
     private void handleRefreshStats() {
         try {
-            // Best Sellers
+            // Best Sellers (ultima settimana)
             Map<String, Integer> bestSellers = gestoreDAO.getBestSellers();
             ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
             for (Map.Entry<String, Integer> entry : bestSellers.entrySet()) {
@@ -428,9 +468,10 @@ public class GestoreController implements Initializable {
             }
             pieBestSellers.setData(pieData);
 
-            // Daily Income
-            double total = gestoreDAO.calculateDailyIncome();
-            lblIncassoTotale.setText(String.format("€ %.2f", total));
+            // Incassi: Giornaliero e Settimanale
+            double dailyIncome = gestoreDAO.calculateDailyIncome();
+            double weeklyIncome = gestoreDAO.calculateWeeklyIncome();
+            lblIncassoTotale.setText(String.format("Oggi: € %.2f\nUltimi 7gg: € %.2f", dailyIncome, weeklyIncome));
 
         } catch (SQLException e) {
             showError("Errore caricamento statistiche: " + e.getMessage());

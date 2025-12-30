@@ -43,7 +43,6 @@ public class CassaControllerFxTest extends ApplicationTest {
         this.testStage = stage;
 
         // Reset DB state for each test run (tests in this class mutate DB)
-        TestDatabase.clearData();
         TestDatabase.seedData();
 
         // Carica il file FXML reale che usa il database H2
@@ -96,7 +95,8 @@ public class CassaControllerFxTest extends ApplicationTest {
     @Test
     void spinnerDivisoIsConfiguredCorrectly() {
         assertNotNull(controller);
-        Spinner<Integer> spinner = lookup("#spinDiviso").queryAs(Spinner.class);
+        @SuppressWarnings("unchecked")
+        Spinner<Integer> spinner = (Spinner<Integer>) lookup("#spinDiviso").queryAs(Spinner.class);
         assertNotNull(spinner);
         assertNotNull(spinner.getValueFactory());
         assertTrue(spinner.getValueFactory() instanceof SpinnerValueFactory.IntegerSpinnerValueFactory);
@@ -192,7 +192,8 @@ public class CassaControllerFxTest extends ApplicationTest {
         // Seleziona tavolo occupato per avere un totale
         clickOn("Tavolo 2");
 
-        Spinner<Integer> spinner = lookup("#spinDiviso").queryAs(Spinner.class);
+        @SuppressWarnings("unchecked")
+        Spinner<Integer> spinner = (Spinner<Integer>) lookup("#spinDiviso").queryAs(Spinner.class);
         Label lblQuota = lookup("#lblQuotaTesta").queryAs(Label.class);
         assertNotNull(spinner);
         assertNotNull(lblQuota);
