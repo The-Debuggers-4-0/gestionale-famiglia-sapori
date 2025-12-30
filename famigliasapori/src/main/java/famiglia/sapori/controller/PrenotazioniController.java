@@ -188,61 +188,71 @@ public class PrenotazioniController implements Initializable {
     private void loadTavoli() {
         try {
             List<Tavolo> tavoli = tavoloDAO.getAllTavoli();
-            tavoloMap.clear();
-            for (Tavolo t : tavoli) {
-                tavoloMap.put(t.getId(), t.getNumero());
-            }
+            updateTavoloMap(tavoli);
 
-            // Filtra i tavoli già prenotati per la data selezionata
             LocalDate selectedDate = datePicker.getValue();
             if (selectedDate != null) {
-                List<Integer> reservedIds = prenotazioneDAO.getReservedTableIdsForDate(selectedDate);
-
-                // Se la data è oggi, consideriamo anche i tavoli attualmente occupati
-                if (selectedDate.equals(LocalDate.now())) {
-                    for (Tavolo t : tavoli) {
-                        if ("Occupato".equalsIgnoreCase(t.getStato())) {
-                            reservedIds.add(t.getId());
-                        }
-                    }
-                }
-
-                // Se stiamo modificando una prenotazione e la data coincide,
-                // rimuoviamo il tavolo attuale dalla lista dei "già prenotati" per permettere
-                // di mantenerlo.
-                if (editingReservationId != null) {
-                    Prenotazione current = masterData.stream()
-                            .filter(p -> p.getId() == editingReservationId)
-                            .findFirst()
-                            .orElse(null);
-
-                    if (current != null && current.getIdTavolo() != null
-                            && current.getDataOra().toLocalDate().equals(selectedDate)) {
-                        Integer idTavolo = current.getIdTavolo();
-                        reservedIds.removeIf(id -> id.equals(idTavolo));
-                    }
-                }
-
+                List<Integer> reservedIds = getReservedTableIds(tavoli, selectedDate);
+                handleEditingReservation(reservedIds, selectedDate);
                 tavoli.removeIf(t -> reservedIds.contains(t.getId()));
             }
 
-            comboTavolo.getItems().setAll(tavoli);
-            comboTavolo.setConverter(new StringConverter<Tavolo>() {
-                @Override
-                public String toString(Tavolo t) {
-                    if (t == null)
-                        return null;
-                    return "Tavolo " + t.getNumero() + " (" + t.getPosti() + " posti)";
-                }
-
-                @Override
-                public Tavolo fromString(String string) {
-                    return null;
-                }
-            });
+            setupComboTavolo(tavoli);
         } catch (SQLException e) {
             System.err.println("Errore nel caricamento dei tavoli: " + e.getMessage());
         }
+    }
+
+    private void updateTavoloMap(List<Tavolo> tavoli) {
+        tavoloMap.clear();
+        for (Tavolo t : tavoli) {
+            tavoloMap.put(t.getId(), t.getNumero());
+        }
+    }
+
+    private List<Integer> getReservedTableIds(List<Tavolo> tavoli, LocalDate selectedDate) throws SQLException {
+        List<Integer> reservedIds = prenotazioneDAO.getReservedTableIdsForDate(selectedDate);
+
+        if (selectedDate.equals(LocalDate.now())) {
+            for (Tavolo t : tavoli) {
+                if ("Occupato".equalsIgnoreCase(t.getStato())) {
+                    reservedIds.add(t.getId());
+                }
+            }
+        }
+        return reservedIds;
+    }
+
+    private void handleEditingReservation(List<Integer> reservedIds, LocalDate selectedDate) {
+        if (editingReservationId != null) {
+            Prenotazione current = masterData.stream()
+                    .filter(p -> p.getId() == editingReservationId)
+                    .findFirst()
+                    .orElse(null);
+
+            if (current != null && current.getIdTavolo() != null
+                    && current.getDataOra().toLocalDate().equals(selectedDate)) {
+                Integer idTavolo = current.getIdTavolo();
+                reservedIds.removeIf(id -> id.equals(idTavolo));
+            }
+        }
+    }
+
+    private void setupComboTavolo(List<Tavolo> tavoli) {
+        comboTavolo.getItems().setAll(tavoli);
+        comboTavolo.setConverter(new StringConverter<Tavolo>() {
+            @Override
+            public String toString(Tavolo t) {
+                if (t == null)
+                    return null;
+                return "Tavolo " + t.getNumero() + " (" + t.getPosti() + " posti)";
+            }
+
+            @Override
+            public Tavolo fromString(String string) {
+                return null;
+            }
+        });
     }
 
     private void updateFilter() {

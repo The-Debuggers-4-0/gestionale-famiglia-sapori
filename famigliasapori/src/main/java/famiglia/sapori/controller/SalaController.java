@@ -108,47 +108,48 @@ public class SalaController implements Initializable {
         tavoliContainer.getChildren().clear();
         try {
             List<Tavolo> tavoli = tavoloDAO.getAllTavoli();
-            List<Prenotazione> prenotazioniOggi = prenotazioneDAO.getReservationsForDate(LocalDate.now());
-
-            // Mappa ID Tavolo -> Lista Prenotazioni
-            Map<Integer, List<Prenotazione>> mapPrenotazioni = prenotazioniOggi.stream()
-                    .filter(p -> p.getIdTavolo() != null)
-                    .collect(Collectors.groupingBy(Prenotazione::getIdTavolo));
+            Map<Integer, List<Prenotazione>> mapPrenotazioni = getPrenotazioniOggiMap();
 
             for (Tavolo t : tavoli) {
-                String status = t.getStato();
-
-                // Se lo stato nel DB è "Prenotato", lo consideriamo "Libero" di base,
-                // perché la prenotazione deve dipendere dalla data odierna.
-                if (Tavolo.STATO_PRENOTATO.equalsIgnoreCase(status)) {
-                    status = Tavolo.STATO_LIBERO;
-                }
-
-                // Verifica se c'è una prenotazione attiva e non ancora "soddisfatta" (pagata)
-                boolean isReserved = false;
-                if (mapPrenotazioni.containsKey(t.getId())) {
-                    for (Prenotazione p : mapPrenotazioni.get(t.getId())) {
-                        // Una prenotazione è considerata "soddisfatta" se esiste una comanda pagata
-                        // creata dopo l'orario della prenotazione (con 1 ora di tolleranza prima)
-                        boolean fulfilled = comandaDAO.hasPaidComandaAfter(t.getId(), p.getDataOra().minusHours(1));
-                        if (!fulfilled) {
-                            isReserved = true;
-                            break;
-                        }
-                    }
-                }
-
-                // Se il tavolo non è occupato ma è prenotato per oggi (e non ancora pagato),
-                // mostralo come prenotato
-                if (!Tavolo.STATO_OCCUPATO.equalsIgnoreCase(status) && isReserved) {
-                    status = Tavolo.STATO_PRENOTATO;
-                }
+                String status = determineTableStatus(t, mapPrenotazioni);
                 VBox tavoloBox = createTavoloBox(t, status);
                 tavoliContainer.getChildren().add(tavoloBox);
             }
         } catch (SQLException e) {
             System.err.println("Errore nel caricamento dei tavoli: " + e.getMessage());
         }
+    }
+
+    private Map<Integer, List<Prenotazione>> getPrenotazioniOggiMap() throws SQLException {
+        List<Prenotazione> prenotazioniOggi = prenotazioneDAO.getReservationsForDate(LocalDate.now());
+        return prenotazioniOggi.stream()
+                .filter(p -> p.getIdTavolo() != null)
+                .collect(Collectors.groupingBy(Prenotazione::getIdTavolo));
+    }
+
+    private String determineTableStatus(Tavolo t, Map<Integer, List<Prenotazione>> mapPrenotazioni) throws SQLException {
+        String status = t.getStato();
+
+        if (Tavolo.STATO_PRENOTATO.equalsIgnoreCase(status)) {
+            status = Tavolo.STATO_LIBERO;
+        }
+
+        if (!Tavolo.STATO_OCCUPATO.equalsIgnoreCase(status) && isTableReserved(t, mapPrenotazioni)) {
+            status = Tavolo.STATO_PRENOTATO;
+        }
+        return status;
+    }
+
+    private boolean isTableReserved(Tavolo t, Map<Integer, List<Prenotazione>> mapPrenotazioni) throws SQLException {
+        if (mapPrenotazioni.containsKey(t.getId())) {
+            for (Prenotazione p : mapPrenotazioni.get(t.getId())) {
+                boolean fulfilled = comandaDAO.hasPaidComandaAfter(t.getId(), p.getDataOra().minusHours(1));
+                if (!fulfilled) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private VBox createTavoloBox(Tavolo t, String status) {

@@ -139,8 +139,20 @@ public class GestoreController implements Initializable {
         colNomePiatto.setCellValueFactory(new PropertyValueFactory<>("nome"));
         colCategoriaPiatto.setCellValueFactory(new PropertyValueFactory<>("categoria"));
         colPrezzoPiatto.setCellValueFactory(new PropertyValueFactory<>("prezzo"));
+        setupPrezzoColumn();
 
-        // Formattazione Prezzo
+        colDispPiatto.setCellValueFactory(new PropertyValueFactory<>("disponibile"));
+        setupDisponibileColumn();
+
+        comboCategoria.setItems(
+                FXCollections.observableArrayList("Antipasti", "Primi", "Secondi", "Contorni", "Dolci", "Bevande"));
+
+        setupMenuSelectionListener();
+
+        loadMenuData();
+    }
+
+    private void setupPrezzoColumn() {
         colPrezzoPiatto.setCellFactory(column -> new TableCell<Piatto, Double>() {
             @Override
             protected void updateItem(Double item, boolean empty) {
@@ -152,9 +164,9 @@ public class GestoreController implements Initializable {
                 }
             }
         });
+    }
 
-        colDispPiatto.setCellValueFactory(new PropertyValueFactory<>("disponibile"));
-        // Formattazione Disponibilità (Colore)
+    private void setupDisponibileColumn() {
         colDispPiatto.setCellFactory(column -> new TableCell<Piatto, Boolean>() {
             @Override
             protected void updateItem(Boolean item, boolean empty) {
@@ -173,25 +185,26 @@ public class GestoreController implements Initializable {
                 }
             }
         });
+    }
 
-        comboCategoria.setItems(
-                FXCollections.observableArrayList("Antipasti", "Primi", "Secondi", "Contorni", "Dolci", "Bevande"));
-
+    private void setupMenuSelectionListener() {
         tblMenu.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             selectedPiatto = newVal;
             if (newVal != null) {
-                txtNomePiatto.setText(newVal.getNome());
-                comboCategoria.setValue(newVal.getCategoria());
-                txtPrezzoPiatto.setText(String.valueOf(newVal.getPrezzo()));
-                txtDescrizionePiatto.setText(newVal.getDescrizione());
-                txtAllergeni.setText(newVal.getAllergeni());
-                chkDisponibile.setSelected(newVal.isDisponibile());
+                fillMenuFields(newVal);
             } else {
                 clearMenuFields();
             }
         });
+    }
 
-        loadMenuData();
+    private void fillMenuFields(Piatto piatto) {
+        txtNomePiatto.setText(piatto.getNome());
+        comboCategoria.setValue(piatto.getCategoria());
+        txtPrezzoPiatto.setText(String.valueOf(piatto.getPrezzo()));
+        txtDescrizionePiatto.setText(piatto.getDescrizione());
+        txtAllergeni.setText(piatto.getAllergeni());
+        chkDisponibile.setSelected(piatto.isDisponibile());
     }
 
     private void loadMenuData() {

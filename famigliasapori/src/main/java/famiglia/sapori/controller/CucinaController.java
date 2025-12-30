@@ -193,35 +193,40 @@ public class CucinaController implements Initializable { // Trigger recompile
     }
 
     private void updateTimers() {
-        for (Map.Entry<Integer, VBox> entry : activeCards.entrySet()) {
-            VBox card = entry.getValue();
-            // Header è il primo figlio
-            if (!card.getChildren().isEmpty() && card.getChildren().get(0) instanceof HBox) {
-                HBox header = (HBox) card.getChildren().get(0);
-                // Label timer è l'ultimo figlio dell'header
-                if (!header.getChildren().isEmpty()) {
-                    javafx.scene.Node lastNode = header.getChildren().get(header.getChildren().size() - 1);
-                    if (lastNode instanceof Label) {
-                        Label lblTime = (Label) lastNode;
-                        // Recupera il timestamp dalla userData (che imposteremo alla creazione)
-                        if (lblTime.getUserData() instanceof java.time.LocalDateTime) {
-                            java.time.LocalDateTime orderTime = (java.time.LocalDateTime) lblTime.getUserData();
-                            java.time.Duration duration = java.time.Duration.between(orderTime,
-                                    java.time.LocalDateTime.now());
-                            long minutes = duration.toMinutes();
-                            long seconds = duration.minusMinutes(minutes).getSeconds();
-                            lblTime.setText(String.format("%02d:%02d", minutes, seconds));
+        for (VBox card : activeCards.values()) {
+            updateCardTimer(card);
+        }
+    }
 
-                            // Colora di rosso se attesa > 15 min
-                            if (minutes >= 15) {
-                                lblTime.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-font-size: 14px;");
-                            } else {
-                                lblTime.setStyle("-fx-text-fill: #bdc3c7; -fx-font-size: 14px;");
-                            }
-                        }
-                    }
-                }
-            }
+    private void updateCardTimer(VBox card) {
+        Label lblTime = getTimerLabel(card);
+        if (lblTime != null && lblTime.getUserData() instanceof java.time.LocalDateTime) {
+            updateTimerLabel(lblTime, (java.time.LocalDateTime) lblTime.getUserData());
+        }
+    }
+
+    private Label getTimerLabel(VBox card) {
+        if (card.getChildren().isEmpty() || !(card.getChildren().get(0) instanceof HBox)) {
+            return null;
+        }
+        HBox header = (HBox) card.getChildren().get(0);
+        if (header.getChildren().isEmpty()) {
+            return null;
+        }
+        javafx.scene.Node lastNode = header.getChildren().get(header.getChildren().size() - 1);
+        return (lastNode instanceof Label) ? (Label) lastNode : null;
+    }
+
+    private void updateTimerLabel(Label lblTime, java.time.LocalDateTime orderTime) {
+        java.time.Duration duration = java.time.Duration.between(orderTime, java.time.LocalDateTime.now());
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
+        lblTime.setText(String.format("%02d:%02d", minutes, seconds));
+
+        if (minutes >= 15) {
+            lblTime.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-font-size: 14px;");
+        } else {
+            lblTime.setStyle("-fx-text-fill: #bdc3c7; -fx-font-size: 14px;");
         }
     }
 
