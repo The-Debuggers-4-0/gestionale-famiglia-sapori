@@ -211,7 +211,7 @@
 
 /* Pannelli divisi */
 .dark-split-pane {
-    -fx-background-color: -fx-main-bg; /* Definito nel root o usa #1a252f */
+    -fx-background-color: #1a252f; /* Definito nel root o usa #1a252f */
     -fx-padding: 0;
 }
 .dark-split-pane .split-pane-divider {

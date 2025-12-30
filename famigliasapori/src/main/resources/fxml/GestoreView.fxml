@@ -80,7 +80,7 @@
  
                             <VBox spacing="5.0">
                                 <Label styleClass="field-label" text="DESCRIZIONE" />
-                                <TextArea fx:id="txtDescrizionePiatto" prefHeight="60.0" styleClass="input-field" wrapText="true" />
+                                <TextArea fx:id="txtDescrizionePiatto" prefHeight="60.0" styleClass="input-field" style="-fx-text-fill: #1a252f;" wrapText="true" />
                             </VBox>
  
                             <VBox spacing="5.0">
@@ -187,7 +187,7 @@
  
                             <VBox spacing="5.0">
                                 <Label styleClass="field-label" text="NOTE (Opzionale)" />
-                                <TextArea fx:id="txtNoteTavolo" prefHeight="60.0" styleClass="input-field" />
+                                <TextArea fx:id="txtNoteTavolo" prefHeight="60.0" styleClass="input-field" style="-fx-text-fill: #1a252f;" />
                             </VBox>
                            
                             <Button maxWidth="Infinity" onAction="#handleResetTavolo" styleClass="orange-button" text="FORZA STATO A 'LIBERO'" />

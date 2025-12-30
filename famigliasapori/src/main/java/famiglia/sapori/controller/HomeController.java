@@ -38,7 +38,6 @@ public class HomeController implements Initializable {
     @FXML
     private void handleSalaClick() {
         try {
-            System.out.println("Navigazione verso Login per Sala");
             FamigliaSaporiApplication.setRoot("LoginView");
         } catch (IOException e) {
             System.err.println("Errore nel caricamento della pagina Login: " + e.getMessage());
@@ -52,7 +51,6 @@ public class HomeController implements Initializable {
     @FXML
     private void handleCucinaClick() {
         try {
-            System.out.println("Navigazione verso Cucina");
             FamigliaSaporiApplication.setRoot("CucinaView");
         } catch (IOException e) {
             System.err.println("Errore nel caricamento della pagina Cucina: " + e.getMessage());
@@ -66,7 +64,6 @@ public class HomeController implements Initializable {
     @FXML
     private void handleBarClick() {
         try {
-            System.out.println("Navigazione verso Bar");
             FamigliaSaporiApplication.setRoot("BarView");
         } catch (IOException e) {
             System.err.println("Errore nel caricamento della pagina Bar: " + e.getMessage());
@@ -76,7 +73,6 @@ public class HomeController implements Initializable {
     @FXML
     private void handleCassaClick() {
         try {
-            System.out.println("Navigazione verso Cassa");
             FamigliaSaporiApplication.setRoot("CassaView");
         } catch (IOException e) {
             System.err.println("Errore nel caricamento della pagina Cassa: " + e.getMessage());
