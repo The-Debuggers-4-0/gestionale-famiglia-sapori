@@ -54,17 +54,4 @@ public class GestoreDAO {
         }
         return total;
     }
- 
-    private Map<String, Double> getPrezziMenu() throws SQLException {
-        Map<String, Double> prezzi = new HashMap<>();
-        String query = "SELECT nome, prezzo FROM Menu";
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-            while (rs.next()) {
-                prezzi.put(rs.getString("nome"), rs.getDouble("prezzo"));
-            }
-        }
-        return prezzi;
-    }
 }

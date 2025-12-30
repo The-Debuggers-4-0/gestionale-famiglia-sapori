@@ -2,10 +2,8 @@ package famiglia.sapori.controller;
 
 import famiglia.sapori.FamigliaSaporiApplication;
 import famiglia.sapori.dao.ComandaDAO;
-import famiglia.sapori.dao.MenuDAO;
 import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.model.Comanda;
-import famiglia.sapori.model.Piatto;
 import famiglia.sapori.model.Tavolo;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -24,17 +22,23 @@ import java.util.ResourceBundle;
 
 public class CassaController implements Initializable {
 
-    @FXML private FlowPane tavoliContainer;
-    @FXML private Label lblTavoloSelezionato;
-    @FXML private TextArea txtScontrino; // Lista visuale degli articoli
-    @FXML private Label lblTotale;
-    @FXML private Spinner<Integer> spinDiviso; // Per la romana
-    @FXML private Label lblQuotaTesta;
-    @FXML private Button btnPaga;
+    @FXML
+    private FlowPane tavoliContainer;
+    @FXML
+    private Label lblTavoloSelezionato;
+    @FXML
+    private TextArea txtScontrino; // Lista visuale degli articoli
+    @FXML
+    private Label lblTotale;
+    @FXML
+    private Spinner<Integer> spinDiviso; // Per la romana
+    @FXML
+    private Label lblQuotaTesta;
+    @FXML
+    private Button btnPaga;
 
     private TavoloDAO tavoloDAO;
     private ComandaDAO comandaDAO;
-    private MenuDAO menuDAO;
 
     private Tavolo selectedTavolo;
     private double totaleCorrente = 0.0;
@@ -43,7 +47,6 @@ public class CassaController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         tavoloDAO = new TavoloDAO();
         comandaDAO = new ComandaDAO();
-        menuDAO = new MenuDAO();
 
         // Configura lo spinner per la divisione del conto (min 1, max 20, default 1)
         spinDiviso.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 20, 1));
@@ -116,13 +119,14 @@ public class CassaController implements Initializable {
             for (Comanda c : comande) {
                 // Usa il totale salvato nella comanda
                 totaleCorrente += c.getTotale();
-                
-                // Visualizza i dettagli (opzionale: potremmo anche solo mostrare il totale della comanda)
+
+                // Visualizza i dettagli (opzionale: potremmo anche solo mostrare il totale
+                // della comanda)
                 scontrino.append("Comanda #").append(c.getId())
-                         .append(" (").append(c.getTipo()).append("): ")
-                         .append(c.getProdotti())
-                         .append("\n   -> Totale Parziale: €").append(String.format("%.2f", c.getTotale()))
-                         .append("\n\n");
+                        .append(" (").append(c.getTipo()).append("): ")
+                        .append(c.getProdotti())
+                        .append("\n   -> Totale Parziale: €").append(String.format("%.2f", c.getTotale()))
+                        .append("\n\n");
             }
 
             txtScontrino.setText(scontrino.toString());

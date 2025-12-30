@@ -45,25 +45,25 @@ public class CassaControllerFxTest extends ApplicationTest {
         // Reset DB state for each test run (tests in this class mutate DB)
         TestDatabase.clearData();
         TestDatabase.seedData();
-        
+
         // Carica il file FXML reale che usa il database H2
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/CassaView.fxml"));
         Parent root = loader.load();
-        
+
         // Ottieni il controller dalla FXML
         controller = loader.getController();
-        
+
         stage.setScene(new Scene(root, 1080, 720));
         stage.show();
     }
-    
+
     // Imposta la scena di test prima di ogni test
     @BeforeEach
     void setupMockScene() throws Exception {
         ApplicationMockHelper.setupMockScene(testStage);
     }
-    
-    //pulisce la scena di test dopo ogni test
+
+    // pulisce la scena di test dopo ogni test
     @AfterEach
     void clearMockScene() throws Exception {
         ApplicationMockHelper.clearMockScene();
@@ -78,7 +78,8 @@ public class CassaControllerFxTest extends ApplicationTest {
     }
 
     /**
-     * Verifica che il controller inizializzi correttamente e carichi i tavoli dal DB H2.
+     * Verifica che il controller inizializzi correttamente e carichi i tavoli dal
+     * DB H2.
      */
     @Test
     void controllerInitializesAndLoadsTavoli() {
@@ -100,7 +101,8 @@ public class CassaControllerFxTest extends ApplicationTest {
         assertNotNull(spinner.getValueFactory());
         assertTrue(spinner.getValueFactory() instanceof SpinnerValueFactory.IntegerSpinnerValueFactory);
 
-        SpinnerValueFactory.IntegerSpinnerValueFactory vf = (SpinnerValueFactory.IntegerSpinnerValueFactory) spinner.getValueFactory();
+        SpinnerValueFactory.IntegerSpinnerValueFactory vf = (SpinnerValueFactory.IntegerSpinnerValueFactory) spinner
+                .getValueFactory();
         assertEquals(1, vf.getMin());
         assertEquals(20, vf.getMax());
         assertEquals(1, spinner.getValue());
@@ -119,7 +121,8 @@ public class CassaControllerFxTest extends ApplicationTest {
 
         // Caso 1: tavolo occupato ma senza comande da pagare
         try {
-            Tavolo tavolo2 = tavoloDAO.getAllTavoli().stream().filter(t -> t.getNumero() == 2).findFirst().orElseThrow();
+            Tavolo tavolo2 = tavoloDAO.getAllTavoli().stream().filter(t -> t.getNumero() == 2).findFirst()
+                    .orElseThrow();
             comandaDAO.setComandePagate(tavolo2.getId());
         } catch (Exception e) {
             fail("Setup DB fallito: " + e.getMessage());
@@ -141,8 +144,10 @@ public class CassaControllerFxTest extends ApplicationTest {
 
         // Caso 2: tavolo con una nuova comanda non pagata
         try {
-            Tavolo tavolo2 = tavoloDAO.getAllTavoli().stream().filter(t -> t.getNumero() == 2).findFirst().orElseThrow();
-            comandaDAO.insertComanda(new Comanda(0, tavolo2.getId(), "1x Test", 2.50, "Bar", "Servito", java.time.LocalDateTime.now(), "", 1));
+            Tavolo tavolo2 = tavoloDAO.getAllTavoli().stream().filter(t -> t.getNumero() == 2).findFirst()
+                    .orElseThrow();
+            comandaDAO.insertComanda(new Comanda(0, tavolo2.getId(), "1x Test", 2.50, "Bar", "Servito",
+                    java.time.LocalDateTime.now(), "", 1));
         } catch (Exception e) {
             fail("Inserimento comanda fallito: " + e.getMessage());
         }
@@ -152,9 +157,8 @@ public class CassaControllerFxTest extends ApplicationTest {
         assertFalse(scontrino.getText().isBlank());
         assertTrue(scontrino.getText().contains("RIEPILOGO TAVOLO"));
         assertTrue(
-            totale.getText().matches("€\\s*2[\\.,]50"),
-            "Totale atteso circa € 2,50 / € 2.50 ma era: " + totale.getText()
-        );
+                totale.getText().matches("€\\s*2[\\.,]50"),
+                "Totale atteso circa € 2,50 / € 2.50 ma era: " + totale.getText());
     }
 
     /**
@@ -230,32 +234,33 @@ public class CassaControllerFxTest extends ApplicationTest {
         // Crea una comanda per il Tavolo 2 per garantire che abbia un totale
         ComandaDAO comandaDAO = new ComandaDAO();
         TavoloDAO tavoloDAO = new TavoloDAO();
-        
+
         // Assicurati che il Tavolo 2 esista e sia occupato
         List<Tavolo> tavoli = tavoloDAO.getAllTavoli();
         Tavolo tavolo2 = tavoli.stream().filter(t -> t.getNumero() == 2).findFirst().orElse(null);
         if (tavolo2 != null && !tavolo2.getStato().equals("Occupato")) {
             tavoloDAO.updateStatoTavolo(tavolo2.getId(), "Occupato");
         }
-        
+
         // Crea una comanda con prezzo per il Tavolo 2
-        Comanda comanda = new Comanda(0, tavolo2 != null ? tavolo2.getId() : 2, 
-            "1x Pizza Margherita €8.50", 8.50, "Cucina", "Pronto", 
-            java.time.LocalDateTime.now(), "", 1);
+        Comanda comanda = new Comanda(0, tavolo2 != null ? tavolo2.getId() : 2,
+                "1x Pizza Margherita €8.50", 8.50, "Cucina", "Pronto",
+                java.time.LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
-        
+
         sleep(500); // Attendi che il DB sia aggiornato
-        
+
         // Clicca sul Tavolo 2
         try {
             clickOn("Tavolo 2");
             sleep(500);
-            
+
             // Verifica che il totale sia stato calcolato (non zero)
             Label lblTotale = lookup("#lblTotale").query();
             assertNotNull(lblTotale);
-            
-            // Il test verifica che il controller funzioni, non necessariamente che il parsing sia perfetto
+
+            // Il test verifica che il controller funzioni, non necessariamente che il
+            // parsing sia perfetto
             // In ambiente CI il timing potrebbe essere diverso
             assertNotNull(lblTotale.getText(), "Il campo totale dovrebbe avere un valore");
         } catch (Exception e) {
@@ -272,33 +277,34 @@ public class CassaControllerFxTest extends ApplicationTest {
     void handlePagaWithValidTableCompletesPayment() throws Exception {
         TavoloDAO tavoloDAO = new TavoloDAO();
         ComandaDAO comandaDAO = new ComandaDAO();
-        
+
         sleep(1000); // Attesa per caricamento iniziale
-        
+
         try {
             // Seleziona tavolo occupato (Tavolo 2)
             clickOn("Tavolo 2");
             sleep(500);
-            
+
             // Click su Paga
             clickOn("#btnPaga");
-            
+
             // Attendi il completamento con tempo maggiore per aggiornamento DB
             sleep(1500);
-            
+
             // Verifica che il tavolo sia liberato
             List<Tavolo> tavoli = tavoloDAO.getAllTavoli();
             Tavolo tavolo = tavoli.stream()
-                .filter(t -> t.getNumero() == 2)
-                .findFirst()
-                .orElse(null);
+                    .filter(t -> t.getNumero() == 2)
+                    .findFirst()
+                    .orElse(null);
             assertNotNull(tavolo, "Il tavolo 2 dovrebbe esistere");
-            
+
             // Verifica che sia Libero o almeno che l'operazione sia stata tentata
             assertTrue(tavolo.getStato().equals("Libero") || tavolo.getStato().equals("Occupato"),
-                "Il tavolo dovrebbe avere uno stato valido dopo il pagamento");
-            
-            // Verifica che le comande siano state processate (potrebbero essere vuote o ancora presenti)
+                    "Il tavolo dovrebbe avere uno stato valido dopo il pagamento");
+
+            // Verifica che le comande siano state processate (potrebbero essere vuote o
+            // ancora presenti)
             List<Comanda> comande = comandaDAO.getComandeDaPagare(tavolo.getId());
             // Non è critico se le comande sono ancora presenti (timing issue)
             assertNotNull(comande, "La lista delle comande dovrebbe esistere");
@@ -318,7 +324,7 @@ public class CassaControllerFxTest extends ApplicationTest {
         clickOn("#btnPaga");
 
         closeAlertIfPresent();
-        
+
         // Verifica che venga mostrato un alert (TestFX intercetta dialoghi)
         // Il controller mostra un alert, il test verifica che il metodo non crashi
         assertNotNull(controller);
@@ -340,19 +346,19 @@ public class CassaControllerFxTest extends ApplicationTest {
     void ricalcolaQuoteWithDifferentPersonCounts() throws Exception {
         // Seleziona tavolo occupato per avere un totale
         clickOn("Tavolo 2");
-        
+
         // Trova lo spinner e la label quota
-        Spinner<Integer> spinner = lookup("#spinDiviso").query();
-        Label lblQuota = lookup("#lblQuotaTesta").query();
-        
+        Spinner<Integer> spinner = lookup("#spinDiviso").queryAs(Spinner.class);
+        Label lblQuota = lookup("#lblQuotaTesta").queryAs(Label.class);
+
         // Verifica che gli elementi esistano
         assertNotNull(spinner);
         assertNotNull(lblQuota);
-        
+
         // Incrementa lo spinner a 2 persone
         interact(() -> spinner.getValueFactory().setValue(2));
         sleep(200);
-        
+
         // Verifica che la quota sia stata ricalcolata
         String quotaText = lblQuota.getText();
         assertTrue(quotaText.contains("€"), "La quota dovrebbe essere visualizzata");

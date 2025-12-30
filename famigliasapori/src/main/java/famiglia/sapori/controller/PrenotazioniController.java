@@ -255,11 +255,6 @@ public class PrenotazioniController implements Initializable {
         tablePrenotazioni.setItems(filtered);
     }
 
-    private void filterList(String query) {
-        // Deprecated, replaced by updateFilter
-        updateFilter();
-    }
-
     @FXML
     private void handleSalva() {
         try {
