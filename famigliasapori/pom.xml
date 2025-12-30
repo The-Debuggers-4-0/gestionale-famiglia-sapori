@@ -105,6 +105,11 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
+                    <argLine>
+                        @{argLine}
+                        --add-exports javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+                        --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+                    </argLine>
                     <systemPropertyVariables>
                         <!-- Attiva headless solo se variabile CI è impostata -->
                         <java.awt.headless>${env.CI}</java.awt.headless>

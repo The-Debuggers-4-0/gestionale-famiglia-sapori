@@ -120,7 +120,7 @@ public class LoginControllerFxTest extends ApplicationTest {
     private void writeInto(String selector, String text) {
         TextField tf = lookup(selector).query();
         clickOn(selector);
-        tf.clear();
+        interact(() -> tf.clear());
         write(text);
     }
 }
