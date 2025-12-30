@@ -35,13 +35,14 @@ public class GestoreControllerTest {
     static void initJavaFx() {
         if (FX_INITIALIZED.compareAndSet(false, true)) {
             try {
-                Platform.startup(() -> {});
+                Platform.startup(() -> {
+                });
             } catch (IllegalStateException ignored) {
                 // JavaFX runtime already started
             }
         }
     }
-    
+
     // Esegue un'azione sul thread JavaFX e attende il completamento
     private static void runOnFxThread(Runnable action) throws Exception {
         if (Platform.isFxApplicationThread()) {
@@ -79,7 +80,7 @@ public class GestoreControllerTest {
         f.setAccessible(true);
         return f.get(target);
     }
-    
+
     // Invoca un metodo senza argomenti tramite reflection
     private static void invokeNoArg(Object target, String methodName) throws Exception {
         Method m = target.getClass().getDeclaredMethod(methodName);
@@ -204,9 +205,10 @@ public class GestoreControllerTest {
      */
     @Test
     void controller_canBeInstantiated() {
-        /** Verifica che l'istanza del controller non sia nulla.
-         *  (abbiamo usato una lambda expressiion per catturare eventuali eccezioni)
-        */
+        /**
+         * Verifica che l'istanza del controller non sia nulla.
+         * (abbiamo usato una lambda expressiion per catturare eventuali eccezioni)
+         */
         assertDoesNotThrow(() -> {
             // Crea una nuova istanza del controller
             GestoreController controller = new GestoreController();
@@ -222,7 +224,7 @@ public class GestoreControllerTest {
     @Test
     void controller_hasExpectedStructure() throws Exception {
         GestoreController controller = new GestoreController();
-        
+
         // Verifica che il controller abbia i campi DAO privati
         var menuDAOField = GestoreController.class.getDeclaredField("menuDAO");
         assertNotNull(menuDAOField);
@@ -268,30 +270,30 @@ public class GestoreControllerTest {
     void controller_hasAllPublicHandlers() throws Exception {
         // Crea un'istanza del controller
         GestoreController controller = new GestoreController();
-        
+
         // Menu handlers
         // commento: verifica che il metodo handleNuovoPiatto non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredMethod("handleNuovoPiatto"));
         assertNotNull(GestoreController.class.getDeclaredMethod("handleSalvaPiatto"));
         assertNotNull(GestoreController.class.getDeclaredMethod("handleEliminaPiatto"));
-        
+
         // Personale handlers
         // commento: verifica che il metodo handleNuovoUtente non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredMethod("handleNuovoUtente"));
         assertNotNull(GestoreController.class.getDeclaredMethod("handleSalvaUtente"));
         assertNotNull(GestoreController.class.getDeclaredMethod("handleEliminaUtente"));
-        
+
         // Tavoli handlers
         // commento: verifica che il metodo handleNuovoTavolo non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredMethod("handleNuovoTavolo"));
         assertNotNull(GestoreController.class.getDeclaredMethod("handleSalvaTavolo"));
         assertNotNull(GestoreController.class.getDeclaredMethod("handleEliminaTavolo"));
         assertNotNull(GestoreController.class.getDeclaredMethod("handleResetTavolo"));
-        
+
         // Stats handler
         // commento: verifica che il metodo handleRefreshStats non sia nullo
         assertNotNull(GestoreController.class.getDeclaredMethod("handleRefreshStats"));
-        
+
         // Common handler
         // commento: verifica che il metodo handleLogout non sia nullo
         assertNotNull(GestoreController.class.getDeclaredMethod("handleLogout"));
@@ -307,23 +309,23 @@ public class GestoreControllerTest {
         assertNotNull(GestoreController.class.getDeclaredMethod("initMenuTab"));
         assertNotNull(GestoreController.class.getDeclaredMethod("loadMenuData"));
         assertNotNull(GestoreController.class.getDeclaredMethod("clearMenuFields"));
-        
+
         // Personale tab
         // commento: verifica che il metodo initPersonaleTab non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredMethod("initPersonaleTab"));
         assertNotNull(GestoreController.class.getDeclaredMethod("loadUtentiData"));
         assertNotNull(GestoreController.class.getDeclaredMethod("clearUtenteFields"));
-        
+
         // Tavoli tab
         // commento: verifica che il metodo initTavoliTab non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredMethod("initTavoliTab"));
         assertNotNull(GestoreController.class.getDeclaredMethod("loadTavoliData"));
         assertNotNull(GestoreController.class.getDeclaredMethod("clearTavoloFields"));
-        
+
         // Stats tab
         // commento: verifica che il metodo initStatsTab non sia nullo
         assertNotNull(GestoreController.class.getDeclaredMethod("initStatsTab"));
-        
+
         // Utility
         // commento: verifica che il metodo showError non sia nullo
         assertNotNull(GestoreController.class.getDeclaredMethod("showError", String.class));
@@ -350,14 +352,14 @@ public class GestoreControllerTest {
         // commento: verifica che il campo lblUtente non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredField("lblUtente"));
         assertNotNull(GestoreController.class.getDeclaredField("tabPaneGestore"));
-        
+
         // Menu tab
         // commento: verifica che il campo tblMenu non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredField("tblMenu"));
         assertNotNull(GestoreController.class.getDeclaredField("txtNomePiatto"));
         assertNotNull(GestoreController.class.getDeclaredField("comboCategoria"));
         assertNotNull(GestoreController.class.getDeclaredField("txtPrezzoPiatto"));
-        
+
         // Personale tab
         // commento: verifica che il campo tblUtenti non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredField("tblUtenti"));
@@ -365,13 +367,13 @@ public class GestoreControllerTest {
         assertNotNull(GestoreController.class.getDeclaredField("txtUsername"));
         assertNotNull(GestoreController.class.getDeclaredField("txtPassword"));
         assertNotNull(GestoreController.class.getDeclaredField("comboRuolo"));
-        
+
         // Tavoli tab
         // commento: verifica che il campo tblTavoli non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredField("tblTavoli"));
         assertNotNull(GestoreController.class.getDeclaredField("txtNumeroTavolo"));
         assertNotNull(GestoreController.class.getDeclaredField("spinPostiTavolo"));
-        
+
         // Stats tab
         // commento: verifica che il campo pieBestSellers non sia nullo, etc...
         assertNotNull(GestoreController.class.getDeclaredField("pieBestSellers"));
@@ -392,13 +394,13 @@ public class GestoreControllerTest {
         assertNotNull(GestoreController.class.getDeclaredField("colCategoriaPiatto"));
         assertNotNull(GestoreController.class.getDeclaredField("colPrezzoPiatto"));
         assertNotNull(GestoreController.class.getDeclaredField("colDispPiatto"));
-        
+
         // Personale columns
         // commento: verifica che la colonna nome utente non sia nulla, etc...
         assertNotNull(GestoreController.class.getDeclaredField("colNomeUtente"));
         assertNotNull(GestoreController.class.getDeclaredField("colUsername"));
         assertNotNull(GestoreController.class.getDeclaredField("colRuolo"));
-        
+
         // Tavoli columns
         // commento: verifica che la colonna numero tavolo non sia nulla, etc...
         assertNotNull(GestoreController.class.getDeclaredField("colNumeroTavolo"));
@@ -427,7 +429,9 @@ public class GestoreControllerTest {
                 assertEquals(2, pie.getData().size());
                 String txt = normalizeEuro(income.getText());
                 assertNotNull(txt);
-                assertTrue(txt.matches("€\\s*12[,.]50"), "Unexpected income label: " + txt);
+                // Match "Oggi:" followed by anything (including newlines) until the number, and
+                // then the rest
+                assertTrue(txt.matches("(?s)Oggi:.*12[,.]50.*"), "Unexpected income label: " + txt);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -618,7 +622,7 @@ public class GestoreControllerTest {
                 GestoreController controller = new GestoreController();
                 FakeMenuDAO dao = new FakeMenuDAO();
                 setField(controller, "menuDAO", dao);
-                
+
                 // Setup UI fields needed by handleNuovoPiatto which is called after delete
                 setField(controller, "tblMenu", new TableView<Piatto>());
                 setField(controller, "txtNomePiatto", new TextField());
@@ -651,7 +655,7 @@ public class GestoreControllerTest {
                 GestoreController controller = new GestoreController();
                 FakeUtenteDAO dao = new FakeUtenteDAO();
                 setField(controller, "utenteDAO", dao);
-                
+
                 setField(controller, "tblUtenti", new TableView<Utente>());
                 setField(controller, "txtNomeUtente", new TextField());
                 setField(controller, "txtUsername", new TextField());
@@ -679,7 +683,7 @@ public class GestoreControllerTest {
                 GestoreController controller = new GestoreController();
                 FakeTavoloDAO dao = new FakeTavoloDAO();
                 setField(controller, "tavoloDAO", dao);
-                
+
                 setField(controller, "tblTavoli", new TableView<Tavolo>());
                 setField(controller, "txtNumeroTavolo", new TextField());
                 setField(controller, "spinPostiTavolo", new Spinner<Integer>(1, 20, 4));
@@ -704,7 +708,7 @@ public class GestoreControllerTest {
         runOnFxThread(() -> {
             try {
                 GestoreController controller = new GestoreController();
-                
+
                 TableView<Piatto> tbl = new TableView<>();
                 TextField txtNome = new TextField();
                 ComboBox<String> combo = new ComboBox<>();
@@ -720,7 +724,7 @@ public class GestoreControllerTest {
                 setField(controller, "txtDescrizionePiatto", txtDesc);
                 setField(controller, "txtAllergeni", txtAll);
                 setField(controller, "chkDisponibile", chk);
-                
+
                 setField(controller, "colNomePiatto", new TableColumn<>());
                 setField(controller, "colCategoriaPiatto", new TableColumn<>());
                 setField(controller, "colPrezzoPiatto", new TableColumn<>());
@@ -731,17 +735,17 @@ public class GestoreControllerTest {
 
                 Piatto p = new Piatto(1, "Pizza", "Buona", 5.0, "Primi", true, "Glutine");
                 tbl.getItems().add(p);
-                
+
                 // Select item
                 tbl.getSelectionModel().select(p);
-                
+
                 assertEquals("Pizza", txtNome.getText());
                 assertEquals("5.0", txtPrezzo.getText());
-                
+
                 // Deselect
                 tbl.getSelectionModel().clearSelection();
                 assertEquals("", txtNome.getText());
-                
+
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -753,7 +757,7 @@ public class GestoreControllerTest {
         runOnFxThread(() -> {
             try {
                 GestoreController controller = new GestoreController();
-                
+
                 TableView<Utente> tbl = new TableView<>();
                 TextField txtNome = new TextField();
                 TextField txtUser = new TextField();
@@ -765,7 +769,7 @@ public class GestoreControllerTest {
                 setField(controller, "txtUsername", txtUser);
                 setField(controller, "txtPassword", txtPass);
                 setField(controller, "comboRuolo", combo);
-                
+
                 setField(controller, "colNomeUtente", new TableColumn<>());
                 setField(controller, "colUsername", new TableColumn<>());
                 setField(controller, "colRuolo", new TableColumn<>());
@@ -775,13 +779,13 @@ public class GestoreControllerTest {
 
                 Utente u = new Utente(1, "Mario", "mario", "pass", "Cameriere");
                 tbl.getItems().add(u);
-                
+
                 tbl.getSelectionModel().select(u);
                 assertEquals("Mario", txtNome.getText());
-                
+
                 tbl.getSelectionModel().clearSelection();
                 assertEquals("", txtNome.getText());
-                
+
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -793,7 +797,7 @@ public class GestoreControllerTest {
         runOnFxThread(() -> {
             try {
                 GestoreController controller = new GestoreController();
-                
+
                 TableView<Tavolo> tbl = new TableView<>();
                 TextField txtNumero = new TextField();
                 Spinner<Integer> spin = new Spinner<>();
@@ -803,7 +807,7 @@ public class GestoreControllerTest {
                 setField(controller, "txtNumeroTavolo", txtNumero);
                 setField(controller, "spinPostiTavolo", spin);
                 setField(controller, "txtNoteTavolo", txtNote);
-                
+
                 setField(controller, "colNumeroTavolo", new TableColumn<>());
                 setField(controller, "colPostiTavolo", new TableColumn<>());
                 setField(controller, "colStatoTavolo", new TableColumn<>());
@@ -813,14 +817,14 @@ public class GestoreControllerTest {
 
                 Tavolo t = new Tavolo(1, 10, "Libero", 6, "Vista mare");
                 tbl.getItems().add(t);
-                
+
                 tbl.getSelectionModel().select(t);
                 assertEquals("10", txtNumero.getText());
                 assertEquals(6, spin.getValue());
-                
+
                 tbl.getSelectionModel().clearSelection();
                 assertEquals("", txtNumero.getText());
-                
+
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -833,47 +837,49 @@ public class GestoreControllerTest {
             try {
                 GestoreController controller = new GestoreController();
                 setField(controller, "menuDAO", new FakeMenuDAO());
-                
+
                 TableColumn<Piatto, Double> colPrezzo = new TableColumn<>();
                 TableColumn<Piatto, Boolean> colDisp = new TableColumn<>();
-                
+
                 setField(controller, "colNomePiatto", new TableColumn<>());
                 setField(controller, "colCategoriaPiatto", new TableColumn<>());
                 setField(controller, "colPrezzoPiatto", colPrezzo);
                 setField(controller, "colDispPiatto", colDisp);
-                
+
                 setField(controller, "tblMenu", new TableView<>());
                 setField(controller, "comboCategoria", new ComboBox<>());
-                
+
                 invokeNoArg(controller, "initMenuTab");
-                
+
                 // Test Prezzo Cell Factory
                 TableCell<Piatto, Double> cellPrezzo = colPrezzo.getCellFactory().call(colPrezzo);
-                Method updateItemPrezzo = cellPrezzo.getClass().getDeclaredMethod("updateItem", Object.class, boolean.class);
+                Method updateItemPrezzo = cellPrezzo.getClass().getDeclaredMethod("updateItem", Object.class,
+                        boolean.class);
                 updateItemPrezzo.setAccessible(true);
-                
+
                 updateItemPrezzo.invoke(cellPrezzo, 12.50, false);
                 assertEquals("€ 12,50", cellPrezzo.getText().replace('.', ',')); // Handle locale diffs if needed
-                
+
                 updateItemPrezzo.invoke(cellPrezzo, null, true);
                 assertNull(cellPrezzo.getText());
 
                 // Test Disp Cell Factory
                 TableCell<Piatto, Boolean> cellDisp = colDisp.getCellFactory().call(colDisp);
-                Method updateItemDisp = cellDisp.getClass().getDeclaredMethod("updateItem", Object.class, boolean.class);
+                Method updateItemDisp = cellDisp.getClass().getDeclaredMethod("updateItem", Object.class,
+                        boolean.class);
                 updateItemDisp.setAccessible(true);
-                
+
                 updateItemDisp.invoke(cellDisp, true, false);
                 assertEquals("Sì", cellDisp.getText());
                 assertTrue(cellDisp.getStyle().contains("#2ecc71"));
-                
+
                 updateItemDisp.invoke(cellDisp, false, false);
                 assertEquals("No", cellDisp.getText());
                 assertTrue(cellDisp.getStyle().contains("#e74c3c"));
-                
+
                 updateItemDisp.invoke(cellDisp, null, true);
                 assertNull(cellDisp.getText());
-                
+
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

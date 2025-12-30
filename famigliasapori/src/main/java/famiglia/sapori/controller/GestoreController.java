@@ -148,7 +148,7 @@ public class GestoreController implements Initializable {
                 if (empty || item == null) {
                     setText(null);
                 } else {
-                    setText(String.format("€ %.2f", item));
+                    setText(String.format("\u20AC %.2f", item));
                 }
             }
         });
@@ -471,7 +471,8 @@ public class GestoreController implements Initializable {
             // Incassi: Giornaliero e Settimanale
             double dailyIncome = gestoreDAO.calculateDailyIncome();
             double weeklyIncome = gestoreDAO.calculateWeeklyIncome();
-            lblIncassoTotale.setText(String.format("Oggi: € %.2f\nUltimi 7gg: € %.2f", dailyIncome, weeklyIncome));
+            lblIncassoTotale
+                    .setText(String.format("Oggi: \u20AC %.2f\nUltimi 7gg: \u20AC %.2f", dailyIncome, weeklyIncome));
 
         } catch (SQLException e) {
             showError("Errore caricamento statistiche: " + e.getMessage());
