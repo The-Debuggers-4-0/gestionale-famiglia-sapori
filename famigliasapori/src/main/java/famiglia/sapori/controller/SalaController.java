@@ -132,7 +132,7 @@ public class SalaController implements Initializable {
                 tavoliContainer.getChildren().add(tavoloBox);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel caricamento dei tavoli: " + e.getMessage());
         }
     }
 
@@ -202,7 +202,7 @@ public class SalaController implements Initializable {
                 menuTabPane.getSelectionModel().select(selectedTabIndex);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel caricamento del menu: " + e.getMessage());
         }
     }
  
@@ -339,7 +339,7 @@ public class SalaController implements Initializable {
             loadMenu();
  
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore nell'invio della comanda: " + e.getMessage());
             showAlert("Errore", "Impossibile salvare la comanda: " + e.getMessage());
         }
     }
@@ -384,7 +384,7 @@ public class SalaController implements Initializable {
             FamigliaSaporiApplication.currentUser = null;
             FamigliaSaporiApplication.setRoot("LoginView");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel ritorno alla LoginView: " + e.getMessage());
         }
     }
  
@@ -402,7 +402,7 @@ public class SalaController implements Initializable {
         try {
             FamigliaSaporiApplication.setRoot("PrenotazioneView");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel caricamento della vista prenotazioni: " + e.getMessage());
             showAlert("Errore", "Impossibile caricare la vista prenotazioni: " + e.getMessage());
         }
     }

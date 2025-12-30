@@ -76,7 +76,6 @@ public class HomeController implements Initializable {
             FamigliaSaporiApplication.setRoot("CassaView");
         } catch (IOException e) {
             System.err.println("Errore nel caricamento della pagina Cassa: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }

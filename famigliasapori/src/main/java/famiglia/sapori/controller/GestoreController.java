@@ -443,7 +443,7 @@ public class GestoreController implements Initializable {
         try {
             FamigliaSaporiApplication.setRoot("LoginView");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel ritorno alla LoginView: " + e.getMessage());
         }
     }
 
@@ -452,7 +452,7 @@ public class GestoreController implements Initializable {
         try {
             FamigliaSaporiApplication.setRoot("PrenotazioneView");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel caricamento della vista prenotazioni: " + e.getMessage());
             showError("Impossibile caricare la vista prenotazioni: " + e.getMessage());
         }
     }

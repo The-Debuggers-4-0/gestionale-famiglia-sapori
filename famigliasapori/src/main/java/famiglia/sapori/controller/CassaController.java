@@ -60,7 +60,7 @@ public class CassaController implements Initializable {
                 tavoliContainer.getChildren().add(createTavoloBox(t));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel caricamento dei tavoli: " + e.getMessage());
         }
     }
 
@@ -133,7 +133,7 @@ public class CassaController implements Initializable {
             ricalcolaQuote(1);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel calcolo del conto: " + e.getMessage());
         }
     }
 
@@ -172,7 +172,7 @@ public class CassaController implements Initializable {
             totaleCorrente = 0;
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore durante il pagamento: " + e.getMessage());
             showAlert("Errore", "Errore durante il pagamento: " + e.getMessage());
         }
     }
@@ -182,7 +182,7 @@ public class CassaController implements Initializable {
         try {
             FamigliaSaporiApplication.setRoot("HomeView");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel ritorno alla HomeView: " + e.getMessage());
         }
     }
 

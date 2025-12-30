@@ -95,7 +95,7 @@ public class CucinaController implements Initializable {
             List<Tavolo> tavoli = tavoloDAO.getAllTavoli();
             tavoloMap = tavoli.stream().collect(Collectors.toMap(Tavolo::getId, Tavolo::getNumero));
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel caricamento dei tavoli: " + e.getMessage());
         }
     }
 
@@ -145,7 +145,6 @@ public class CucinaController implements Initializable {
             }
         } catch (SQLException e) {
             System.err.println("Errore durante il caricamento delle comande: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -288,7 +287,7 @@ public class CucinaController implements Initializable {
             // Non rimuovere manualmente da activeCards, lascia che loadComande gestisca la sincronizzazione
             loadComande();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore nell'aggiornamento dello stato della comanda: " + e.getMessage());
         }
     }
 
@@ -299,7 +298,6 @@ public class CucinaController implements Initializable {
             FamigliaSaporiApplication.setRoot("HomeView");
         } catch (IOException e) {
             System.err.println("Errore nel ritorno alla HomeView: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }

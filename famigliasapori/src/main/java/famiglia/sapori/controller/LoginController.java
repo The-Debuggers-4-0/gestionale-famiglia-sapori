@@ -65,7 +65,7 @@ public class LoginController implements Initializable {
                 showError("Credenziali non valide");
             }
         } catch (SQLException | IOException e) {
-            e.printStackTrace();
+            System.err.println("Errore durante il login: " + e.getMessage());
             showError("Errore: " + e.getMessage());
         }
     }

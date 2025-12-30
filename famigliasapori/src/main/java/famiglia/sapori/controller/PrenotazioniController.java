@@ -172,7 +172,7 @@ public class PrenotazioniController implements Initializable {
             masterData.setAll(prenotazioneDAO.getAllPrenotazioni());
             updateFilter();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel caricamento delle prenotazioni: " + e.getMessage());
         }
     }
 
@@ -230,7 +230,7 @@ public class PrenotazioniController implements Initializable {
                 }
             });
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel caricamento dei tavoli: " + e.getMessage());
         }
     }
 
@@ -314,7 +314,7 @@ public class PrenotazioniController implements Initializable {
 
         } catch (Exception e) {
             showAlert("Errore", "Controlla i dati inseriti (es. orario HH:mm).");
-            e.printStackTrace();
+            System.err.println("Errore nel salvataggio della prenotazione: " + e.getMessage());
         }
     }
 
@@ -340,7 +340,7 @@ public class PrenotazioniController implements Initializable {
                 loadPrenotazioni();
                 loadTavoli(); // Aggiorna lo stato dei tavoli nella UI
             } catch (SQLException e) {
-                e.printStackTrace();
+                System.err.println("Errore nell'eliminazione della prenotazione: " + e.getMessage());
             }
         } else {
             showAlert("Attenzione", "Nessuna prenotazione selezionata");
@@ -358,7 +358,7 @@ public class PrenotazioniController implements Initializable {
                 FamigliaSaporiApplication.setRoot("SalaView");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Errore nel ritorno alla vista precedente: " + e.getMessage());
         }
     }
 
