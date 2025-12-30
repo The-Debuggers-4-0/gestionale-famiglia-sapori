@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -46,6 +47,8 @@ public class SalaController implements Initializable {
     @FXML private Label lblTotale;
     @FXML private Button btnInvia;
     @FXML private Button btnPrenotazioni;
+
+    private static final String TITOLO_ERRORE = "Errore";
  
     private TavoloDAO tavoloDAO;
     private MenuDAO menuDAO;
@@ -64,8 +67,8 @@ public class SalaController implements Initializable {
         prenotazioneDAO = new PrenotazioneDAO();
         currentOrder = new HashMap<>();
  
-        if (FamigliaSaporiApplication.currentUser != null) {
-            userLabel.setText("Cameriere: " + FamigliaSaporiApplication.currentUser.getNome());
+        if (FamigliaSaporiApplication.getCurrentUser() != null) {
+            userLabel.setText("Cameriere: " + FamigliaSaporiApplication.getCurrentUser().getNome());
         }
  
         loadTavoli();
@@ -80,7 +83,7 @@ public class SalaController implements Initializable {
                 loadMenu();
             });
         }));
-        pollingTimeline.setCycleCount(Timeline.INDEFINITE);
+        pollingTimeline.setCycleCount(Animation.INDEFINITE);
         pollingTimeline.play();
     }
 
@@ -106,8 +109,8 @@ public class SalaController implements Initializable {
                 
                 // Se lo stato nel DB è "Prenotato", lo consideriamo "Libero" di base,
                 // perché la prenotazione deve dipendere dalla data odierna.
-                if ("Prenotato".equalsIgnoreCase(status)) {
-                    status = "Libero";
+                if (Tavolo.STATO_PRENOTATO.equalsIgnoreCase(status)) {
+                    status = Tavolo.STATO_LIBERO;
                 }
 
                 // Verifica se c'è una prenotazione attiva e non ancora "soddisfatta" (pagata)
@@ -125,8 +128,8 @@ public class SalaController implements Initializable {
                 }
 
                 // Se il tavolo non è occupato ma è prenotato per oggi (e non ancora pagato), mostralo come prenotato
-                if (!"Occupato".equalsIgnoreCase(status) && isReserved) {
-                    status = "Prenotato";
+                if (!Tavolo.STATO_OCCUPATO.equalsIgnoreCase(status) && isReserved) {
+                    status = Tavolo.STATO_PRENOTATO;
                 }
                 VBox tavoloBox = createTavoloBox(t, status);
                 tavoliContainer.getChildren().add(tavoloBox);
@@ -144,9 +147,9 @@ public class SalaController implements Initializable {
         rect.setArcWidth(10);
         rect.setArcHeight(10);
        
-        if ("Occupato".equalsIgnoreCase(status)) {
+        if (Tavolo.STATO_OCCUPATO.equalsIgnoreCase(status)) {
             rect.setFill(Color.RED);
-        } else if ("Prenotato".equalsIgnoreCase(status)) {
+        } else if (Tavolo.STATO_PRENOTATO.equalsIgnoreCase(status)) {
             rect.setFill(Color.web("#f39c12"));
         } else {
             rect.setFill(Color.GREEN);
@@ -280,15 +283,15 @@ public class SalaController implements Initializable {
     @FXML
     private void handleInviaComanda() {
         if (selectedTavolo == null) {
-            showAlert("Errore", "Seleziona un tavolo prima di inviare l'ordine.");
+            showAlert(TITOLO_ERRORE, "Seleziona un tavolo prima di inviare l'ordine.");
             return;
         }
         if (currentOrder.isEmpty()) {
-            showAlert("Errore", "L'ordine è vuoto.");
+            showAlert(TITOLO_ERRORE, "L'ordine è vuoto.");
             return;
         }
-        if (FamigliaSaporiApplication.currentUser == null) {
-            showAlert("Errore", "Utente non autenticato. Effettua nuovamente il login.");
+        if (FamigliaSaporiApplication.getCurrentUser() == null) {
+            showAlert(TITOLO_ERRORE, "Utente non autenticato. Effettua nuovamente il login.");
             return;
         }
  
@@ -314,9 +317,9 @@ public class SalaController implements Initializable {
             if (!barItems.isEmpty()) {
                 sendComanda(barItems, "Bar");
             }
-           
+
             // Update table status to Occupato
-            tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), "Occupato");
+            tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), Tavolo.STATO_OCCUPATO);
            
             // Rimuovi la prenotazione per questo tavolo (se esiste per oggi)
             // Così quando il tavolo verrà liberato, non tornerà "Prenotato" (Giallo)
@@ -340,7 +343,7 @@ public class SalaController implements Initializable {
  
         } catch (SQLException e) {
             System.err.println("Errore nell'invio della comanda: " + e.getMessage());
-            showAlert("Errore", "Impossibile salvare la comanda: " + e.getMessage());
+            showAlert(TITOLO_ERRORE, "Impossibile salvare la comanda: " + e.getMessage());
         }
     }
     
@@ -365,7 +368,7 @@ public class SalaController implements Initializable {
             "In Attesa",
             null, // Date auto-generated
             txtNote.getText(),
-            FamigliaSaporiApplication.currentUser.getId()
+            FamigliaSaporiApplication.getCurrentUser().getId()
         );
 
         comandaDAO.insertComanda(comanda);
@@ -381,7 +384,7 @@ public class SalaController implements Initializable {
     private void handleLogout() {
         stopPolling();
         try {
-            FamigliaSaporiApplication.currentUser = null;
+            FamigliaSaporiApplication.setCurrentUser(null);
             FamigliaSaporiApplication.setRoot("LoginView");
         } catch (IOException e) {
             System.err.println("Errore nel ritorno alla LoginView: " + e.getMessage());
@@ -403,7 +406,7 @@ public class SalaController implements Initializable {
             FamigliaSaporiApplication.setRoot("PrenotazioneView");
         } catch (IOException e) {
             System.err.println("Errore nel caricamento della vista prenotazioni: " + e.getMessage());
-            showAlert("Errore", "Impossibile caricare la vista prenotazioni: " + e.getMessage());
+            showAlert(TITOLO_ERRORE, "Impossibile caricare la vista prenotazioni: " + e.getMessage());
         }
     }
 }

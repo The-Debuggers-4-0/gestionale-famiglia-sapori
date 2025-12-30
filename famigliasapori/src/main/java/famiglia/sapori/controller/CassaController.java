@@ -22,6 +22,8 @@ import java.util.ResourceBundle;
 
 public class CassaController implements Initializable {
 
+    private static final String ZERO_EURO = "€ 0.00";
+
     @FXML
     private FlowPane tavoliContainer;
     @FXML
@@ -110,7 +112,7 @@ public class CassaController implements Initializable {
 
             if (comande.isEmpty()) {
                 txtScontrino.setText("Nessuna comanda da pagare.");
-                lblTotale.setText("€ 0.00");
+                lblTotale.setText(ZERO_EURO);
                 return;
             }
 
@@ -146,7 +148,7 @@ public class CassaController implements Initializable {
             double quota = totaleCorrente / persone;
             lblQuotaTesta.setText(String.format("€ %.2f a testa", quota));
         } else {
-            lblQuotaTesta.setText("€ 0.00");
+            lblQuotaTesta.setText(ZERO_EURO);
         }
     }
 
@@ -170,7 +172,7 @@ public class CassaController implements Initializable {
             // Reset UI
             loadTavoli();
             txtScontrino.clear();
-            lblTotale.setText("€ 0.00");
+            lblTotale.setText(ZERO_EURO);
             lblTavoloSelezionato.setText("Nessun Tavolo");
             selectedTavolo = null;
             totaleCorrente = 0;

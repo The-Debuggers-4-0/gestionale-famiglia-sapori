@@ -16,16 +16,29 @@ import famiglia.sapori.model.Utente;
 public class FamigliaSaporiApplication extends Application {
 
     private static Scene scene;
-    public static Utente currentUser;
+    private static Utente currentUser;
+
+    public static void setCurrentUser(Utente user) {
+        currentUser = user;
+    }
+
+    public static Utente getCurrentUser() {
+        return currentUser;
+    }
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("HomeView"), 800, 600);
+        Scene initialScene = new Scene(loadFXML("HomeView"), 800, 600);
+        setScene(initialScene);
         stage.setTitle("Gestionale Famiglia Sapori");
-        stage.setScene(scene);
+        stage.setScene(initialScene);
         stage.setFullScreen(false);
         stage.setResizable(true);
         stage.show();
+    }
+
+    private static void setScene(Scene s) {
+        scene = s;
     }
 
     public static void setRoot(String fxml) throws IOException {

@@ -58,7 +58,7 @@ public class SalaControllerTest {
     // Resetta l'utente corrente dopo ogni test
     @AfterEach
     void resetCurrentUser() {
-        FamigliaSaporiApplication.currentUser = null;
+        FamigliaSaporiApplication.setCurrentUser(null);
     }
 
     // Esegue un'azione sul thread JavaFX e attende il completamento
@@ -395,12 +395,12 @@ public class SalaControllerTest {
                 Map<Piatto, Integer> order = new HashMap<>();
                 order.put(new Piatto(1, "Pasta", "", 10.0, "Primi", true, ""), 1);
                 setField(controller, "currentOrder", order);
-                FamigliaSaporiApplication.currentUser = null;
+                FamigliaSaporiApplication.setCurrentUser(null);
                 invokeNoArg(controller, "handleInviaComanda");
                 assertTrue(comandaDAO.inserted.isEmpty());
 
                 // Case 4: Success (Split Kitchen/Bar)
-                FamigliaSaporiApplication.currentUser = new Utente(1, "U", "u", "p", "Cameriere");
+                FamigliaSaporiApplication.setCurrentUser(new Utente(1, "U", "u", "p", "Cameriere"));
                 order.put(new Piatto(2, "Acqua", "", 2.0, "Bevande", true, ""), 2);
                 setField(controller, "currentOrder", order);
                 

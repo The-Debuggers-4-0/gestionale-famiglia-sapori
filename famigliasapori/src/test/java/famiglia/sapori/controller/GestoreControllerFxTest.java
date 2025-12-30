@@ -36,7 +36,7 @@ public class GestoreControllerFxTest extends ApplicationTest {
         this.testStage = stage;
         
         // Simula un utente Gestore loggato
-        FamigliaSaporiApplication.currentUser = new Utente(1, "Admin Gestore", "admin", "admin", "Gestore");
+        FamigliaSaporiApplication.setCurrentUser(new Utente(1, "Admin Gestore", "admin", "admin", "Gestore"));
         
         // Carica il file FXML reale
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/GestoreView.fxml"));

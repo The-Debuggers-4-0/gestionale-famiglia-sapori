@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
  
 public class PrenotazioneDAO {
+
+    private static final String COL_ID_TAVOLO = "id_tavolo";
  
     public List<Prenotazione> getAllPrenotazioni() throws SQLException {
         List<Prenotazione> lista = new ArrayList<>();
@@ -17,7 +19,7 @@ public class PrenotazioneDAO {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
-                int idTavolo = rs.getInt("id_tavolo");
+                int idTavolo = rs.getInt(COL_ID_TAVOLO);
                 Integer idTavoloObj = rs.wasNull() ? null : idTavolo;
                
                 lista.add(new Prenotazione(
@@ -90,7 +92,7 @@ public class PrenotazioneDAO {
             stmt.setDate(1, java.sql.Date.valueOf(date));
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    reservedIds.add(rs.getInt("id_tavolo"));
+                    reservedIds.add(rs.getInt(COL_ID_TAVOLO));
                 }
             }
         }
@@ -113,7 +115,7 @@ public class PrenotazioneDAO {
                         rs.getInt("numero_persone"),
                         rs.getTimestamp("data_ora").toLocalDateTime(),
                         rs.getString("note"),
-                        rs.getInt("id_tavolo")
+                        rs.getInt(COL_ID_TAVOLO)
                     ));
                 }
             }

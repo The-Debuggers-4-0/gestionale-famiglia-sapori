@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MenuDAO {
+
+    private static final String COL_CATEGORIA = "categoria";
     
     // Recupera tutti i piatti disponibili nel menu
     public List<Piatto> getAllPiatti() throws SQLException {
@@ -23,7 +25,7 @@ public class MenuDAO {
                         rs.getString("nome"),
                         rs.getString("descrizione"),
                         rs.getDouble("prezzo"),
-                        rs.getString("categoria"),
+                        rs.getString(COL_CATEGORIA),
                         rs.getBoolean("disponibile"),
                         rs.getString("allergeni")
                 ));
@@ -42,7 +44,7 @@ public class MenuDAO {
              ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                categorie.add(rs.getString("categoria"));
+                categorie.add(rs.getString(COL_CATEGORIA));
             }
         }
         return categorie;
@@ -63,7 +65,7 @@ public class MenuDAO {
                         rs.getString("nome"),
                         rs.getString("descrizione"),
                         rs.getDouble("prezzo"),
-                        rs.getString("categoria"),
+                        rs.getString(COL_CATEGORIA),
                         rs.getBoolean("disponibile"),
                         rs.getString("allergeni")
                 ));

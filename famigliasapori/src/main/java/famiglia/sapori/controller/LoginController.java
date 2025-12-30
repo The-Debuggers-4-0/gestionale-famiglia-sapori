@@ -55,7 +55,7 @@ public class LoginController implements Initializable {
         try {
            Utente utente = utenteDAO.login(username, password);
             if (utente != null) {
-                FamigliaSaporiApplication.currentUser = utente;
+                FamigliaSaporiApplication.setCurrentUser(utente);
                 if ("Gestore".equalsIgnoreCase(utente.getRuolo())) {
                     FamigliaSaporiApplication.setRoot("GestoreView");
                 } else {

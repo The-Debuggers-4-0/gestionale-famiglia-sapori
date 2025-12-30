@@ -66,6 +66,8 @@ public class PrenotazioniController implements Initializable {
     @FXML
     private Button btnAnnulla;
 
+    private static final String TITOLO_ERRORE = "Errore";
+
     private PrenotazioneDAO prenotazioneDAO;
     private TavoloDAO tavoloDAO;
     private ObservableList<Prenotazione> masterData = FXCollections.observableArrayList();
@@ -260,7 +262,7 @@ public class PrenotazioniController implements Initializable {
         try {
             String nome = txtNome.getText();
             if (nome.isEmpty()) {
-                showAlert("Errore", "Il nome è obbligatorio");
+                showAlert(TITOLO_ERRORE, "Il nome è obbligatorio");
                 return;
             }
 
@@ -273,7 +275,7 @@ public class PrenotazioniController implements Initializable {
             Tavolo selectedTavolo = comboTavolo.getValue();
 
             if (selectedTavolo == null) {
-                showAlert("Errore", "Devi selezionare un tavolo per salvare la prenotazione.");
+                showAlert(TITOLO_ERRORE, "Devi selezionare un tavolo per salvare la prenotazione.");
                 return;
             }
 
@@ -308,7 +310,7 @@ public class PrenotazioniController implements Initializable {
             tablePrenotazioni.getSelectionModel().clearSelection();
 
         } catch (Exception e) {
-            showAlert("Errore", "Controlla i dati inseriti (es. orario HH:mm).");
+            showAlert(TITOLO_ERRORE, "Controlla i dati inseriti (es. orario HH:mm).");
             System.err.println("Errore nel salvataggio della prenotazione: " + e.getMessage());
         }
     }
@@ -346,8 +348,8 @@ public class PrenotazioniController implements Initializable {
     private void handleBack() {
         try {
             // Controlla il ruolo dell'utente corrente per decidere dove tornare
-            if (FamigliaSaporiApplication.currentUser != null &&
-                    "Gestore".equalsIgnoreCase(FamigliaSaporiApplication.currentUser.getRuolo())) {
+            if (FamigliaSaporiApplication.getCurrentUser() != null &&
+                    "Gestore".equalsIgnoreCase(FamigliaSaporiApplication.getCurrentUser().getRuolo())) {
                 FamigliaSaporiApplication.setRoot("GestoreView");
             } else {
                 FamigliaSaporiApplication.setRoot("SalaView");

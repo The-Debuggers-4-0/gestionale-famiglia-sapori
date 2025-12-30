@@ -85,8 +85,8 @@ public class GestoreController implements Initializable {
         tavoloDAO = new TavoloDAO();
         gestoreDAO = new GestoreDAO();
 
-        if (FamigliaSaporiApplication.currentUser != null) {
-            lblUtente.setText("Gestore: " + FamigliaSaporiApplication.currentUser.getNome());
+        if (FamigliaSaporiApplication.getCurrentUser() != null) {
+            lblUtente.setText("Gestore: " + FamigliaSaporiApplication.getCurrentUser().getNome());
         }
 
         initMenuTab();
@@ -315,9 +315,9 @@ public class GestoreController implements Initializable {
                     setStyle("");
                 } else {
                     setText(item);
-                    if ("Libero".equalsIgnoreCase(item)) {
+                    if (Tavolo.STATO_LIBERO.equalsIgnoreCase(item)) {
                         setStyle("-fx-text-fill: #2ecc71; -fx-font-weight: bold;"); // Verde
-                    } else if ("Occupato".equalsIgnoreCase(item)) {
+                    } else if (Tavolo.STATO_OCCUPATO.equalsIgnoreCase(item)) {
                         setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;"); // Rosso
                     } else {
                         setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold;"); // Arancione
@@ -369,7 +369,7 @@ public class GestoreController implements Initializable {
             int numero = Integer.parseInt(txtNumeroTavolo.getText());
             int posti = spinPostiTavolo.getValue();
             String note = txtNoteTavolo.getText();
-            String stato = (selectedTavolo != null) ? selectedTavolo.getStato() : "Libero";
+            String stato = (selectedTavolo != null) ? selectedTavolo.getStato() : Tavolo.STATO_LIBERO;
 
             if (selectedTavolo == null) {
                 Tavolo t = new Tavolo(0, numero, stato, posti, note);
@@ -404,7 +404,7 @@ public class GestoreController implements Initializable {
     private void handleResetTavolo() {
         if (selectedTavolo != null) {
             try {
-                tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), "Libero");
+                tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), Tavolo.STATO_LIBERO);
                 loadTavoliData();
             } catch (SQLException e) {
                 showError("Errore reset tavolo: " + e.getMessage());

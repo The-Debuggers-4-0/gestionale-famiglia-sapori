@@ -1,6 +1,10 @@
 package famiglia.sapori.model;
 
 public class Tavolo {
+    public static final String STATO_LIBERO = "Libero";
+    public static final String STATO_OCCUPATO = "Occupato";
+    public static final String STATO_PRENOTATO = "Prenotato";
+
     private int id;
     private int numero;
     private String stato; // 'Libero', 'Occupato'

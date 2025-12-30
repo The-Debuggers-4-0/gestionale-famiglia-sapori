@@ -49,7 +49,7 @@ public class LoginControllerFxTest extends ApplicationTest {
     // Pulizia dopo ogni test
     @AfterEach
     void cleanupUser() {
-        FamigliaSaporiApplication.currentUser = null;
+        FamigliaSaporiApplication.setCurrentUser(null);
         try {
             ApplicationMockHelper.clearMockScene();
         } catch (Exception ignored) {
@@ -82,7 +82,7 @@ public class LoginControllerFxTest extends ApplicationTest {
         Label err = lookup("#errorLabel").queryAs(Label.class);
         assertTrue(err.isVisible());
         assertTrue(err.getText().contains("Credenziali non valide"));
-        assertNull(FamigliaSaporiApplication.currentUser);
+        assertNull(FamigliaSaporiApplication.getCurrentUser());
     }
 
     // Test di login con credenziali valide per Utente
@@ -96,8 +96,8 @@ public class LoginControllerFxTest extends ApplicationTest {
         clickOn("#btnLogin");
 
         // Verifica che l'utente corrente sia impostato correttamente
-        assertNotNull(FamigliaSaporiApplication.currentUser);
-        assertEquals("Gestore", FamigliaSaporiApplication.currentUser.getRuolo());
+        assertNotNull(FamigliaSaporiApplication.getCurrentUser());
+        assertEquals("Gestore", FamigliaSaporiApplication.getCurrentUser().getRuolo());
 
         // Verifica che la vista Gestore sia caricata
         TabPane tabPane = lookup("#tabPaneGestore").queryAs(TabPane.class);

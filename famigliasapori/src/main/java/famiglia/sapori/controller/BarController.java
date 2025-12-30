@@ -9,6 +9,7 @@ import famiglia.sapori.model.Piatto;
 import famiglia.sapori.model.Tavolo;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -74,7 +75,7 @@ public class BarController implements Initializable {
         pollingTimeline = new Timeline(new KeyFrame(Duration.seconds(5), e -> {
             Platform.runLater(this::loadComande);
         }));
-        pollingTimeline.setCycleCount(Timeline.INDEFINITE);
+        pollingTimeline.setCycleCount(Animation.INDEFINITE);
         pollingTimeline.play();
     }
 
@@ -107,8 +108,8 @@ public class BarController implements Initializable {
 
     private void loadComande() {
         try {
-            List<Comanda> comande = comandaDAO.getComandeByStatoAndTipo("In Attesa", "Bar");
-            comande.addAll(comandaDAO.getComandeByStatoAndTipo("In Preparazione", "Bar"));
+            List<Comanda> comande = comandaDAO.getComandeByStatoAndTipo(Comanda.STATO_IN_ATTESA, "Bar");
+            comande.addAll(comandaDAO.getComandeByStatoAndTipo(Comanda.STATO_IN_PREPARAZIONE, "Bar"));
 
             List<Integer> currentIds = comande.stream().map(Comanda::getId).collect(Collectors.toList());
             List<Integer> toRemove = activeCards.keySet().stream()
@@ -155,25 +156,25 @@ public class BarController implements Initializable {
             }
 
             String expectedButtonText = "";
-            if ("In Attesa".equals(c.getStato())) {
-                expectedButtonText = "Inizia";
-            } else if ("In Preparazione".equals(c.getStato())) {
-                expectedButtonText = "Pronto";
+            if (Comanda.STATO_IN_ATTESA.equals(c.getStato())) {
+                expectedButtonText = Comanda.AZIONE_INIZIA;
+            } else if (Comanda.STATO_IN_PREPARAZIONE.equals(c.getStato())) {
+                expectedButtonText = Comanda.STATO_PRONTO;
             }
 
             // Aggiorna solo se necessario per evitare di perdere il focus o il click
             if (!currentButtonText.equals(expectedButtonText)) {
                 footer.getChildren().clear();
                 
-                if ("In Attesa".equals(c.getStato())) {
-                    Button btnPrepara = new Button("Inizia");
+                if (Comanda.STATO_IN_ATTESA.equals(c.getStato())) {
+                    Button btnPrepara = new Button(Comanda.AZIONE_INIZIA);
                     btnPrepara.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-cursor: hand;");
-                    btnPrepara.setOnAction(e -> updateStato(c, "In Preparazione"));
+                    btnPrepara.setOnAction(e -> updateStato(c, Comanda.STATO_IN_PREPARAZIONE));
                     footer.getChildren().add(btnPrepara);
-                } else if ("In Preparazione".equals(c.getStato())) {
-                    Button btnPronto = new Button("Pronto");
+                } else if (Comanda.STATO_IN_PREPARAZIONE.equals(c.getStato())) {
+                    Button btnPronto = new Button(Comanda.STATO_PRONTO);
                     btnPronto.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand;");
-                    btnPronto.setOnAction(e -> updateStato(c, "Pronto"));
+                    btnPronto.setOnAction(e -> updateStato(c, Comanda.STATO_PRONTO));
                     footer.getChildren().add(btnPronto);
                 }
             }
@@ -249,15 +250,15 @@ public class BarController implements Initializable {
         footer.setAlignment(Pos.CENTER_RIGHT);
         footer.setPadding(new Insets(10, 0, 0, 0));
 
-        if ("In Attesa".equals(c.getStato())) {
-            Button btnPrepara = new Button("Inizia");
+        if (Comanda.STATO_IN_ATTESA.equals(c.getStato())) {
+            Button btnPrepara = new Button(Comanda.AZIONE_INIZIA);
             btnPrepara.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-cursor: hand;");
-            btnPrepara.setOnAction(e -> updateStato(c, "In Preparazione"));
+            btnPrepara.setOnAction(e -> updateStato(c, Comanda.STATO_IN_PREPARAZIONE));
             footer.getChildren().add(btnPrepara);
-        } else if ("In Preparazione".equals(c.getStato())) {
-            Button btnPronto = new Button("Pronto");
+        } else if (Comanda.STATO_IN_PREPARAZIONE.equals(c.getStato())) {
+            Button btnPronto = new Button(Comanda.STATO_PRONTO);
             btnPronto.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand;");
-            btnPronto.setOnAction(e -> updateStato(c, "Pronto"));
+            btnPronto.setOnAction(e -> updateStato(c, Comanda.STATO_PRONTO));
             footer.getChildren().add(btnPronto);
         }
 

@@ -8,6 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
  
 public class ComandaDAO {
+
+    private static final String COL_ID_TAVOLO = "id_tavolo";
+    private static final String COL_PRODOTTI = "prodotti";
+    private static final String COL_TOTALE = "totale";
+    private static final String COL_STATO = "stato";
+    private static final String COL_DATA_ORA = "data_ora";
+    private static final String COL_ID_CAMERIERE = "id_cameriere";
     
     // Inserisce una nuova comanda nel database
     public void insertComanda(Comanda comanda) throws SQLException {
@@ -41,14 +48,14 @@ public class ComandaDAO {
                 while (rs.next()) {
                     comande.add(new Comanda(
                         rs.getInt("id"),
-                        rs.getInt("id_tavolo"),
-                        rs.getString("prodotti"),
-                        rs.getDouble("totale"),
+                        rs.getInt(COL_ID_TAVOLO),
+                        rs.getString(COL_PRODOTTI),
+                        rs.getDouble(COL_TOTALE),
                         rs.getString("tipo"),
-                        rs.getString("stato"),
-                        rs.getTimestamp("data_ora").toLocalDateTime().plusHours(1),
+                        rs.getString(COL_STATO),
+                        rs.getTimestamp(COL_DATA_ORA).toLocalDateTime().plusHours(1),
                         rs.getString("note"),
-                        rs.getInt("id_cameriere")
+                        rs.getInt(COL_ID_CAMERIERE)
                     ));
                 }
             }
@@ -70,14 +77,14 @@ public class ComandaDAO {
                 while (rs.next()) {
                     comande.add(new Comanda(
                         rs.getInt("id"),
-                        rs.getInt("id_tavolo"),
-                        rs.getString("prodotti"),
-                        rs.getDouble("totale"),
+                        rs.getInt(COL_ID_TAVOLO),
+                        rs.getString(COL_PRODOTTI),
+                        rs.getDouble(COL_TOTALE),
                         rs.getString("tipo"),
-                        rs.getString("stato"),
-                        rs.getTimestamp("data_ora").toLocalDateTime().plusHours(1),
+                        rs.getString(COL_STATO),
+                        rs.getTimestamp(COL_DATA_ORA).toLocalDateTime().plusHours(1),
                         rs.getString("note"),
-                        rs.getInt("id_cameriere")
+                        rs.getInt(COL_ID_CAMERIERE)
                     ));
                 }
             }
@@ -111,14 +118,14 @@ public class ComandaDAO {
                 while (rs.next()) {
                     comande.add(new Comanda(
                             rs.getInt("id"),
-                            rs.getInt("id_tavolo"),
-                            rs.getString("prodotti"),
-                            rs.getDouble("totale"),
+                            rs.getInt(COL_ID_TAVOLO),
+                            rs.getString(COL_PRODOTTI),
+                            rs.getDouble(COL_TOTALE),
                             rs.getString("tipo"),
-                            rs.getString("stato"),
-                            rs.getTimestamp("data_ora").toLocalDateTime().plusHours(1),
+                            rs.getString(COL_STATO),
+                            rs.getTimestamp(COL_DATA_ORA).toLocalDateTime().plusHours(1),
                             rs.getString("note"),
-                            rs.getInt("id_cameriere")
+                            rs.getInt(COL_ID_CAMERIERE)
                     ));
                 }
             }

@@ -3,6 +3,11 @@ package famiglia.sapori.model;
 import java.time.LocalDateTime;
  
 public class Comanda {
+    public static final String STATO_IN_ATTESA = "In Attesa";
+    public static final String STATO_IN_PREPARAZIONE = "In Preparazione";
+    public static final String STATO_PRONTO = "Pronto";
+    public static final String AZIONE_INIZIA = "Inizia";
+
     private int id;
     private int idTavolo;
     private String prodotti;
