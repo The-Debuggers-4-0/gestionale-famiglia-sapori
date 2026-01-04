@@ -187,6 +187,7 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
         Spinner<Integer> spinPax = lookup("#spinPax").query();
         ComboBox<Tavolo> comboTavolo = lookup("#comboTavolo").query();
 
+        // Seleziona un tavolo disponibile
         interact(() -> {
             txtNome.setText("Mario Rossi");
             txtTelefono.setText("3331234567");
@@ -198,6 +199,7 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
             }
         });
 
+        // Click salva
         sleep(300);
         clickOn("Registra Prenotazione");
         sleep(500);
@@ -309,6 +311,7 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
         DatePicker datePicker = lookup("#datePicker").query();
         Spinner<Integer> spinPax = lookup("#spinPax").query();
 
+        // Imposta ora passata
         interact(() -> {
             txtNome.setText("Test Past");
             txtTelefono.setText("999");
@@ -320,6 +323,7 @@ public class PrenotazioniControllerFxTest extends ApplicationTest {
 
         sleep(300);
 
+        // Click salva
         try {
             clickOn("Registra Prenotazione");
             sleep(500);

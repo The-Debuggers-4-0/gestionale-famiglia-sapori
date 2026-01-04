@@ -18,12 +18,14 @@ public class HomeControllerFxTest extends ApplicationTest {
     private HomeController controller;
     private Stage testStage;
 
+    // Setup del database prima di tutti i test
     @BeforeAll
     static void setupDatabase() throws Exception {
         TestDatabase.setupSchema();
         TestDatabase.seedData();
     }
 
+    // Avvio dell'applicazione di test
     @Override
     public void start(Stage stage) throws Exception {
         this.testStage = stage;
@@ -39,12 +41,14 @@ public class HomeControllerFxTest extends ApplicationTest {
         stage.show();
     }
     
+    // Setup del mock della scena prima di ogni test
     @BeforeEach
     void setupMockScene() throws Exception {
         // Mock the static scene field to avoid NPE during navigation
         ApplicationMockHelper.setupMockScene(testStage);
     }
     
+    // Pulizia del mock della scena dopo ogni test
     @AfterEach
     void clearMockScene() throws Exception {
         ApplicationMockHelper.clearMockScene();

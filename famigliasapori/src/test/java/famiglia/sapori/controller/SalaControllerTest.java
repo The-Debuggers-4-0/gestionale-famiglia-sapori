@@ -170,6 +170,7 @@ public class SalaControllerTest {
         }
     }
 
+    // Fake DAO di base per le comande
     private static class FakeComandaDAO extends ComandaDAO {
         Comanda lastInserted;
 
@@ -300,6 +301,7 @@ public class SalaControllerTest {
         @Override public void deletePrenotazione(int id) throws SQLException { deleted = true; }
     }
 
+    // Test completo del metodo loadMenu e delle interazioni con i bottoni
     @Test
     void testLoadMenuAndInteraction() throws Exception {
         runOnFxThread(() -> {
@@ -360,6 +362,7 @@ public class SalaControllerTest {
         });
     }
 
+    // Test completo del metodo handleInviaComanda
     @Test
     void testHandleInviaComanda() throws Exception {
         runOnFxThread(() -> {

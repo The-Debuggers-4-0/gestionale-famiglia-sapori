@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ComandaDAOTest extends DatabaseTestBase {
 
+    // Inserisce una comanda con un timestamp specifico per i test
     private static void insertComandaWithTimestamp(
             int idTavolo,
             String prodotti,
@@ -80,6 +81,7 @@ public class ComandaDAOTest extends DatabaseTestBase {
         assertTrue(after.isEmpty(), "Tutte le comande dovrebbero essere marcate come Pagato");
     }
 
+    // Verifica che hasPaidComandaAfter filtri correttamente per tavolo e timestamp.
     @Test
     void hasPaidComandaAfter_filtersByTableAndTimestamp() throws SQLException {
         ComandaDAO dao = new ComandaDAO();
