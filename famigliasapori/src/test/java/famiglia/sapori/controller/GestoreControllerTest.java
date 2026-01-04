@@ -50,6 +50,7 @@ public class GestoreControllerTest {
             return;
         }
         CountDownLatch latch = new CountDownLatch(1);
+        //Esegue l'azione sul thread JavaFX e attende che sia completata
         AtomicReference<Throwable> error = new AtomicReference<>();
         Platform.runLater(() -> {
             try {
@@ -120,6 +121,7 @@ public class GestoreControllerTest {
         }
     }
 
+    // Fake DAO per test
     private static final class FakeUtenteDAO extends UtenteDAO {
         int insertCalls;
         int updateCalls;
@@ -146,6 +148,7 @@ public class GestoreControllerTest {
         }
     }
 
+    // Fake DAO per test
     private static final class FakeTavoloDAO extends TavoloDAO {
         int insertCalls;
         int updateCalls;
@@ -180,6 +183,7 @@ public class GestoreControllerTest {
         }
     }
 
+    // Fake GestoreDAO per test
     private static final class FakeGestoreDAO extends GestoreDAO {
         private final Map<String, Integer> bestSellers;
         private final double dailyIncome;
@@ -408,29 +412,34 @@ public class GestoreControllerTest {
         assertNotNull(GestoreController.class.getDeclaredField("colStatoTavolo"));
     }
 
+    // Stats tests
     @Test
     void handleRefreshStats_populatesPieAndIncomeLabel() throws Exception {
         runOnFxThread(() -> {
             try {
                 GestoreController controller = new GestoreController();
 
+                // Imposta i campi necessari
                 PieChart pie = new PieChart();
                 Label income = new Label();
                 setField(controller, "pieBestSellers", pie);
                 setField(controller, "lblIncassoTotale", income);
 
+                // Configura il FakeGestoreDAO con dati di test
                 Map<String, Integer> best = new LinkedHashMap<>();
                 best.put("Pizza", 3);
                 best.put("Acqua", 5);
                 setField(controller, "gestoreDAO", new FakeGestoreDAO(best, 12.5));
 
+                // Chiama il metodo da testare
                 invokeNoArg(controller, "handleRefreshStats");
 
+                // Verifica i risultati
                 assertEquals(2, pie.getData().size());
                 String txt = normalizeEuro(income.getText());
                 assertNotNull(txt);
-                // Match "Oggi:" followed by anything (including newlines) until the number, and
-                // then the rest
+
+                // Match "Oggi:" seguito da qualsiasi cosa (inclusi i caratteri di nuova linea) fino al numero, e poi il resto.
                 assertTrue(txt.matches("(?s)Oggi:.*12[,.]50.*"), "Unexpected income label: " + txt);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -438,15 +447,18 @@ public class GestoreControllerTest {
         });
     }
 
+    // Menu tests
     @Test
     void handleSalvaPiatto_callsInsertThenUpdate() throws Exception {
         runOnFxThread(() -> {
             try {
                 GestoreController controller = new GestoreController();
 
+                // Imposta i campi necessari
                 FakeMenuDAO fakeMenuDAO = new FakeMenuDAO();
                 setField(controller, "menuDAO", fakeMenuDAO);
 
+                // Imposta tabelle e colonne
                 TableView<Piatto> tbl = new TableView<>();
                 setField(controller, "tblMenu", tbl);
                 setField(controller, "colNomePiatto", new TableColumn<Piatto, String>());
@@ -454,6 +466,7 @@ public class GestoreControllerTest {
                 setField(controller, "colPrezzoPiatto", new TableColumn<Piatto, Double>());
                 setField(controller, "colDispPiatto", new TableColumn<Piatto, Boolean>());
 
+                // Imposta i campi di input
                 TextField txtNome = new TextField("Test Piatto");
                 ComboBox<String> comboCat = new ComboBox<>();
                 comboCat.setValue("Primi");
@@ -463,6 +476,7 @@ public class GestoreControllerTest {
                 CheckBox chk = new CheckBox();
                 chk.setSelected(true);
 
+                // Imposta i campi nel controller
                 setField(controller, "txtNomePiatto", txtNome);
                 setField(controller, "comboCategoria", comboCat);
                 setField(controller, "txtPrezzoPiatto", txtPrezzo);
@@ -470,11 +484,13 @@ public class GestoreControllerTest {
                 setField(controller, "txtAllergeni", txtAll);
                 setField(controller, "chkDisponibile", chk);
 
+                // Test inserimento
                 setField(controller, "selectedPiatto", null);
                 invokeNoArg(controller, "handleSalvaPiatto");
                 assertEquals(1, fakeMenuDAO.insertCalls);
                 assertEquals(0, fakeMenuDAO.updateCalls);
 
+                // Test aggiornamento
                 setField(controller, "selectedPiatto", new Piatto(99, "Old", "d", 1.0, "Primi", true, ""));
                 txtPrezzo.setText("4.00");
                 invokeNoArg(controller, "handleSalvaPiatto");
@@ -486,12 +502,14 @@ public class GestoreControllerTest {
         });
     }
 
+    // Personale tests
     @Test
     void handleSalvaUtente_callsInsertThenUpdate() throws Exception {
         runOnFxThread(() -> {
             try {
                 GestoreController controller = new GestoreController();
 
+                // Imposta i campi necessari
                 FakeUtenteDAO fakeUtenteDAO = new FakeUtenteDAO();
                 setField(controller, "utenteDAO", fakeUtenteDAO);
                 setField(controller, "tblUtenti", new TableView<Utente>());
@@ -499,6 +517,7 @@ public class GestoreControllerTest {
                 setField(controller, "colUsername", new TableColumn<Utente, String>());
                 setField(controller, "colRuolo", new TableColumn<Utente, String>());
 
+                // Imposta i campi di input
                 TextField txtNome = new TextField("Mario");
                 TextField txtUser = new TextField("mario_test");
                 PasswordField txtPass = new PasswordField();
@@ -506,16 +525,19 @@ public class GestoreControllerTest {
                 ComboBox<String> comboRuolo = new ComboBox<>();
                 comboRuolo.setValue("Cameriere");
 
+                // Imposta i campi nel controller
                 setField(controller, "txtNomeUtente", txtNome);
                 setField(controller, "txtUsername", txtUser);
                 setField(controller, "txtPassword", txtPass);
                 setField(controller, "comboRuolo", comboRuolo);
 
+                // Test inserimento
                 setField(controller, "selectedUtente", null);
                 invokeNoArg(controller, "handleSalvaUtente");
                 assertEquals(1, fakeUtenteDAO.insertCalls);
                 assertEquals(0, fakeUtenteDAO.updateCalls);
 
+                // Test aggiornamento
                 setField(controller, "selectedUtente", new Utente(7, "Old", "old", "x", "Gestore"));
                 invokeNoArg(controller, "handleSalvaUtente");
                 assertEquals(1, fakeUtenteDAO.insertCalls);
@@ -526,20 +548,24 @@ public class GestoreControllerTest {
         });
     }
 
+    // Tavoli tests
     @Test
     void handleSalvaAndResetTavolo_callsDaoMethods() throws Exception {
         runOnFxThread(() -> {
             try {
                 GestoreController controller = new GestoreController();
 
+                // Imposta i campi necessari
                 FakeTavoloDAO fakeTavoloDAO = new FakeTavoloDAO();
                 setField(controller, "tavoloDAO", fakeTavoloDAO);
 
+                // Imposta tabelle e colonne
                 setField(controller, "tblTavoli", new TableView<Tavolo>());
                 setField(controller, "colNumeroTavolo", new TableColumn<Tavolo, Integer>());
                 setField(controller, "colPostiTavolo", new TableColumn<Tavolo, Integer>());
                 setField(controller, "colStatoTavolo", new TableColumn<Tavolo, String>());
 
+                // Imposta i campi di input
                 TextField txtNumero = new TextField("10");
                 Spinner<Integer> spinPosti = new Spinner<>(1, 20, 4);
                 TextArea txtNote = new TextArea("note");
@@ -547,18 +573,20 @@ public class GestoreControllerTest {
                 setField(controller, "spinPostiTavolo", spinPosti);
                 setField(controller, "txtNoteTavolo", txtNote);
 
+                // Test inserimento
                 setField(controller, "selectedTavolo", null);
                 invokeNoArg(controller, "handleSalvaTavolo");
                 assertEquals(1, fakeTavoloDAO.insertCalls);
                 assertEquals(0, fakeTavoloDAO.updateCalls);
 
+                // Test aggiornamento
                 setField(controller, "selectedTavolo", new Tavolo(5, 10, "Occupato", 4, ""));
                 txtNumero.setText("11");
                 invokeNoArg(controller, "handleSalvaTavolo");
                 assertEquals(1, fakeTavoloDAO.insertCalls);
                 assertEquals(1, fakeTavoloDAO.updateCalls);
 
-                // handleSalvaTavolo -> handleNuovoTavolo clears selection/selectedTavolo
+                // Test reset stato
                 setField(controller, "selectedTavolo", new Tavolo(5, 11, "Occupato", 4, ""));
                 invokeNoArg(controller, "handleResetTavolo");
                 assertEquals(1, fakeTavoloDAO.resetCalls);
@@ -568,13 +596,16 @@ public class GestoreControllerTest {
         });
     }
 
+    // Tavolo tests
     @Test
     void statoTavoloCellFactory_setsExpectedStyles() throws Exception {
         runOnFxThread(() -> {
             try {
+                // Crea il controller e imposta il FakeTavoloDAO
                 GestoreController controller = new GestoreController();
                 setField(controller, "tavoloDAO", new FakeTavoloDAO());
 
+                // Imposta tabelle e colonne
                 TableColumn<Tavolo, Integer> colNum = new TableColumn<>();
                 TableColumn<Tavolo, Integer> colPosti = new TableColumn<>();
                 TableColumn<Tavolo, String> colStato = new TableColumn<>();
@@ -588,24 +619,31 @@ public class GestoreControllerTest {
                 setField(controller, "spinPostiTavolo", spin);
                 setField(controller, "txtNoteTavolo", new TextArea());
 
+                // Inizializza la tab dei tavoli per configurare le celle
                 invokeNoArg(controller, "initTavoliTab");
 
+                // Ottieni la cella della colonna Stato e verifica gli stili
                 TableCell<Tavolo, String> cell = colStato.getCellFactory().call(colStato);
                 Method updateItem = cell.getClass().getDeclaredMethod("updateItem", String.class, boolean.class);
                 updateItem.setAccessible(true);
 
+                // Verifica gli stili per ogni stato
+                // Verifica stato Libero
                 updateItem.invoke(cell, "Libero", false);
                 assertEquals("Libero", cell.getText());
                 assertTrue(cell.getStyle().contains("#2ecc71"));
 
+                // Verifica stato Occupato
                 updateItem.invoke(cell, "Occupato", false);
                 assertEquals("Occupato", cell.getText());
                 assertTrue(cell.getStyle().contains("#e74c3c"));
 
+                // Verifica stato Prenotato
                 updateItem.invoke(cell, "Prenotato", false);
                 assertEquals("Prenotato", cell.getText());
                 assertTrue(cell.getStyle().contains("#f39c12"));
 
+                // Verifica stato non riconosciuto
                 updateItem.invoke(cell, null, true);
                 assertNull(cell.getText());
                 assertEquals("", cell.getStyle());
@@ -615,6 +653,7 @@ public class GestoreControllerTest {
         });
     }
 
+    /// Piatto tests
     @Test
     void handleEliminaPiatto_callsDelete() throws Exception {
         runOnFxThread(() -> {
@@ -623,7 +662,7 @@ public class GestoreControllerTest {
                 FakeMenuDAO dao = new FakeMenuDAO();
                 setField(controller, "menuDAO", dao);
 
-                // Setup UI fields needed by handleNuovoPiatto which is called after delete
+                // Imposta i campi UI necessari per handleNuovoPiatto che viene chiamato dopo la cancellazione
                 setField(controller, "tblMenu", new TableView<Piatto>());
                 setField(controller, "txtNomePiatto", new TextField());
                 setField(controller, "comboCategoria", new ComboBox<String>());
@@ -632,12 +671,12 @@ public class GestoreControllerTest {
                 setField(controller, "txtAllergeni", new TextField());
                 setField(controller, "chkDisponibile", new CheckBox());
 
-                // Case 1: No selection
+                // Case 1: Nessuna selezione
                 setField(controller, "selectedPiatto", null);
                 invokeNoArg(controller, "handleEliminaPiatto");
                 assertEquals(0, dao.deleteCalls);
 
-                // Case 2: With selection
+                // Case 2: Con selezione
                 Piatto p = new Piatto(1, "P", "D", 10.0, "C", true, "A");
                 setField(controller, "selectedPiatto", p);
                 invokeNoArg(controller, "handleEliminaPiatto");
@@ -648,24 +687,29 @@ public class GestoreControllerTest {
         });
     }
 
+    /// Utente tests
     @Test
     void handleEliminaUtente_callsDelete() throws Exception {
         runOnFxThread(() -> {
             try {
+                // Imposta il controller e il FakeUtenteDAO
                 GestoreController controller = new GestoreController();
                 FakeUtenteDAO dao = new FakeUtenteDAO();
                 setField(controller, "utenteDAO", dao);
 
+                // Imposta i campi UI necessari per handleNuovoUtente che viene chiamato dopo la cancellazione
                 setField(controller, "tblUtenti", new TableView<Utente>());
                 setField(controller, "txtNomeUtente", new TextField());
                 setField(controller, "txtUsername", new TextField());
                 setField(controller, "txtPassword", new PasswordField());
                 setField(controller, "comboRuolo", new ComboBox<String>());
 
+                // Case 1: Nessuna selezione
                 setField(controller, "selectedUtente", null);
                 invokeNoArg(controller, "handleEliminaUtente");
                 assertEquals(0, dao.deleteCalls);
 
+                // Case 2: Con selezione
                 Utente u = new Utente(1, "N", "U", "P", "R");
                 setField(controller, "selectedUtente", u);
                 invokeNoArg(controller, "handleEliminaUtente");
@@ -676,23 +720,28 @@ public class GestoreControllerTest {
         });
     }
 
+    /// Tavolo tests
     @Test
     void handleEliminaTavolo_callsDelete() throws Exception {
         runOnFxThread(() -> {
             try {
+                // Imposta il controller e il FakeTavoloDAO
                 GestoreController controller = new GestoreController();
                 FakeTavoloDAO dao = new FakeTavoloDAO();
                 setField(controller, "tavoloDAO", dao);
 
+                // Imposta i campi UI necessari per handleNuovoTavolo che viene chiamato dopo la cancellazione
                 setField(controller, "tblTavoli", new TableView<Tavolo>());
                 setField(controller, "txtNumeroTavolo", new TextField());
                 setField(controller, "spinPostiTavolo", new Spinner<Integer>(1, 20, 4));
                 setField(controller, "txtNoteTavolo", new TextArea());
 
+                // Case 1: Nessuna selezione
                 setField(controller, "selectedTavolo", null);
                 invokeNoArg(controller, "handleEliminaTavolo");
                 assertEquals(0, dao.deleteCalls);
 
+                // Case 2: Con selezione
                 Tavolo t = new Tavolo(1, 1, "Libero", 4, "Note");
                 setField(controller, "selectedTavolo", t);
                 invokeNoArg(controller, "handleEliminaTavolo");
@@ -703,12 +752,15 @@ public class GestoreControllerTest {
         });
     }
 
+    // Test dei listener di selezione. in italiano:
     @Test
     void testMenuSelectionListener() throws Exception {
         runOnFxThread(() -> {
             try {
+                // Crea il controller
                 GestoreController controller = new GestoreController();
 
+                // Crea i componenti UI necessari
                 TableView<Piatto> tbl = new TableView<>();
                 TextField txtNome = new TextField();
                 ComboBox<String> combo = new ComboBox<>();
@@ -717,6 +769,7 @@ public class GestoreControllerTest {
                 TextField txtAll = new TextField();
                 CheckBox chk = new CheckBox();
 
+                // Imposta i campi nel controller
                 setField(controller, "tblMenu", tbl);
                 setField(controller, "txtNomePiatto", txtNome);
                 setField(controller, "comboCategoria", combo);
@@ -725,24 +778,28 @@ public class GestoreControllerTest {
                 setField(controller, "txtAllergeni", txtAll);
                 setField(controller, "chkDisponibile", chk);
 
+                // Imposta le colonne e il DAO
                 setField(controller, "colNomePiatto", new TableColumn<>());
                 setField(controller, "colCategoriaPiatto", new TableColumn<>());
                 setField(controller, "colPrezzoPiatto", new TableColumn<>());
                 setField(controller, "colDispPiatto", new TableColumn<>());
                 setField(controller, "menuDAO", new FakeMenuDAO());
 
+                // Inizializza la tab del menu
                 invokeNoArg(controller, "initMenuTab");
 
+                // Aggiungi un piatto di test
                 Piatto p = new Piatto(1, "Pizza", "Buona", 5.0, "Primi", true, "Glutine");
                 tbl.getItems().add(p);
 
-                // Select item
+                // Seleziona il piatto e verifica i campi aggiornati
                 tbl.getSelectionModel().select(p);
 
+                // Verifica i valori dei campi
                 assertEquals("Pizza", txtNome.getText());
                 assertEquals("5.0", txtPrezzo.getText());
 
-                // Deselect
+                // Deseleziona e verifica che i campi siano vuoti
                 tbl.getSelectionModel().clearSelection();
                 assertEquals("", txtNome.getText());
 
@@ -752,37 +809,46 @@ public class GestoreControllerTest {
         });
     }
 
+    // Test del listener di selezione del personale
     @Test
     void testUtenteSelectionListener() throws Exception {
         runOnFxThread(() -> {
             try {
+                // Crea il controller
                 GestoreController controller = new GestoreController();
 
+                // Crea i componenti UI necessari
                 TableView<Utente> tbl = new TableView<>();
                 TextField txtNome = new TextField();
                 TextField txtUser = new TextField();
                 PasswordField txtPass = new PasswordField();
                 ComboBox<String> combo = new ComboBox<>();
 
+                // Imposta i campi nel controller
                 setField(controller, "tblUtenti", tbl);
                 setField(controller, "txtNomeUtente", txtNome);
                 setField(controller, "txtUsername", txtUser);
                 setField(controller, "txtPassword", txtPass);
                 setField(controller, "comboRuolo", combo);
 
+                // Imposta le colonne e il DAO
                 setField(controller, "colNomeUtente", new TableColumn<>());
                 setField(controller, "colUsername", new TableColumn<>());
                 setField(controller, "colRuolo", new TableColumn<>());
                 setField(controller, "utenteDAO", new FakeUtenteDAO());
 
+                // Inizializza la tab del personale
                 invokeNoArg(controller, "initPersonaleTab");
 
+                // Aggiungi un utente di test
                 Utente u = new Utente(1, "Mario", "mario", "pass", "Cameriere");
                 tbl.getItems().add(u);
 
+                // Seleziona l'utente e verifica i campi aggiornati
                 tbl.getSelectionModel().select(u);
                 assertEquals("Mario", txtNome.getText());
 
+                // Deseleziona e verifica che i campi siano vuoti
                 tbl.getSelectionModel().clearSelection();
                 assertEquals("", txtNome.getText());
 
@@ -792,36 +858,45 @@ public class GestoreControllerTest {
         });
     }
 
+    // Test del listener di selezione dei tavoli
     @Test
     void testTavoloSelectionListener() throws Exception {
         runOnFxThread(() -> {
             try {
+                // Crea il controller
                 GestoreController controller = new GestoreController();
 
+                // Crea i componenti UI necessari
                 TableView<Tavolo> tbl = new TableView<>();
                 TextField txtNumero = new TextField();
                 Spinner<Integer> spin = new Spinner<>();
                 TextArea txtNote = new TextArea();
 
+                // Imposta i campi nel controller
                 setField(controller, "tblTavoli", tbl);
                 setField(controller, "txtNumeroTavolo", txtNumero);
                 setField(controller, "spinPostiTavolo", spin);
                 setField(controller, "txtNoteTavolo", txtNote);
 
+                // Imposta le colonne e il DAO
                 setField(controller, "colNumeroTavolo", new TableColumn<>());
                 setField(controller, "colPostiTavolo", new TableColumn<>());
                 setField(controller, "colStatoTavolo", new TableColumn<>());
                 setField(controller, "tavoloDAO", new FakeTavoloDAO());
 
+                // Inizializza la tab dei tavoli
                 invokeNoArg(controller, "initTavoliTab");
 
+                // Aggiungi un tavolo di test
                 Tavolo t = new Tavolo(1, 10, "Libero", 6, "Vista mare");
                 tbl.getItems().add(t);
 
+                // Seleziona il tavolo e verifica i campi aggiornati
                 tbl.getSelectionModel().select(t);
                 assertEquals("10", txtNumero.getText());
                 assertEquals(6, spin.getValue());
 
+                // Deseleziona e verifica che i campi siano vuoti
                 tbl.getSelectionModel().clearSelection();
                 assertEquals("", txtNumero.getText());
 
@@ -831,24 +906,30 @@ public class GestoreControllerTest {
         });
     }
 
+    // Test delle cell factory del menu
     @Test
     void testMenuCellFactories() throws Exception {
         runOnFxThread(() -> {
             try {
+                // Crea il controller e imposta il FakeMenuDAO
                 GestoreController controller = new GestoreController();
                 setField(controller, "menuDAO", new FakeMenuDAO());
 
+                // Imposta le colonne
                 TableColumn<Piatto, Double> colPrezzo = new TableColumn<>();
                 TableColumn<Piatto, Boolean> colDisp = new TableColumn<>();
 
+                // Imposta le altre colonne necessarie
                 setField(controller, "colNomePiatto", new TableColumn<>());
                 setField(controller, "colCategoriaPiatto", new TableColumn<>());
                 setField(controller, "colPrezzoPiatto", colPrezzo);
                 setField(controller, "colDispPiatto", colDisp);
 
+                // Imposta la tabella e i campi necessari
                 setField(controller, "tblMenu", new TableView<>());
                 setField(controller, "comboCategoria", new ComboBox<>());
 
+                // Inizializza la tab del menu per configurare le celle
                 invokeNoArg(controller, "initMenuTab");
 
                 // Test Prezzo Cell Factory
@@ -857,26 +938,31 @@ public class GestoreControllerTest {
                         boolean.class);
                 updateItemPrezzo.setAccessible(true);
 
+                // Verifica formattazione prezzo
                 updateItemPrezzo.invoke(cellPrezzo, 12.50, false);
                 assertEquals("€ 12,50", cellPrezzo.getText().replace('.', ',')); // Handle locale diffs if needed
 
+                // Verifica cella vuota
                 updateItemPrezzo.invoke(cellPrezzo, null, true);
                 assertNull(cellPrezzo.getText());
 
-                // Test Disp Cell Factory
+                // Test Disponibilità Cell Factory
                 TableCell<Piatto, Boolean> cellDisp = colDisp.getCellFactory().call(colDisp);
                 Method updateItemDisp = cellDisp.getClass().getDeclaredMethod("updateItem", Object.class,
                         boolean.class);
                 updateItemDisp.setAccessible(true);
 
+                // Verifica formattazione disponibilità
                 updateItemDisp.invoke(cellDisp, true, false);
                 assertEquals("Sì", cellDisp.getText());
                 assertTrue(cellDisp.getStyle().contains("#2ecc71"));
 
+                // Verifica formattazione non disponibile
                 updateItemDisp.invoke(cellDisp, false, false);
                 assertEquals("No", cellDisp.getText());
                 assertTrue(cellDisp.getStyle().contains("#e74c3c"));
 
+                // Verifica cella vuota
                 updateItemDisp.invoke(cellDisp, null, true);
                 assertNull(cellDisp.getText());
 

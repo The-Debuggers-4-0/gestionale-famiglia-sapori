@@ -19,9 +19,17 @@ public class MenuDAOTest extends DatabaseTestBase {
     @Test
     void getAllPiatti_returnsOnlyDisponibili() throws SQLException {
         MenuDAO dao = new MenuDAO();
+
+        // Esegui la query
         List<Piatto> piatti = dao.getAllPiatti();
+
+        // Verifica che la lista non sia nulla e non vuota
         assertFalse(piatti.isEmpty());
+
+        // Controlla che tutti i piatti siano disponibili
         assertTrue(piatti.stream().allMatch(Piatto::isDisponibile));
+
+        // Controlla che almeno un piatto abbia allergeni
         assertTrue(piatti.stream().anyMatch(p -> !p.getAllergeni().isEmpty()));
     }
 
@@ -31,10 +39,19 @@ public class MenuDAOTest extends DatabaseTestBase {
     @Test
     void getAllCategorie_returnsDistinctSorted() throws SQLException {
         MenuDAO dao = new MenuDAO();
+        // Verifica che le categorie siano distinte e ordinate
         List<String> categories = dao.getAllCategorie();
+
+        // Controlla che la lista non sia nulla
         assertNotNull(categories);
+
+        // Controlla che ci siano almeno 2 categorie per validare il test
         assertTrue(categories.size() >= 2);
+
+        // Verifica l'ordinamento
         List<String> sorted = categories.stream().sorted().toList();
+        
+        // Confronta la lista originale con quella ordinata
         assertEquals(sorted, categories, "Categorie non ordinate alfabeticamente");
     }
 
@@ -63,14 +80,17 @@ public class MenuDAOTest extends DatabaseTestBase {
         assertFalse(updated.isDisponibile());
     }
 
+    // Verifica l'inserimento, l'aggiornamento e la cancellazione di un piatto.
     @Test
     void insertUpdateDeletePiatto_roundTrip() throws SQLException {
         MenuDAO dao = new MenuDAO();
 
+        // Crea un piatto con nome unico per evitare conflitti
         String uniqueName = "TestPiatto-" + UUID.randomUUID();
         Piatto toInsert = new Piatto(0, uniqueName, "Descr", 9.99, "Primi", true, "glutine");
         dao.insertPiatto(toInsert);
 
+        // Verifica l'inserimento
         List<Piatto> afterInsert = dao.getAllPiattiComplete();
         Piatto inserted = afterInsert.stream()
                 .filter(p -> uniqueName.equals(p.getNome()))
@@ -79,9 +99,11 @@ public class MenuDAOTest extends DatabaseTestBase {
         assertTrue(inserted.isDisponibile());
         assertEquals("Primi", inserted.getCategoria());
 
+        // Verifica l'aggiornamento
         Piatto toUpdate = new Piatto(inserted.getId(), uniqueName + "-UPD", "Descr2", 11.50, "Bevande", false, "");
         dao.updatePiatto(toUpdate);
 
+        // Verifica i campi aggiornati
         List<Piatto> afterUpdate = dao.getAllPiattiComplete();
         Piatto updated = afterUpdate.stream().filter(p -> p.getId() == inserted.getId()).findFirst().orElseThrow();
         assertEquals(uniqueName + "-UPD", updated.getNome());
@@ -90,6 +112,7 @@ public class MenuDAOTest extends DatabaseTestBase {
         assertEquals("Bevande", updated.getCategoria());
         assertFalse(updated.isDisponibile());
 
+        // Verifica la cancellazione
         dao.deletePiatto(inserted.getId());
         List<Piatto> afterDelete = dao.getAllPiattiComplete();
         assertTrue(afterDelete.stream().noneMatch(p -> p.getId() == inserted.getId()));

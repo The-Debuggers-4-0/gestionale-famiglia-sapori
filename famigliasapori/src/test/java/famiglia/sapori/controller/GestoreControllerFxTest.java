@@ -178,6 +178,7 @@ public class GestoreControllerFxTest extends ApplicationTest {
         // Trova il bottone "Nuovo" nel tab Personale
         clickOn("Nuovo");
 
+        // Verifica che i campi siano stati puliti
         TextField txtNomeUtente = lookup("#txtNomeUtente").query();
         assertNotNull(txtNomeUtente);
         assertEquals("", txtNomeUtente.getText());
@@ -191,6 +192,7 @@ public class GestoreControllerFxTest extends ApplicationTest {
         clickOn("Personale (HR)");
         sleep(200);
 
+        // Trova la ComboBox dei ruoli
         ComboBox<String> comboRuolo = lookup("#comboRuolo").query();
         assertNotNull(comboRuolo);
         assertTrue(comboRuolo.getItems().contains("Gestore"));
@@ -206,6 +208,7 @@ public class GestoreControllerFxTest extends ApplicationTest {
     void tavoliTableIsPopulated() {
         clickOn("Configurazione Sala");
 
+        // Verifica che la tabella tavoli sia popolata
         TableView<Tavolo> tblTavoli = lookup("#tblTavoli").query();
         assertNotNull(tblTavoli);
         assertFalse(tblTavoli.getItems().isEmpty(), "La tabella tavoli dovrebbe contenere tavoli");
@@ -219,12 +222,14 @@ public class GestoreControllerFxTest extends ApplicationTest {
         clickOn("Configurazione Sala");
         sleep(200);
 
+        // Seleziona un tavolo dalla tabella
         TableView<Tavolo> tblTavoli = lookup("#tblTavoli").query();
         if (!tblTavoli.getItems().isEmpty()) {
             // Seleziona il primo tavolo
             clickOn(tblTavoli);
             Tavolo selectedTavolo = tblTavoli.getSelectionModel().getSelectedItem();
 
+            // Clicca sul bottone "Reset", che forza lo stato a "Libero"
             if (selectedTavolo != null) {
                 clickOn("FORZA STATO A 'LIBERO'");
                 sleep(300);
@@ -237,6 +242,7 @@ public class GestoreControllerFxTest extends ApplicationTest {
                         .findFirst()
                         .orElse(null);
 
+                // Lo stato dovrebbe essere "Libero"
                 assertNotNull(updated);
                 assertEquals("Libero", updated.getStato());
             }
@@ -251,6 +257,7 @@ public class GestoreControllerFxTest extends ApplicationTest {
         clickOn("Configurazione Sala");
         sleep(200);
 
+        // Verifica che lo Spinner posti abbia il valore di default corretto
         Spinner<Integer> spinPostiTavolo = lookup("#spinPostiTavolo").query();
         assertNotNull(spinPostiTavolo);
         assertEquals(4, spinPostiTavolo.getValue().intValue());
@@ -266,9 +273,11 @@ public class GestoreControllerFxTest extends ApplicationTest {
         clickOn("Statistiche");
         sleep(200);
 
+        // Verifica che gli elementi principali siano presenti
         PieChart pieBestSellers = lookup("#pieBestSellers").query();
         assertNotNull(pieBestSellers);
 
+        // Verifica che le label degli incassi siano presenti
         Label lblIncassoTotale = lookup("#lblIncassoTotale").query();
         assertNotNull(lblIncassoTotale);
         assertTrue(lblIncassoTotale.getText().matches("(?s).*\\d+[,.]\\d{2}.*"), "Label should contain a price value");
@@ -282,10 +291,12 @@ public class GestoreControllerFxTest extends ApplicationTest {
         clickOn("Statistiche");
         sleep(200);
 
+        // Prendi il valore iniziale dell'incasso totale
         Label lblIncassoTotale = lookup("#lblIncassoTotale").query();
         assertNotNull(lblIncassoTotale);
         String initialValue = lblIncassoTotale.getText();
 
+        // Clicca sul bottone "Aggiorna Dati"
         clickOn("Aggiorna Dati");
         sleep(300);
 
@@ -302,8 +313,10 @@ public class GestoreControllerFxTest extends ApplicationTest {
         clickOn("Statistiche");
         sleep(200);
 
+        // Verifica che il PieChart sia popolato con dati
         PieChart pieBestSellers = lookup("#pieBestSellers").query();
         assertNotNull(pieBestSellers);
+        
         // Il grafico potrebbe essere vuoto se non ci sono comande pagate
         assertNotNull(pieBestSellers.getData());
     }

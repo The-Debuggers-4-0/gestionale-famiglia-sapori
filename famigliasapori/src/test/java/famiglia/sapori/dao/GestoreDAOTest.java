@@ -18,6 +18,7 @@ public class GestoreDAOTest extends DatabaseTestBase {
     private ComandaDAO comandaDAO;
     private MenuDAO menuDAO;
 
+    // Inizializza i DAO prima di ogni test
     @BeforeEach
     void setUp() {
         gestoreDAO = new GestoreDAO();
@@ -35,9 +36,11 @@ public class GestoreDAOTest extends DatabaseTestBase {
         Comanda comanda = new Comanda(0, 1, "2x Pizza Margherita\n1x Carbonara", 25.00, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
-        
+
+        // Chiama il metodo da testare
         Map<String, Integer> bestSellers = gestoreDAO.getBestSellers();
-        
+
+        // Verifica che la mappa non sia nulla e non vuota
         assertNotNull(bestSellers);
         assertFalse(bestSellers.isEmpty());
     }
@@ -95,12 +98,14 @@ public class GestoreDAOTest extends DatabaseTestBase {
      */
     @Test
     void getBestSellers_handlesProductsWithoutQuantity() throws SQLException {
+        // Inserisci comanda con prodotti senza quantità esplicita
         Comanda comanda = new Comanda(0, 1, "Pizza Margherita\nPasta Carbonara", 19.00, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
-        
+
+        // Chiama il metodo da testare
         Map<String, Integer> bestSellers = gestoreDAO.getBestSellers();
-        
+        // Dovrebbe contare 1 per ciascun piatto
         assertTrue(bestSellers.containsKey("Pizza Margherita"));
         assertEquals(1, bestSellers.get("Pizza Margherita"));
         assertTrue(bestSellers.containsKey("Pasta Carbonara"));
@@ -127,9 +132,11 @@ public class GestoreDAOTest extends DatabaseTestBase {
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         
+        // Calcola il totale atteso
         double expectedTotal = (piatto1.getPrezzo() * 2) + piatto2.getPrezzo();
         double actualTotal = gestoreDAO.calculateDailyIncome();
         
+        // Verifica che il totale calcolato sia almeno quello della comanda inserita
         assertTrue(actualTotal >= expectedTotal, 
             String.format("Expected at least %.2f but got %.2f", expectedTotal, actualTotal));
     }
@@ -158,9 +165,11 @@ public class GestoreDAOTest extends DatabaseTestBase {
         var piatti = menuDAO.getAllPiattiComplete();
         assertTrue(piatti.size() >= 2);
         
+        // Prendi i primi 2 piatti
         Piatto piatto1 = piatti.get(0);
         Piatto piatto2 = piatti.get(1);
         
+        // Prendi il totale iniziale
         double initialTotal = gestoreDAO.calculateDailyIncome();
         
         // Inserisci 2 comande pagate
@@ -168,13 +177,16 @@ public class GestoreDAOTest extends DatabaseTestBase {
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda1);
         
+        // Seconda comanda con quantità
         Comanda comanda2 = new Comanda(0, 2, "2x " + piatto2.getNome(), piatto2.getPrezzo() * 2, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda2);
         
+        // Calcola l'incremento atteso
         double expectedIncrease = piatto1.getPrezzo() + (piatto2.getPrezzo() * 2);
         double finalTotal = gestoreDAO.calculateDailyIncome();
         
+        // Verifica che il totale sia aumentato correttamente
         assertEquals(initialTotal + expectedIncrease, finalTotal, 0.01);
     }
 
@@ -219,9 +231,11 @@ public class GestoreDAOTest extends DatabaseTestBase {
                 LocalDateTime.now(), "", 1);
             comandaDAO.insertComanda(comanda);
         }
-        
+
+        // Verifica il conteggio aggregato
         Map<String, Integer> bestSellers = gestoreDAO.getBestSellers();
         
+        // Dovrebbe contare 3 Pizza Margherita
         assertTrue(bestSellers.containsKey("Pizza Margherita"));
         assertEquals(3, bestSellers.get("Pizza Margherita"));
     }
