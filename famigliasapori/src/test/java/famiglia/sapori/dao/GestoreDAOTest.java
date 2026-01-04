@@ -18,6 +18,7 @@ public class GestoreDAOTest extends DatabaseTestBase {
     private ComandaDAO comandaDAO;
     private MenuDAO menuDAO;
 
+    // Inizializza i DAO prima di ogni test
     @BeforeEach
     void setUp() {
         gestoreDAO = new GestoreDAO();
@@ -35,9 +36,11 @@ public class GestoreDAOTest extends DatabaseTestBase {
         Comanda comanda = new Comanda(0, 1, "2x Pizza Margherita\n1x Carbonara", 25.00, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
-        
+
+        // Chiama il metodo da testare
         Map<String, Integer> bestSellers = gestoreDAO.getBestSellers();
-        
+
+        // Verifica che la mappa non sia nulla e non vuota
         assertNotNull(bestSellers);
         assertFalse(bestSellers.isEmpty());
     }
@@ -95,12 +98,14 @@ public class GestoreDAOTest extends DatabaseTestBase {
      */
     @Test
     void getBestSellers_handlesProductsWithoutQuantity() throws SQLException {
+        // Inserisci comanda con prodotti senza quantità esplicita
         Comanda comanda = new Comanda(0, 1, "Pizza Margherita\nPasta Carbonara", 19.00, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
-        
+
+        // Chiama il metodo da testare
         Map<String, Integer> bestSellers = gestoreDAO.getBestSellers();
-        
+        // Dovrebbe contare 1 per ciascun piatto
         assertTrue(bestSellers.containsKey("Pizza Margherita"));
         assertEquals(1, bestSellers.get("Pizza Margherita"));
         assertTrue(bestSellers.containsKey("Pasta Carbonara"));

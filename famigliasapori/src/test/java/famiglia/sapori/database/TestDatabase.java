@@ -8,14 +8,17 @@ import java.sql.ResultSet;
 public final class TestDatabase {
     private TestDatabase() {}
     
+    // Lock per la sincronizzazione dei metodi statici
     private static final Object LOCK = new Object();
     private static boolean schemaCreated = false;
 
+    // Crea lo schema del database per i test
     public static void setupSchema() throws SQLException {
         synchronized (LOCK) {
+            // Ottieni la connessione al database
             Connection conn = DatabaseConnection.getInstance().getConnection();
 
-            // If we've already created the schema, verify it still exists and return.
+            // Se lo schema è già stato creato, verifica che esista ancora e ritorna.
             if (schemaCreated) {
                 try (Statement verify = conn.createStatement();
                      ResultSet rs = verify.executeQuery(
@@ -29,15 +32,15 @@ public final class TestDatabase {
             }
 
             try (Statement st = conn.createStatement()) {
-                // Drop existing tables to ensure a clean slate
-                // Order is important: drop tables with foreign keys first
+                // Elimina le tabelle esistenti per garantire un ambiente pulito
+                // L'ordine è importante: elimina prima le tabelle con chiavi esterne
                 st.execute("DROP TABLE IF EXISTS Comande");
                 st.execute("DROP TABLE IF EXISTS Prenotazioni");
                 st.execute("DROP TABLE IF EXISTS Menu");
                 st.execute("DROP TABLE IF EXISTS Tavoli");
                 st.execute("DROP TABLE IF EXISTS Utenti");
 
-            // Create tables
+            // Crea le tabelle necessarie per i test
             st.execute("CREATE TABLE Menu (" +
                     "id INT PRIMARY KEY AUTO_INCREMENT, " +
                     "nome VARCHAR(100), " +
@@ -89,6 +92,7 @@ public final class TestDatabase {
         }
     }
 
+    // Inserisce dati di test nel database
     public static void seedData() throws SQLException {
         synchronized (LOCK) {
             Connection conn = null;
@@ -97,19 +101,19 @@ public final class TestDatabase {
                 conn = DatabaseConnection.getInstance().getConnection();
                 st = conn.createStatement();
 
-            // Temporarily disable foreign key constraints for cleanup + seeding.
-            // This method is called by multiple tests; keep it idempotent.
+            // Disabilita temporaneamente i vincoli di chiave esterna per la pulizia e l'inserimento dei dati.
+            // Questo metodo viene chiamato da più test; mantienilo idempotente.
             st.execute("SET REFERENTIAL_INTEGRITY FALSE");
             try {
-                // Clear existing rows to avoid duplicate PKs on fixed-ID seed inserts
-                // (order matters because of foreign keys).
+                // Pulisci le righe esistenti per evitare duplicati di chiavi primarie negli inserimenti con ID fissi
+                // (l'ordine è importante a causa delle chiavi esterne).
                 st.execute("DELETE FROM Comande");
                 st.execute("DELETE FROM Prenotazioni");
                 st.execute("DELETE FROM Tavoli");
                 st.execute("DELETE FROM Utenti");
                 st.execute("DELETE FROM Menu");
 
-                // Seed Menu with explicit IDs
+                // Seed Menu con ID espliciti
                 st.execute("INSERT INTO Menu (id, nome, descrizione, prezzo, categoria, disponibile, allergeni) VALUES " +
                     "(1, 'Acqua', 'Naturale', 1.50, 'Bevande', 1, '')," +
                     "(2, 'Pizza Margherita', 'Pomodoro e mozzarella', 6.00, 'Primi', 1, 'lattosio, glutine')," +
@@ -117,18 +121,18 @@ public final class TestDatabase {
                     "(4, 'Risotto', 'Risotto allo zafferano', 8.50, 'Primi', 0, 'glutine')," +
                     "(5, 'Caffe', 'Espresso', 1.00, 'Bevande', 1, '')");
 
-                // Seed Utenti with explicit IDs
+                // Seed Utenti con ID espliciti
                 st.execute("INSERT INTO Utenti (id, nome, username, password, ruolo) VALUES " +
                     "(1, 'Mario Rossi', 'mario', 'pwd123', 'Cameriere')," +
                     "(2, 'Admin User', 'admin', 'admin', 'Gestore')");
 
-                // Seed Tavoli with explicit IDs
+                // Seed Tavoli con ID espliciti
                 st.execute("INSERT INTO Tavoli (id, numero, stato, posti, note) VALUES " +
                     "(1, 1, 'Libero', 4, '')," +
                     "(2, 2, 'Occupato', 2, 'Finestra')," +
                     "(3, 3, 'Libero', 6, '')");
 
-                // Seed Prenotazioni: one in future, one in past
+                // Seed Prenotazioni: una nel futuro, una nel passato
                 st.execute("INSERT INTO Prenotazioni (nome_cliente, telefono, numero_persone, data_ora, note, id_tavolo) VALUES " +
                     "('Luca Bianchi', '123456789', 2, DATEADD('DAY', 1, CURRENT_TIMESTAMP()), 'Compleanno', NULL)," +
                     "('Giulia Verdi', '987654321', 4, DATEADD('DAY', -1, CURRENT_TIMESTAMP()), 'Anniversario', 1)");
@@ -138,7 +142,7 @@ public final class TestDatabase {
                     "(1, '1x Acqua Naturale, 1x Pizza Margherita', 7.50, 'Cucina', 'In Preparazione', '', 1)," +
                     "(2, '1x Caffe', 1.00, 'Bar', 'Servito', '', 1)");
             } finally {
-                // Always re-enable constraints even if inserts fail
+                // Riabilita sempre i vincoli anche se gli inserimenti falliscono
                 st.execute("SET REFERENTIAL_INTEGRITY TRUE");
             }
             } finally {
@@ -151,8 +155,8 @@ public final class TestDatabase {
     }
     
     /**
-     * Clears all data from tables without dropping them.
-     * More efficient than recreating schema for each test.
+     * Pulisce tutti i dati dalle tabelle senza eliminarle.
+     * Più efficiente che ricreare lo schema per ogni test.
      */
     public static void clearData() throws SQLException {
         synchronized (LOCK) {
@@ -162,7 +166,7 @@ public final class TestDatabase {
                 conn = DatabaseConnection.getInstance().getConnection();
                 st = conn.createStatement();
                 
-                // Delete in reverse order of foreign key dependencies
+                // Elimina in ordine inverso rispetto alle dipendenze delle chiavi esterne
                 st.execute("DELETE FROM Comande");
                 st.execute("DELETE FROM Prenotazioni");
                 st.execute("DELETE FROM Tavoli");
