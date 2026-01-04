@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class DAOExceptionTest extends DatabaseTestBase {
 
+    // Carica le proprietà del database da file
     private static Properties loadDbProperties() throws IOException {
         Properties props = new Properties();
         try (InputStream input = DAOExceptionTest.class.getResourceAsStream("/database.properties")) {
@@ -47,6 +48,7 @@ public class DAOExceptionTest extends DatabaseTestBase {
             throw new SQLException("Impossibile caricare database.properties", e);
         }
 
+        // Crea e chiudi la connessione
         Connection conn = DriverManager.getConnection(
                 props.getProperty("db.url"),
                 props.getProperty("db.username"),
@@ -65,9 +67,11 @@ public class DAOExceptionTest extends DatabaseTestBase {
      */
     @Test
     void invalidSQLQuery_throwsSQLException() throws SQLException {
+
         // Ottieni connessione e statement validi prima del test
         Connection conn = DatabaseConnection.getInstance().getConnection();
         Statement stmt = conn.createStatement();
+
         // Testa SOLO executeQuery con query invalida
         assertThrows(SQLException.class, () -> stmt.executeQuery("SELECT * FROM NonExistentTable"));
     }
@@ -92,6 +96,7 @@ public class DAOExceptionTest extends DatabaseTestBase {
     @Test
     void updateNonExistentId_noException() throws SQLException {
         ComandaDAO dao = new ComandaDAO();
+
         // Update su ID inesistente non dovrebbe causare eccezione
         assertDoesNotThrow(() -> dao.updateStatoComanda(99999, "Servita"));
     }

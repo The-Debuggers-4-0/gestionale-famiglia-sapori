@@ -52,11 +52,19 @@ public class PrenotazioneDAOTest extends DatabaseTestBase {
      */
     @Test
     void getAllPrenotazioni_includesFuture() throws SQLException {
+        //  Inserisci una prenotazione futura e verifica che sia recuperata correttamente da getAllPrenotazioni.
+
+        // Usa il DAO per l'inserimento e la verifica
         PrenotazioneDAO dao = new PrenotazioneDAO();
+
+        // Data futura
         LocalDateTime futureDate = LocalDateTime.now().plusDays(1);
+
+        // Inserisci una prenotazione futura
         Prenotazione p = new Prenotazione(0, "Futuro", "111", 2, futureDate, "", null);
         dao.insertPrenotazione(p);
         
+        // Verifica che la prenotazione futura sia presente
         List<Prenotazione> prenotazioni = dao.getAllPrenotazioni();
         assertTrue(prenotazioni.stream().anyMatch(pr -> "Futuro".equals(pr.getNomeCliente())),
                 "Le prenotazioni future dovrebbero essere incluse");
@@ -67,12 +75,16 @@ public class PrenotazioneDAOTest extends DatabaseTestBase {
      */
     @Test
     void getAllPrenotazioni_edgeCaseNearCurrentTime() throws SQLException {
+
+        // Usa il DAO per l'inserimento e la verifica
         PrenotazioneDAO dao = new PrenotazioneDAO();
+
         // Prenotazione esattamente tra 1 minuto
         LocalDateTime nearFuture = LocalDateTime.now().plusMinutes(1);
         Prenotazione p = new Prenotazione(0, "EdgeCase", "222", 4, nearFuture, "Test limite", null);
         dao.insertPrenotazione(p);
         
+        // Verifica che la prenotazione appena futura sia presente
         List<Prenotazione> prenotazioni = dao.getAllPrenotazioni();
         assertTrue(prenotazioni.stream().anyMatch(pr -> "EdgeCase".equals(pr.getNomeCliente())),
                 "Prenotazioni appena future dovrebbero essere incluse");
@@ -83,24 +95,32 @@ public class PrenotazioneDAOTest extends DatabaseTestBase {
      */
     @Test
     void updatePrenotazione_assignTavolo() throws SQLException {
+
+        // Usa il DAO per l'inserimento e la verifica
         PrenotazioneDAO dao = new PrenotazioneDAO();
+
+        // Inserisci una prenotazione senza tavolo assegnato
         Prenotazione p = new Prenotazione(0, "AssignTest", "333", 2, LocalDateTime.now().plusHours(3), "", null);
         dao.insertPrenotazione(p);
         
+        // Recupera la prenotazione appena creata
         List<Prenotazione> all = dao.getAllPrenotazioni();
         Prenotazione created = all.stream().filter(pr -> "AssignTest".equals(pr.getNomeCliente())).findFirst().orElseThrow();
         assertNull(created.getIdTavolo(), "Inizialmente idTavolo dovrebbe essere null");
     }
 
+    // Verifica che vengano restituiti solo gli idTavolo non nulli e distinti per una data specifica.
     @Test
     void getReservedTableIdsForDate_returnsOnlyNonNullAndDistinctForThatDate() throws SQLException {
         PrenotazioneDAO dao = new PrenotazioneDAO();
 
+        // Prepara i dati di test
         LocalDate targetDate = LocalDate.now().plusDays(10);
         LocalDateTime atLunch = LocalDateTime.of(targetDate, LocalTime.of(13, 0));
         LocalDateTime atDinner = LocalDateTime.of(targetDate, LocalTime.of(20, 0));
         LocalDateTime otherDay = LocalDateTime.of(targetDate.plusDays(1), LocalTime.of(13, 0));
 
+        // Inserisci prenotazioni di test
         dao.insertPrenotazione(new Prenotazione(0, "R1", "100", 2, atLunch, "", 1));
         dao.insertPrenotazione(new Prenotazione(0, "R2", "101", 4, atDinner, "", 2));
         // stessa data, ma id_tavolo null: non deve comparire
@@ -108,26 +128,33 @@ public class PrenotazioneDAOTest extends DatabaseTestBase {
         // data diversa: non deve comparire
         dao.insertPrenotazione(new Prenotazione(0, "R_OTHER", "103", 2, otherDay, "", 3));
 
+        // Esegui il metodo da testare
         List<Integer> reservedIds = dao.getReservedTableIdsForDate(targetDate);
         Set<Integer> set = new HashSet<>(reservedIds);
 
+        // Verifiche
         assertEquals(Set.of(1, 2), set);
     }
 
+    //Verifica che vengano restituite solo le prenotazioni con tavolo assegnato per una data specifica.
     @Test
     void getReservationsForDate_returnsOnlyReservationsWithAssignedTableOnThatDate() throws SQLException {
         PrenotazioneDAO dao = new PrenotazioneDAO();
 
+        // Prepara i dati di test
         LocalDate targetDate = LocalDate.now().plusDays(12);
         LocalDateTime atLunch = LocalDateTime.of(targetDate, LocalTime.of(12, 30));
         LocalDateTime otherDay = LocalDateTime.of(targetDate.plusDays(2), LocalTime.of(12, 30));
 
+        // Inserisci prenotazioni di test
         dao.insertPrenotazione(new Prenotazione(0, "RES_A", "200", 2, atLunch, "", 1));
         dao.insertPrenotazione(new Prenotazione(0, "RES_NULL", "201", 2, atLunch.plusHours(1), "", null));
         dao.insertPrenotazione(new Prenotazione(0, "RES_OTHER", "202", 2, otherDay, "", 2));
 
+        // Esegui il metodo da testare
         List<Prenotazione> reservations = dao.getReservationsForDate(targetDate);
 
+        // Verifiche
         assertTrue(reservations.stream().anyMatch(p -> "RES_A".equals(p.getNomeCliente())));
         assertTrue(reservations.stream().allMatch(p -> p.getIdTavolo() != null));
         assertTrue(reservations.stream().allMatch(p -> p.getDataOra().toLocalDate().equals(targetDate)));

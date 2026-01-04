@@ -86,15 +86,18 @@ public class ComandaDAOTest extends DatabaseTestBase {
     void hasPaidComandaAfter_filtersByTableAndTimestamp() throws SQLException {
         ComandaDAO dao = new ComandaDAO();
 
+        // Inserisci comande di test
         LocalDateTime t0 = LocalDateTime.of(2025, 1, 1, 12, 0, 0);
         insertComandaWithTimestamp(1, "1x Test Paid", 10.0, "Cucina", "Pagato", t0, 1);
         insertComandaWithTimestamp(1, "1x Test NotPaid", 5.0, "Bar", "Servito", t0.plusMinutes(5), 1);
         insertComandaWithTimestamp(2, "1x Other Table Paid", 3.0, "Bar", "Pagato", t0.plusMinutes(10), 1);
 
+        // Esegui le verifiche
         assertTrue(dao.hasPaidComandaAfter(1, t0.minusSeconds(1)), "Dovrebbe trovare la comanda pagata del tavolo 1");
         assertTrue(dao.hasPaidComandaAfter(1, t0), "La condizione e' >=, quindi dovrebbe includere t0");
         assertFalse(dao.hasPaidComandaAfter(1, t0.plusSeconds(1)), "Non dovrebbe includere la comanda pagata precedente");
 
+        // Verifica per un tavolo senza comande pagate dopo la soglia
         assertFalse(dao.hasPaidComandaAfter(1, t0.plusHours(1)), "Nessuna comanda pagata dopo la soglia");
         assertTrue(dao.hasPaidComandaAfter(2, t0.plusMinutes(9)), "Dovrebbe trovare la comanda pagata del tavolo 2");
     }

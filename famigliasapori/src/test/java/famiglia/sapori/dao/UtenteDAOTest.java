@@ -16,8 +16,14 @@ public class UtenteDAOTest extends DatabaseTestBase {
      */
     @Test
     void login_withValidCredentials_returnsUser() throws SQLException {
+        
+        // Setup
         UtenteDAO dao = new UtenteDAO();
+
+        // Esegui il login con credenziali valide
         Utente u = dao.login("mario", "pwd123");
+
+        // Verifiche
         assertNotNull(u);
         assertEquals("mario", u.getUsername());
         assertEquals("Cameriere", u.getRuolo());
@@ -69,23 +75,30 @@ public class UtenteDAOTest extends DatabaseTestBase {
     @Test
     void login_usernameCaseSensitive() throws SQLException {
         UtenteDAO dao = new UtenteDAO();
+
+        // Prova con username corretto
         Utente validUser = dao.login("mario", "pwd123");
         assertNotNull(validUser, "Login con username corretto dovrebbe funzionare");
         
+        // Prova con username in maiuscolo
         Utente invalidUser = dao.login("MARIO", "pwd123");
         assertNull(invalidUser, "Username dovrebbe essere case-sensitive");
     }
 
+    // Verifica l'inserimento, l'aggiornamento e la cancellazione di un utente.
     @Test
     void getAllInsertUpdateDeleteUtente_roundTrip() throws SQLException {
         UtenteDAO dao = new UtenteDAO();
 
+        // Verifica che ci siano utenti seed
         assertTrue(dao.getAllUtenti().size() >= 2, "Dovrebbero esserci utenti seed");
 
+        // Inserimento
         String uniqueUsername = "user_" + UUID.randomUUID();
         Utente toInsert = new Utente(0, "Test User", uniqueUsername, "pw", "Cameriere");
         dao.insertUtente(toInsert);
 
+        // Verifica inserimento
         Utente inserted = dao.getAllUtenti().stream()
                 .filter(u -> uniqueUsername.equals(u.getUsername()))
                 .findFirst()
@@ -93,9 +106,11 @@ public class UtenteDAOTest extends DatabaseTestBase {
         assertEquals("Test User", inserted.getNome());
         assertEquals("Cameriere", inserted.getRuolo());
 
+        // Aggiornamento
         Utente toUpdate = new Utente(inserted.getId(), "Test User 2", uniqueUsername, "pw2", "Gestore");
         dao.updateUtente(toUpdate);
 
+        // Verifica aggiornamento
         Utente updated = dao.getAllUtenti().stream()
                 .filter(u -> u.getId() == inserted.getId())
                 .findFirst()
@@ -104,6 +119,7 @@ public class UtenteDAOTest extends DatabaseTestBase {
         assertEquals("pw2", updated.getPassword());
         assertEquals("Gestore", updated.getRuolo());
 
+        // Cancellazione
         dao.deleteUtente(inserted.getId());
         assertTrue(dao.getAllUtenti().stream().noneMatch(u -> u.getId() == inserted.getId()));
     }

@@ -132,9 +132,11 @@ public class GestoreDAOTest extends DatabaseTestBase {
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda);
         
+        // Calcola il totale atteso
         double expectedTotal = (piatto1.getPrezzo() * 2) + piatto2.getPrezzo();
         double actualTotal = gestoreDAO.calculateDailyIncome();
         
+        // Verifica che il totale calcolato sia almeno quello della comanda inserita
         assertTrue(actualTotal >= expectedTotal, 
             String.format("Expected at least %.2f but got %.2f", expectedTotal, actualTotal));
     }
@@ -163,9 +165,11 @@ public class GestoreDAOTest extends DatabaseTestBase {
         var piatti = menuDAO.getAllPiattiComplete();
         assertTrue(piatti.size() >= 2);
         
+        // Prendi i primi 2 piatti
         Piatto piatto1 = piatti.get(0);
         Piatto piatto2 = piatti.get(1);
         
+        // Prendi il totale iniziale
         double initialTotal = gestoreDAO.calculateDailyIncome();
         
         // Inserisci 2 comande pagate
@@ -173,13 +177,16 @@ public class GestoreDAOTest extends DatabaseTestBase {
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda1);
         
+        // Seconda comanda con quantità
         Comanda comanda2 = new Comanda(0, 2, "2x " + piatto2.getNome(), piatto2.getPrezzo() * 2, "Cucina", "Pagato", 
             LocalDateTime.now(), "", 1);
         comandaDAO.insertComanda(comanda2);
         
+        // Calcola l'incremento atteso
         double expectedIncrease = piatto1.getPrezzo() + (piatto2.getPrezzo() * 2);
         double finalTotal = gestoreDAO.calculateDailyIncome();
         
+        // Verifica che il totale sia aumentato correttamente
         assertEquals(initialTotal + expectedIncrease, finalTotal, 0.01);
     }
 
@@ -224,9 +231,11 @@ public class GestoreDAOTest extends DatabaseTestBase {
                 LocalDateTime.now(), "", 1);
             comandaDAO.insertComanda(comanda);
         }
-        
+
+        // Verifica il conteggio aggregato
         Map<String, Integer> bestSellers = gestoreDAO.getBestSellers();
         
+        // Dovrebbe contare 3 Pizza Margherita
         assertTrue(bestSellers.containsKey("Pizza Margherita"));
         assertEquals(3, bestSellers.get("Pizza Margherita"));
     }

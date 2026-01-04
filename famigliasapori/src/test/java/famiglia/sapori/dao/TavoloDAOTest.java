@@ -66,19 +66,23 @@ public class TavoloDAOTest extends DatabaseTestBase {
         Tavolo t = dao.getAllTavoli().get(0);
         String currentState = t.getStato();
         
+        // Aggiorna con lo stesso stato
         dao.updateStatoTavolo(t.getId(), currentState);
         Tavolo after = dao.getAllTavoli().stream().filter(x -> x.getId() == t.getId()).findFirst().orElseThrow();
         assertEquals(currentState, after.getStato(), "Aggiornare con lo stesso stato dovrebbe essere idempotente");
     }
 
+    // Verifica l'inserimento, l'aggiornamento e la cancellazione di un tavolo.
     @Test
     void insertUpdateDeleteTavolo_roundTrip() throws SQLException {
         TavoloDAO dao = new TavoloDAO();
 
+        // Inserimento
         int uniqueNumero = 10_000 + ThreadLocalRandom.current().nextInt(1_000);
         Tavolo toInsert = new Tavolo(0, uniqueNumero, "Libero", 5, "note test");
         dao.insertTavolo(toInsert);
 
+        // Verifica inserimento
         List<Tavolo> afterInsert = dao.getAllTavoli();
         Tavolo inserted = afterInsert.stream()
                 .filter(t -> t.getNumero() == uniqueNumero)
@@ -87,15 +91,18 @@ public class TavoloDAOTest extends DatabaseTestBase {
         assertEquals(5, inserted.getPosti());
         assertEquals("Libero", inserted.getStato());
 
+        // Aggiornamento
         Tavolo toUpdate = new Tavolo(inserted.getId(), uniqueNumero + 1, "Occupato", 2, "note upd");
         dao.updateTavolo(toUpdate);
 
+        // Verifica aggiornamento
         Tavolo updated = dao.getAllTavoli().stream().filter(t -> t.getId() == inserted.getId()).findFirst().orElseThrow();
         assertEquals(uniqueNumero + 1, updated.getNumero());
         assertEquals("Occupato", updated.getStato());
         assertEquals(2, updated.getPosti());
         assertEquals("note upd", updated.getNote());
 
+        // Cancellazione
         dao.deleteTavolo(inserted.getId());
         List<Tavolo> afterDelete = dao.getAllTavoli();
         assertTrue(afterDelete.stream().noneMatch(t -> t.getId() == inserted.getId()));
