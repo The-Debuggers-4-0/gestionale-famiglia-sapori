@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -192,6 +194,14 @@ public class SalaController implements Initializable {
         menuTabPane.getTabs().clear();
         try {
             List<String> categorie = menuDAO.getAllCategorie();
+            
+            // Ordina le categorie secondo l'ordine richiesto
+            List<String> ordineDesiderato = Arrays.asList("Antipasti", "Primi", "Secondi", "Contorni", "Dolci", "Bevande");
+            categorie.sort(Comparator.comparingInt(cat -> {
+                int index = ordineDesiderato.indexOf(cat);
+                return index == -1 ? Integer.MAX_VALUE : index;
+            }));
+
             List<Piatto> piatti = menuDAO.getAllPiatti();
 
             for (String cat : categorie) {
