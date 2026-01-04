@@ -28,7 +28,7 @@ public class FamigliaSaporiApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        Scene initialScene = new Scene(loadFXML("HomeView"), 800, 600);
+        Scene initialScene = new Scene(loadFXML("HomeView"), 1280, 720);
         setScene(initialScene);
         stage.setTitle("Gestionale Famiglia Sapori");
         stage.setScene(initialScene);

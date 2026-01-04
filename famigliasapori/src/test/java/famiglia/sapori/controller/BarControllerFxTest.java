@@ -176,37 +176,6 @@ public class BarControllerFxTest extends ApplicationTest {
     }
 
     /**
-     * Verifica cambio stato comanda: In Attesa -> In Preparazione.
-     * Test business logic: updateStato() aggiorna database.
-     */
-    /**
-     * Verifica cambio stato comanda: In Preparazione -> Pronto.
-     * Test business logic: updateStato() completa preparazione.
-     * 
-     * Nota: Commentato perché il bottone Pronto non viene trovato nei test automatizzati
-     * (le comande probabilmente richiedono rendering aggiuntivo)
-     */
-    // @Test
-    void clickingProntoButtonChangesStatoToPronto() throws Exception {
-        ComandaDAO comandaDAO = new ComandaDAO();
-        
-        // Crea una comanda "In Preparazione" di tipo Bar
-        Comanda comanda = new Comanda(0, 1, "1x Acqua", 1.50, "Bar", "In Preparazione", 
-            java.time.LocalDateTime.now(), "", 1);
-        comandaDAO.insertComanda(comanda);
-        
-        sleep(500);
-        
-        // Click sul bottone "Pronto"
-        clickOn("Pronto");
-        sleep(500);
-        
-        // Verifica che la comanda sia passata a "Pronto"
-        List<Comanda> comandePronte = comandaDAO.getComandeByStatoAndTipo("Pronto", "Bar");
-        assertFalse(comandePronte.isEmpty(), "Dovrebbe esserci almeno una comanda pronta");
-    }
-
-    /**
      * Verifica modifica disponibilità drink nel database.
      * Test business logic: DrinkCell checkbox aggiorna menuDAO.
      */
