@@ -521,7 +521,6 @@ public class SalaControllerFxTest extends ApplicationTest {
      * Verifica aggiornamento riepilogo ordine.
      * Test business logic: updateRiepilogo() calcola totale corretto.
      */
-    @SuppressWarnings("unused")
     @Test
     void addingProductsUpdatesOrderSummary() throws Exception {
         sleep(500);

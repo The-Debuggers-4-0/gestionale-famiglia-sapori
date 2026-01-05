@@ -13,7 +13,6 @@ public class CassaControllerTest {
      * Verifica il parsing di prodotti nel formato "Qx Nome" (es. "2x Carbonara").
      * Testa casi validi, quantità zero e formato malformato.
      */
-    @SuppressWarnings("unused")
     @Test
     public void testParseProductString_validFormat() throws Exception {
         CassaController controller = new CassaController();
@@ -32,7 +31,6 @@ public class CassaControllerTest {
     /**
      * Verifica gestione errore parsing quando il formato è errato (es. mancanza "x").
      */
-    @SuppressWarnings("unused")
     @Test
     public void testParseProductString_malformedInput() {
         String input = "InvalidFormat";

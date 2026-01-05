@@ -95,7 +95,6 @@ public class CassaControllerFxTest extends ApplicationTest {
     @Test
     void spinnerDivisoIsConfiguredCorrectly() {
         assertNotNull(controller);
-        @SuppressWarnings("unchecked")
         Spinner<Integer> spinner = (Spinner<Integer>) lookup("#spinDiviso").queryAs(Spinner.class);
         assertNotNull(spinner);
         assertNotNull(spinner.getValueFactory());
@@ -192,7 +191,6 @@ public class CassaControllerFxTest extends ApplicationTest {
         // Seleziona tavolo occupato per avere un totale
         clickOn("Tavolo 2");
 
-        @SuppressWarnings("unchecked")
         Spinner<Integer> spinner = (Spinner<Integer>) lookup("#spinDiviso").queryAs(Spinner.class);
         Label lblQuota = lookup("#lblQuotaTesta").queryAs(Label.class);
         assertNotNull(spinner);
@@ -262,7 +260,6 @@ public class CassaControllerFxTest extends ApplicationTest {
 
             // Il test verifica che il controller funzioni, non necessariamente che il
             // parsing sia perfetto
-            // In ambiente CI il timing potrebbe essere diverso
             assertNotNull(lblTotale.getText(), "Il campo totale dovrebbe avere un valore");
         } catch (Exception e) {
             // Se il click fallisce in CI, verifica almeno che il controller sia valido
@@ -363,17 +360,5 @@ public class CassaControllerFxTest extends ApplicationTest {
         // Verifica che la quota sia stata ricalcolata
         String quotaText = lblQuota.getText();
         assertTrue(quotaText.contains("€"), "La quota dovrebbe essere visualizzata");
-    }
-
-    /**
-     * Verifica gestione errore database durante pagamento.
-     * Test business logic: handlePaga() con SQLException.
-     */
-    @Test
-    void handlePagaShowsErrorOnDatabaseException() {
-        // Questo test è difficile da implementare senza mock
-        // Verifica che il controller gestisca SQLException (try-catch nel codice)
-        assertNotNull(controller);
-        // Il codice ha try-catch che mostra alert in caso di errore
     }
 }

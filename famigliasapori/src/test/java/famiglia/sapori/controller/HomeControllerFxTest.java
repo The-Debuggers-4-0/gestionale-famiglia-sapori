@@ -44,7 +44,6 @@ public class HomeControllerFxTest extends ApplicationTest {
     // Setup del mock della scena prima di ogni test
     @BeforeEach
     void setupMockScene() throws Exception {
-        // Mock the static scene field to avoid NPE during navigation
         ApplicationMockHelper.setupMockScene(testStage);
     }
     
@@ -113,6 +112,6 @@ public class HomeControllerFxTest extends ApplicationTest {
     @Test
     void clickingCassaButtonNavigates() {
         assertNotNull(lookup("#btnCassa").query());
-        clickOn("#btnCassa"); // Should trigger handleCassaClick()
+        clickOn("#btnCassa"); 
     }
 }

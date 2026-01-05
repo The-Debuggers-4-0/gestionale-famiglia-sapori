@@ -27,7 +27,7 @@ public final class TestDatabase {
                         return;
                     }
                 } catch (SQLException ignored) {
-                    // Fall through and recreate schema.
+                    // Continua e ricrea lo schema.
                 }
             }
 
@@ -166,12 +166,18 @@ public final class TestDatabase {
                 conn = DatabaseConnection.getInstance().getConnection();
                 st = conn.createStatement();
                 
+                // Disabilita temporaneamente i vincoli di chiave esterna per la pulizia
+                st.execute("SET REFERENTIAL_INTEGRITY FALSE");
+                
                 // Elimina in ordine inverso rispetto alle dipendenze delle chiavi esterne
                 st.execute("DELETE FROM Comande");
                 st.execute("DELETE FROM Prenotazioni");
                 st.execute("DELETE FROM Tavoli");
                 st.execute("DELETE FROM Utenti");
                 st.execute("DELETE FROM Menu");
+                
+                // Riabilita i vincoli di chiave esterna
+                st.execute("SET REFERENTIAL_INTEGRITY TRUE");
             } finally {
                 if (st != null) {
                     try { st.close(); } catch (SQLException e) { /* ignore */ }

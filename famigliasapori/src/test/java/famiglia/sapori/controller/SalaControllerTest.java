@@ -28,7 +28,6 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -135,12 +134,12 @@ public class SalaControllerTest {
         m.invoke(target);
     }
 
-    // Invoca il metodo privato sendComanda tramite reflection
+    /* Invoca il metodo privato sendComanda tramite reflection
     private static void invokeSendComanda(SalaController controller, Map<Piatto, Integer> items, String tipo) throws Exception {
         Method m = SalaController.class.getDeclaredMethod("sendComanda", Map.class, String.class);
         m.setAccessible(true);
         m.invoke(controller, items, tipo);
-    }
+    }*/
 
     // Fake DAO per i test
     private static final class FakeTavoloDAO extends TavoloDAO {

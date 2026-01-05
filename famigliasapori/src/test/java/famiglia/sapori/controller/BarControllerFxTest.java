@@ -58,14 +58,14 @@ public class BarControllerFxTest extends ApplicationTest {
     // Pulizia dopo ogni test
     @AfterEach
     void tearDown() throws Exception {
-        // Stop polling via reflection to prevent database interference
+        // Ferma il polling tramite reflection per prevenire interferenze con il database
         if (controller != null) {
             try {
                 java.lang.reflect.Method stopPolling = controller.getClass().getDeclaredMethod("stopPolling");
                 stopPolling.setAccessible(true);
                 stopPolling.invoke(controller);
             } catch (Exception ignored) {
-                // Ignore if method not found or fails
+                // Ignora se il metodo non viene trovato o fallisce
             }
         }
         WaitForAsyncUtils.waitForFxEvents();

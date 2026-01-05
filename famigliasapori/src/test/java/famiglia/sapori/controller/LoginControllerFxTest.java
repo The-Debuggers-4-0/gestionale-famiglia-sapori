@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class LoginControllerFxTest extends ApplicationTest {
     // Riferimento al controller per testare metodi specifici
-    @SuppressWarnings("unused")
     private LoginController controller;
 
     // Configurazione del database di test prima di tutti i test
@@ -65,13 +64,6 @@ public class LoginControllerFxTest extends ApplicationTest {
         assertTrue(err.isVisible());
         assertTrue(err.getText().contains("Inserisci username"));
     }
-
-    /**
-     * Nota: evitiamo il percorso con credenziali valide perché il controller
-     * esegue la navigazione verso SalaView con caricamento FXML/DAO.
-     * Manteniamo il focus su comportamenti UI locali (validazione campi/errore),
-     * cioe: testiamo che l'errore venga mostrato per credenziali non valide.
-     */
 
     // Test di login con credenziali non valide
     @Test

@@ -54,7 +54,7 @@ public class CucinaControllerFxTest extends ApplicationTest {
     void setup() throws Exception {
         ApplicationMockHelper.setupMockScene(testStage);
 
-        // Stop polling to prevent interference during tests
+        // Ferma il polling per prevenire interferenze durante i test
         if (controller != null) {
             Platform.runLater(() -> controller.stopPolling());
             WaitForAsyncUtils.waitForFxEvents();

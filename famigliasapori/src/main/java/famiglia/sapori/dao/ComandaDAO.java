@@ -164,8 +164,7 @@ public class ComandaDAO {
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
                 Statement stmt = conn.createStatement()) {
-            int deleted = stmt.executeUpdate(query);
-            System.out.println("Eliminate " + deleted + " comande del giorno precedente.");
+            stmt.executeUpdate(query);
         }
     }
 }

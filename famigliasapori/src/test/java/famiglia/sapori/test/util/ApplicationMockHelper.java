@@ -16,15 +16,15 @@ public class ApplicationMockHelper {
     private static void setSceneField(Scene scene) throws Exception {
         Field sceneField = FamigliaSaporiApplication.class.getDeclaredField("scene");
         sceneField.setAccessible(true);
-        sceneField.set(null, scene); // null because it's static
+        sceneField.set(null, scene); // null perché è statico
     }
 
     /** 
      * Configura una scena mock nel campo scene di FamigliaSaporiApplication usando reflection.
      * Questo permette ai controller di chiamare FamigliaSaporiApplication.setRoot() senza NullPointerException.
      *
-     * @param stage the TestFX stage to associate with the mock scene
-     * @throws Exception if reflection fails
+     * @param stage lo stage TestFX da associare alla scena mock
+     * @throws Exception se la reflection fallisce
      */
     public static void setupMockScene(Stage stage) throws Exception {
         Scene mockScene = stage.getScene();
@@ -51,7 +51,7 @@ public class ApplicationMockHelper {
     /**
      * Pulisce la scena di mock dopo i test.
      * 
-     * @throws Exception if reflection fails
+     * @throws Exception se la reflection fallisce
      */
     public static void clearMockScene() throws Exception {
         if (Platform.isFxApplicationThread()) {
