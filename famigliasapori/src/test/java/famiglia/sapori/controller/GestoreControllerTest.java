@@ -596,7 +596,7 @@ public class GestoreControllerTest {
         });
     }
 
-    // Tavolo tests
+    // Test della cell factory per la colonna Stato Tavolo
     @Test
     void statoTavoloCellFactory_setsExpectedStyles() throws Exception {
         runOnFxThread(() -> {
@@ -653,7 +653,7 @@ public class GestoreControllerTest {
         });
     }
 
-    /// Piatto tests
+    /// Testo di eliminazione piatto
     @Test
     void handleEliminaPiatto_callsDelete() throws Exception {
         runOnFxThread(() -> {
