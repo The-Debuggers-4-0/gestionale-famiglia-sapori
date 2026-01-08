@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
 
+// Classe di utilità per la gestione del database di test, con setup, pulizia e popolamento
 public final class TestDatabase {
     private TestDatabase() {}
     

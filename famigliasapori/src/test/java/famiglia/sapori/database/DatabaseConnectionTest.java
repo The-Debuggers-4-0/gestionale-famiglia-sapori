@@ -6,6 +6,7 @@ import java.sql.Connection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+//test per la connessione al database
 public class DatabaseConnectionTest extends DatabaseTestBase {
 
     /**
