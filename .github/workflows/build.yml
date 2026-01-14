@@ -1,7 +1,7 @@
-# Workflow per Build e Analisi Qualità Codice con SonarCloud
+# Workflow completo: Build, Test, Analisi Qualità e Coverage
 name: Build and Analyze
 
-# Trigger: esegue l'analisi ad ogni push o pull request sul branch main
+# Trigger: esegue ad ogni push o pull request sul branch main
 on:
   push:
     branches:
@@ -13,6 +13,11 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
+    
+    # Permessi necessari per pubblicare i risultati dei test come GitHub Check
+    permissions:
+      contents: read
+      checks: write  # Per pubblicare risultati test come check
     
     steps:
       # Step 1: Scarica il codice sorgente dal repository
@@ -58,3 +63,33 @@ jobs:
           export DISPLAY=:99
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=The-Debuggers-4-0_gestionale-famiglia-sapori
+      
+      # Step 6: Pubblica i risultati dei test come GitHub Check
+      # Mostra direttamente su GitHub quali test sono passati/falliti
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: famigliasapori/target/surefire-reports/*.xml
+          check_name: Test Results
+          comment_mode: off  # Non commenta automaticamente sui PR
+      
+      # Step 7: Carica i report dei test come artifact scaricabili
+      # Utile per debugging in caso di fallimenti
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_number }}
+          path: famigliasapori/target/surefire-reports/
+          retention-days: 30  # Conserva per 30 giorni
+      
+      # Step 8: Carica il report HTML di coverage come artifact
+      # Report interattivo navigabile per vedere nel dettaglio quali righe sono coperte
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ github.run_number }}
+          path: famigliasapori/target/site/jacoco/
+          retention-days: 30
