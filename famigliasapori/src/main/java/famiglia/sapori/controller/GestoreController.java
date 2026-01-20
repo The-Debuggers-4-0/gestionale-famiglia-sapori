@@ -210,6 +210,7 @@ public class GestoreController implements Initializable {
     private void loadMenuData() {
         try {
             tblMenu.setItems(FXCollections.observableArrayList(menuDAO.getAllPiattiComplete()));
+            tblMenu.refresh();
         } catch (SQLException e) {
             showError("Errore caricamento menu: " + e.getMessage());
         }
@@ -298,6 +299,7 @@ public class GestoreController implements Initializable {
     private void loadUtentiData() {
         try {
             tblUtenti.setItems(FXCollections.observableArrayList(utenteDAO.getAllUtenti()));
+            tblUtenti.refresh();
         } catch (SQLException e) {
             showError("Errore caricamento utenti: " + e.getMessage());
         }
@@ -398,6 +400,7 @@ public class GestoreController implements Initializable {
     private void loadTavoliData() {
         try {
             tblTavoli.setItems(FXCollections.observableArrayList(tavoloDAO.getAllTavoli()));
+            tblTavoli.refresh();
         } catch (SQLException e) {
             showError("Errore caricamento tavoli: " + e.getMessage());
         }
