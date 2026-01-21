@@ -5,6 +5,9 @@ import famiglia.sapori.dao.ComandaDAO;
 import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.model.Comanda;
 import famiglia.sapori.model.Tavolo;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -41,6 +44,7 @@ public class CassaController implements Initializable {
 
     private TavoloDAO tavoloDAO;
     private ComandaDAO comandaDAO;
+    private Timeline refreshTimeline;
 
     private Tavolo selectedTavolo;
     private double totaleCorrente = 0.0;
@@ -55,6 +59,22 @@ public class CassaController implements Initializable {
         spinDiviso.valueProperty().addListener((obs, oldVal, newVal) -> ricalcolaQuote(newVal));
 
         loadTavoli();
+        startPolling();
+    }
+
+    private void startPolling() {
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
+            if (tavoliContainer.getScene() == null) {
+                refreshTimeline.stop();
+                return;
+            }
+            loadTavoli();
+            if (selectedTavolo != null) {
+                calcolaConto(selectedTavolo);
+            }
+        }));
+        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        refreshTimeline.play();
     }
 
     private void loadTavoli() {
