@@ -90,6 +90,10 @@ public class SalaController implements Initializable {
 
     private void startPolling() {
         pollingTimeline = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
+            if (tavoliContainer.getScene() == null) {
+                stopPolling();
+                return;
+            }
             Platform.runLater(() -> {
                 loadTavoli();
                 loadMenu();

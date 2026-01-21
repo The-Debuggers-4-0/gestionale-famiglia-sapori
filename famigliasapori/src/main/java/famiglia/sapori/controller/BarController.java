@@ -73,6 +73,10 @@ public class BarController implements Initializable {
 
     private void startPolling() {
         pollingTimeline = new Timeline(new KeyFrame(Duration.seconds(5), e -> {
+            if (ordersContainer.getScene() == null) {
+                stopPolling();
+                return;
+            }
             Platform.runLater(this::loadComande);
         }));
         pollingTimeline.setCycleCount(Animation.INDEFINITE);

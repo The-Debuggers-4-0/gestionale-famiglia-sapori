@@ -65,6 +65,10 @@ public class CucinaController implements Initializable { // Trigger recompile
     private void startPolling() {
         // Aggiorna ogni 5 secondi per vedere nuovi ordini
         pollingTimeline = new Timeline(new KeyFrame(Duration.seconds(5), e -> {
+            if (ordersContainer.getScene() == null) {
+                stopPolling();
+                return;
+            }
             Platform.runLater(this::loadComande);
         }));
         pollingTimeline.setCycleCount(Animation.INDEFINITE);
