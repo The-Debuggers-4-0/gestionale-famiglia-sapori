@@ -10,10 +10,20 @@ public class MenuDAO {
 
     private static final String COL_CATEGORIA = "categoria";
     
-    // Recupera tutti i piatti disponibili nel menu
+    // Recupera tutti i piatti disponibili nel menu, verificando anche la disponibilità in magazzino
     public List<Piatto> getAllPiatti() throws SQLException {
         List<Piatto> piatti = new ArrayList<>();
-        String query = "SELECT * FROM Menu WHERE disponibile = 1";
+        // Seleziona i piatti che sono marcati come disponibili manualmente
+        // E per i quali NON esiste nessun ingrediente nella ricetta che ha quantità insufficiente in magazzino
+        String query = "SELECT m.* FROM Menu m " +
+                       "WHERE m.disponibile = 1 " +
+                       "AND NOT EXISTS ( " +
+                       "    SELECT 1 " +
+                       "    FROM Ricetta r " +
+                       "    JOIN Magazzino mag ON r.id_prodotto = mag.id " +
+                       "    WHERE r.id_piatto = m.id " +
+                       "    AND mag.quantita < r.quantita " +
+                       ")";
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              Statement stmt = conn.createStatement();

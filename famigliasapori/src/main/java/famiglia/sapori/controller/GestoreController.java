@@ -6,7 +6,10 @@ import famiglia.sapori.dao.MenuDAO;
 import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.dao.UtenteDAO;
 import famiglia.sapori.dao.ComandaDAO;
+import famiglia.sapori.dao.MagazzinoDAO;
+import famiglia.sapori.dao.RicettaDAO;
 import famiglia.sapori.model.Piatto;
+import famiglia.sapori.model.ProdottoMagazzino;
 import famiglia.sapori.model.Tavolo;
 import famiglia.sapori.model.Utente;
 import javafx.collections.FXCollections;
@@ -16,12 +19,18 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.ResourceBundle;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
+import javafx.geometry.Insets;
 
 public class GestoreController implements Initializable {
 
@@ -55,6 +64,21 @@ public class GestoreController implements Initializable {
     private TextField txtAllergeni;
     @FXML
     private CheckBox chkDisponibile;
+
+    // --- Tab Magazzino ---
+    @FXML private TableView<ProdottoMagazzino> tblMagazzino;
+    @FXML private TableColumn<ProdottoMagazzino, String> colProdotto;
+    @FXML private TableColumn<ProdottoMagazzino, Double> colQuantita;
+    @FXML private TableColumn<ProdottoMagazzino, String> colUnitaMisura;
+    @FXML private TableColumn<ProdottoMagazzino, Double> colSoglia;
+
+    @FXML private TextField txtRicercaMagazzino; // Search Bar
+    @FXML private TextField txtProdottoMagazzino;
+    @FXML private TextField txtQuantitaMagazzino;
+    @FXML private TextField txtUnitaMisura;
+    @FXML private TextField txtSogliaMinima;
+
+    private ObservableList<ProdottoMagazzino> masterMagazzinoData = FXCollections.observableArrayList();
 
     // --- Tab Personale ---
     @FXML
@@ -103,11 +127,14 @@ public class GestoreController implements Initializable {
     private UtenteDAO utenteDAO;
     private TavoloDAO tavoloDAO;
     private GestoreDAO gestoreDAO;
+    private MagazzinoDAO magazzinoDAO;
+    private RicettaDAO ricettaDAO;
 
     // Selection tracking
     private Piatto selectedPiatto;
     private Utente selectedUtente;
     private Tavolo selectedTavolo;
+    private ProdottoMagazzino selectedProdotto;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -115,6 +142,8 @@ public class GestoreController implements Initializable {
         utenteDAO = new UtenteDAO();
         tavoloDAO = new TavoloDAO();
         gestoreDAO = new GestoreDAO();
+        magazzinoDAO = new MagazzinoDAO();
+        ricettaDAO = new RicettaDAO();
 
         // Elimina automaticamente le comande del giorno precedente all'avvio
         try {
@@ -129,6 +158,7 @@ public class GestoreController implements Initializable {
         }
 
         initMenuTab();
+        initMagazzinoTab();
         initPersonaleTab();
         initTavoliTab();
         initStatsTab();
@@ -261,6 +291,106 @@ public class GestoreController implements Initializable {
     }
 
     @FXML
+    private void handleGestisciIngredienti() {
+        if (selectedPiatto == null) {
+            showError("Seleziona un piatto prima di gestire gli ingredienti.");
+            return;
+        }
+
+        // Create Dialog
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Ingredienti per: " + selectedPiatto.getNome());
+        dialog.setHeaderText("Gestisci la ricetta del piatto (Dosi per 1 porzione)");
+
+        // Add buttons
+        ButtonType closeButtonType = new ButtonType("Chiudi", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(closeButtonType);
+
+        // Layout
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(20));
+
+        // Table Ingredients
+        TableView<Map.Entry<ProdottoMagazzino, Double>> tblIngredienti = new TableView<>();
+        TableColumn<Map.Entry<ProdottoMagazzino, Double>, String> colIngrName = new TableColumn<>("Ingrediente");
+        colIngrName.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getKey().getProdotto()));
+        
+        TableColumn<Map.Entry<ProdottoMagazzino, Double>, Double> colIngrQta = new TableColumn<>("Qtà");
+        colIngrQta.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getValue()));
+        colIngrQta.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f", item));
+                }
+            }
+        });
+
+        TableColumn<Map.Entry<ProdottoMagazzino, Double>, String> colIngrUM = new TableColumn<>("U.M.");
+        colIngrUM.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getKey().getUnitaMisura()));
+
+        tblIngredienti.getColumns().addAll(colIngrName, colIngrQta, colIngrUM);
+        tblIngredienti.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        
+        // Load data helper
+        Runnable loadData = () -> {
+            try {
+                Map<ProdottoMagazzino, Double> map = ricettaDAO.getIngredienti(selectedPiatto.getId());
+                tblIngredienti.setItems(FXCollections.observableArrayList(map.entrySet()));
+            } catch (SQLException e) {
+                showError("Errore caricamento ingredienti: " + e.getMessage());
+            }
+        };
+        loadData.run();
+
+        // Add new ingredient section
+        javafx.scene.layout.HBox addBox = new javafx.scene.layout.HBox(10);
+        ComboBox<ProdottoMagazzino> cmbProdotti = new ComboBox<>();
+        try {
+            cmbProdotti.setItems(FXCollections.observableArrayList(magazzinoDAO.getAllProdotti()));
+        } catch (SQLException e) { e.printStackTrace(); }
+        
+        TextField txtQta = new TextField();
+        txtQta.setPromptText("Qtà");
+        txtQta.setPrefWidth(80);
+        
+        Button btnAdd = new Button("Aggiungi / Aggiorna");
+        btnAdd.setOnAction(e -> {
+            ProdottoMagazzino p = cmbProdotti.getValue();
+            if (p == null || txtQta.getText().isEmpty()) return;
+            try {
+                double q = Double.parseDouble(txtQta.getText());
+                ricettaDAO.addIngrediente(selectedPiatto.getId(), p.getId(), q);
+                loadData.run();
+                txtQta.clear();
+            } catch (Exception ex) {
+                showError("Dati non validi");
+            }
+        });
+
+        // Remove button
+        Button btnRem = new Button("Rimuovi Selezionato");
+        btnRem.setOnAction(e -> {
+            var sel = tblIngredienti.getSelectionModel().getSelectedItem();
+            if (sel != null) {
+                 try {
+                    ricettaDAO.removeIngrediente(selectedPiatto.getId(), sel.getKey().getId());
+                    loadData.run();
+                 } catch (SQLException ex) { showError(ex.getMessage()); }
+            }
+        });
+
+        addBox.getChildren().addAll(cmbProdotti, txtQta, btnAdd);
+        layout.getChildren().addAll(tblIngredienti, addBox, btnRem);
+        
+        dialog.getDialogPane().setContent(layout);
+        dialog.showAndWait();
+    }
+
+    @FXML
     private void handleEliminaPiatto() {
         if (selectedPiatto != null) {
             try {
@@ -269,6 +399,134 @@ public class GestoreController implements Initializable {
                 handleNuovoPiatto();
             } catch (SQLException e) {
                 showError("Errore eliminazione piatto: " + e.getMessage());
+            }
+        }
+    }
+
+    // ==================== MAGAZZINO TAB ====================
+    private void initMagazzinoTab() {
+        colProdotto.setCellValueFactory(new PropertyValueFactory<>("prodotto"));
+        colQuantita.setCellValueFactory(new PropertyValueFactory<>("quantita"));
+        colUnitaMisura.setCellValueFactory(new PropertyValueFactory<>("unitaMisura"));
+        colSoglia.setCellValueFactory(new PropertyValueFactory<>("sogliaMinima"));
+
+        // Format decimal columns (limit to 2 decimal places)
+        colQuantita.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f", item));
+                }
+            }
+        });
+        colSoglia.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f", item));
+                }
+            }
+        });
+
+        // Initialize FilteredList and SortedList for search functionality
+        FilteredList<ProdottoMagazzino> filteredData = new FilteredList<>(masterMagazzinoData, p -> true);
+
+        txtRicercaMagazzino.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredData.setPredicate(prodotto -> {
+                if (newValue == null || newValue.isEmpty()) {
+                    return true;
+                }
+                String lowerCaseFilter = newValue.toLowerCase();
+                return prodotto.getProdotto().toLowerCase().contains(lowerCaseFilter);
+            });
+        });
+
+        SortedList<ProdottoMagazzino> sortedData = new SortedList<>(filteredData);
+        sortedData.comparatorProperty().bind(tblMagazzino.comparatorProperty());
+        tblMagazzino.setItems(sortedData);
+
+        tblMagazzino.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            selectedProdotto = newVal;
+            if (newVal != null) {
+                fillMagazzinoFields(newVal);
+            } else {
+                clearMagazzinoFields();
+            }
+        });
+
+        loadMagazzinoData();
+    }
+
+    private void fillMagazzinoFields(ProdottoMagazzino p) {
+        txtProdottoMagazzino.setText(p.getProdotto());
+        txtQuantitaMagazzino.setText(String.valueOf(p.getQuantita()));
+        txtUnitaMisura.setText(p.getUnitaMisura());
+        txtSogliaMinima.setText(String.valueOf(p.getSogliaMinima()));
+    }
+
+    private void loadMagazzinoData() {
+        try {
+            masterMagazzinoData.setAll(magazzinoDAO.getAllProdotti());
+            // Table items are already bound to SortedList wrapping FilteredList wrapping masterMagazzinoData
+            tblMagazzino.refresh();
+        } catch (SQLException e) {
+            showError("Errore caricamento magazzino: " + e.getMessage());
+        }
+    }
+
+    private void clearMagazzinoFields() {
+        txtProdottoMagazzino.clear();
+        txtQuantitaMagazzino.clear();
+        txtUnitaMisura.clear();
+        txtSogliaMinima.clear();
+        selectedProdotto = null;
+    }
+
+    @FXML
+    private void handleNuovoProdotto() {
+        tblMagazzino.getSelectionModel().clearSelection();
+        clearMagazzinoFields();
+    }
+
+    @FXML
+    private void handleSalvaProdotto() {
+        try {
+            String prod = txtProdottoMagazzino.getText();
+            double qta = Double.parseDouble(txtQuantitaMagazzino.getText());
+            String um = txtUnitaMisura.getText();
+            double soglia = Double.parseDouble(txtSogliaMinima.getText());
+
+            if (selectedProdotto == null) {
+                ProdottoMagazzino p = new ProdottoMagazzino(0, prod, qta, um, soglia);
+                magazzinoDAO.insertProdotto(p);
+            } else {
+                ProdottoMagazzino p = new ProdottoMagazzino(selectedProdotto.getId(), prod, qta, um, soglia);
+                magazzinoDAO.updateProdotto(p);
+            }
+            loadMagazzinoData();
+            handleNuovoProdotto();
+        } catch (NumberFormatException e) {
+            showError("Valori numerici non validi");
+        } catch (SQLException e) {
+            showError("Errore salvataggio prodotto: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleEliminaProdotto() {
+        if (selectedProdotto != null) {
+            try {
+                magazzinoDAO.deleteProdotto(selectedProdotto.getId());
+                loadMagazzinoData();
+                handleNuovoProdotto();
+            } catch (SQLException e) {
+                showError("Errore eliminazione prodotto: " + e.getMessage());
             }
         }
     }

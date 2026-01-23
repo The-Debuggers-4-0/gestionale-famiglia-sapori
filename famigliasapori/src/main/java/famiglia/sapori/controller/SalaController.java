@@ -5,10 +5,13 @@ import famiglia.sapori.dao.ComandaDAO;
 import famiglia.sapori.dao.MenuDAO;
 import famiglia.sapori.dao.PrenotazioneDAO;
 import famiglia.sapori.dao.TavoloDAO;
+import famiglia.sapori.dao.RicettaDAO;
+import famiglia.sapori.dao.MagazzinoDAO;
 import famiglia.sapori.model.Comanda;
 import famiglia.sapori.model.Piatto;
 import famiglia.sapori.model.Prenotazione;
 import famiglia.sapori.model.Tavolo;
+import famiglia.sapori.model.ProdottoMagazzino;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -65,6 +68,8 @@ public class SalaController implements Initializable {
     private MenuDAO menuDAO;
     private ComandaDAO comandaDAO;
     private PrenotazioneDAO prenotazioneDAO;
+    private RicettaDAO ricettaDAO;
+    private MagazzinoDAO magazzinoDAO;
 
     private Tavolo selectedTavolo;
     private Map<Piatto, Integer> currentOrder;
@@ -76,6 +81,8 @@ public class SalaController implements Initializable {
         menuDAO = new MenuDAO();
         comandaDAO = new ComandaDAO();
         prenotazioneDAO = new PrenotazioneDAO();
+        ricettaDAO = new RicettaDAO();
+        magazzinoDAO = new MagazzinoDAO();
         currentOrder = new HashMap<>();
 
         // Log diagnostico: verifica utente loggato
@@ -337,6 +344,9 @@ public class SalaController implements Initializable {
             if (!barItems.isEmpty()) {
                 sendComanda(barItems, "Bar");
             }
+            
+            // Scarica ingredienti dal magazzino
+            scaricaIngredienti(currentOrder);
 
             // Update table status to Occupato
             tavoloDAO.updateStatoTavolo(selectedTavolo.getId(), Tavolo.STATO_OCCUPATO);
@@ -364,6 +374,36 @@ public class SalaController implements Initializable {
         } catch (SQLException e) {
             System.err.println("Errore nell'invio della comanda: " + e.getMessage());
             showAlert(TITOLO_ERRORE, "Impossibile salvare la comanda: " + e.getMessage());
+        }
+    }
+
+    private void scaricaIngredienti(Map<Piatto, Integer> items) {
+        try {
+            // Mappa IdProdotto -> QuantitàTotaleDaScaricare
+            Map<Integer, Double> totaleScarichi = new HashMap<>();
+
+            for (Map.Entry<Piatto, Integer> entry : items.entrySet()) {
+                Piatto piatto = entry.getKey();
+                int quantitaPiatto = entry.getValue();
+
+                Map<ProdottoMagazzino, Double> ingredienti = ricettaDAO.getIngredienti(piatto.getId());
+                for (Map.Entry<ProdottoMagazzino, Double> ingrEntry : ingredienti.entrySet()) {
+                    int idIngrediente = ingrEntry.getKey().getId();
+                    double quantitaPerPiatto = ingrEntry.getValue();
+                    
+                    // Aggrega le quantità per ingrediente
+                    totaleScarichi.merge(idIngrediente, quantitaPerPiatto * quantitaPiatto, Double::sum);
+                }
+            }
+            
+            // Esegui un solo aggiornamento batch ottimizzato
+            if (!totaleScarichi.isEmpty()) {
+                magazzinoDAO.scaricaQuantitaBatch(totaleScarichi);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Platform.runLater(() -> showAlert("Attenzione", "Ordine inviato, ma errore nell'aggiornamento magazzino."));
         }
     }
 
