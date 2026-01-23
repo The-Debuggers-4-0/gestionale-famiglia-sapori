@@ -196,6 +196,138 @@ UNLOCK TABLES;
 
 
 
+# Dump of table Magazzino
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `Magazzino`;
+
+CREATE TABLE `Magazzino` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `prodotto` varchar(255) NOT NULL,
+  `quantita` double NOT NULL DEFAULT 0,
+  `unita_misura` varchar(50) DEFAULT 'kg',
+  `soglia_minima` double DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+LOCK TABLES `Magazzino` WRITE;
+/*!40000 ALTER TABLE `Magazzino` DISABLE KEYS */;
+
+INSERT INTO `Magazzino` (`id`, `prodotto`, `quantita`, `unita_misura`, `soglia_minima`) VALUES
+(1, 'Farina 00', 50, 'kg', 10),
+(2, 'Uova', 200, 'pz', 50),
+(3, 'Pasta di Semola', 30, 'kg', 5),
+(4, 'Pasta all\'Uovo Fresca', 10, 'kg', 2),
+(5, 'Riso Carnaroli', 10, 'kg', 2),
+(6, 'Gnocchi Freschi', 10, 'kg', 2),
+(7, 'Passata di Pomodoro', 50, 'kg', 10),
+(8, 'Pomodori Freschi', 20, 'kg', 5),
+(9, 'Mozzarella', 10, 'kg', 2),
+(10, 'Mozzarella di Bufala', 5, 'kg', 1),
+(11, 'Pecorino Romano', 10, 'kg', 2),
+(12, 'Parmigiano Reggiano', 10, 'kg', 2),
+(13, 'Guanciale', 10, 'kg', 2),
+(14, 'Carne Macinata Mista', 15, 'kg', 5),
+(15, 'Cinghiale', 5, 'kg', 2),
+(16, 'Filetto di Manzo', 8, 'kg', 2),
+(17, 'Bistecca Manzo (Tagliata)', 15, 'kg', 5),
+(18, 'Carne di Maiale', 10, 'kg', 3),
+(19, 'Pollo', 10, 'kg', 3),
+(20, 'Salumi Misti', 10, 'kg', 2),
+(21, 'Formaggi Misti', 10, 'kg', 2),
+(22, 'Orata Intera', 20, 'pz', 5),
+(23, 'Patate', 50, 'kg', 10),
+(24, 'Zucchine', 10, 'kg', 2),
+(25, 'Melanzane', 10, 'kg', 2),
+(26, 'Peperoni', 10, 'kg', 2),
+(27, 'Insalata', 10, 'kg', 3),
+(28, 'Rucola', 3, 'kg', 1),
+(29, 'Cicoria', 10, 'kg', 3),
+(30, 'Funghi Porcini', 5, 'kg', 1),
+(31, 'Panna Fresca', 10, 'l', 2),
+(32, 'Burro', 5, 'kg', 1),
+(33, 'Mascarpone', 5, 'kg', 1),
+(34, 'Savoiardi', 5, 'kg', 1),
+(35, 'Frutti di Bosco', 5, 'kg', 1),
+(36, 'Formaggio Spalmabile', 5, 'kg', 1),
+(37, 'Biscotti', 5, 'kg', 1),
+(38, 'Acqua Naturale 1L', 100, 'pz', 20),
+(39, 'Acqua Frizzante 1L', 100, 'pz', 20),
+(40, 'Coca Cola 33cl', 100, 'pz', 20),
+(41, 'Birra alla Spina', 50, 'l', 10),
+(42, 'Vino Rosso della Casa', 50, 'l', 10),
+(43, 'Vino Bianco della Casa', 50, 'l', 10),
+(44, 'Caffè in Grani', 10, 'kg', 2),
+(45, 'Amaro', 5, 'l', 1),
+(46, 'Pane', 20, 'kg', 5),
+(47, 'Olio EVO', 20, 'l', 5),
+(48, 'Olio di Semi', 10, 'l', 2),
+(49, 'Fettine Vitello', 10, 'kg', 2),
+(50, 'Carote', 5, 'kg', 1),
+(51, 'Sorbetto Limone Base', 10, 'kg', 2);
+
+/*!40000 ALTER TABLE `Magazzino` ENABLE KEYS */;
+UNLOCK TABLES;
+
+# Dump of table Ricetta
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `Ricetta`;
+
+CREATE TABLE `Ricetta` (
+  `id_piatto` int NOT NULL,
+  `id_prodotto` int NOT NULL,
+  `quantita` double NOT NULL,
+  PRIMARY KEY (`id_piatto`, `id_prodotto`),
+  KEY `fk_ricetta_magazzino` (`id_prodotto`),
+  CONSTRAINT `fk_ricetta_menu` FOREIGN KEY (`id_piatto`) REFERENCES `Menu` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ricetta_magazzino` FOREIGN KEY (`id_prodotto`) REFERENCES `Magazzino` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+LOCK TABLES `Ricetta` WRITE;
+/*!40000 ALTER TABLE `Ricetta` DISABLE KEYS */;
+
+INSERT INTO `Ricetta` (`id_piatto`, `id_prodotto`, `quantita`) VALUES
+(1, 20, 0.15), (1, 21, 0.15), (1, 46, 0.1), -- Tagliere
+(2, 46, 0.2), (2, 8, 0.1), (2, 47, 0.02), -- Bruschette
+(3, 24, 0.1), (3, 26, 0.1), (3, 1, 0.05), (3, 48, 0.1), -- Fritto Misto
+(4, 10, 0.125), (4, 8, 0.15), (4, 47, 0.02), -- Caprese
+(5, 16, 0.15), (5, 2, 1), (5, 47, 0.01), -- Tartare
+(6, 3, 0.12), (6, 13, 0.05), (6, 2, 2), (6, 11, 0.03), -- Carbonara
+(7, 3, 0.12), (7, 11, 0.05), -- Cacio e Pepe
+(8, 3, 0.12), (8, 13, 0.05), (8, 7, 0.1), (8, 11, 0.02), -- Amatriciana
+(9, 4, 0.12), (9, 15, 0.1), -- Pappardelle Cinghiale
+(10, 5, 0.1), (10, 30, 0.05), (10, 32, 0.02), (10, 12, 0.02), -- Risotto Porcini
+(11, 4, 0.15), (11, 14, 0.1), (11, 7, 0.1), (11, 12, 0.03), -- Lasagna
+(12, 6, 0.2), (12, 7, 0.1), (12, 9, 0.05), (12, 12, 0.02), -- Gnocchi Sorrentina
+(13, 17, 0.25), (13, 28, 0.05), (13, 12, 0.03), -- Tagliata
+(14, 17, 0.1), (14, 18, 0.1), (14, 19, 0.1), -- Grigliata
+(15, 16, 0.2), (15, 31, 0.05), -- Filetto Pepe
+(16, 49, 0.2), (16, 2, 1), (16, 46, 0.05), -- Cotoletta (usato pane come pangrattato approx)
+(17, 22, 1), (17, 23, 0.2), -- Orata
+(18, 23, 0.3), -- Patate Forno
+(19, 24, 0.1), (19, 25, 0.1), (19, 26, 0.1), -- Verdure Grigliate
+(20, 27, 0.1), (20, 8, 0.1), (20, 50, 0.05), -- Insalata Mista
+(21, 29, 0.2), (21, 47, 0.02), -- Cicoria
+(22, 33, 0.05), (22, 34, 0.03), (22, 2, 1), (22, 44, 0.01), -- Tiramisu
+(23, 31, 0.1), (23, 35, 0.03), -- Panna Cotta
+(24, 36, 0.1), (24, 37, 0.03), (24, 35, 0.03), -- Cheesecake
+(25, 51, 0.15), -- Sorbetto
+(26, 38, 1), -- Acqua Nat
+(27, 39, 1), -- Acqua Friz
+(28, 40, 1), -- Cola
+(29, 41, 0.4), -- Birra
+(30, 42, 0.2), -- Rosso
+(31, 43, 0.2), -- Bianco
+(32, 44, 0.007), -- Caffè
+(33, 45, 0.04), -- Amaro
+(34, 4, 0.15), (34, 14, 0.08), (34, 9, 0.05); -- Timballo
+
+/*!40000 ALTER TABLE `Ricetta` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

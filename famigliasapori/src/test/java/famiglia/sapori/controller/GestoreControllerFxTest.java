@@ -79,18 +79,19 @@ public class GestoreControllerFxTest extends ApplicationTest {
     }
 
     /**
-     * Verifica che il TabPane contenga tutte le 4 tab.
+     * Verifica che il TabPane contenga tutte le 5 tab.
      */
     @Test
     void tabPaneHasAllTabs() {
         TabPane tabPane = lookup("#tabPaneGestore").query();
         assertNotNull(tabPane);
-        assertEquals(4, tabPane.getTabs().size());
+        assertEquals(5, tabPane.getTabs().size());
 
         assertEquals("Menu & Prodotti", tabPane.getTabs().get(0).getText());
-        assertEquals("Personale (HR)", tabPane.getTabs().get(1).getText());
-        assertEquals("Configurazione Sala", tabPane.getTabs().get(2).getText());
-        assertEquals("Statistiche", tabPane.getTabs().get(3).getText());
+        assertEquals("Magazzino", tabPane.getTabs().get(1).getText());
+        assertEquals("Personale (HR)", tabPane.getTabs().get(2).getText());
+        assertEquals("Configurazione Sala", tabPane.getTabs().get(3).getText());
+        assertEquals("Statistiche", tabPane.getTabs().get(4).getText());
     }
 
     // ==================== MENU TAB TESTS ====================

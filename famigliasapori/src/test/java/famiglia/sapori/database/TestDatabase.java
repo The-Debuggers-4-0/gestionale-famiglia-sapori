@@ -38,11 +38,20 @@ public final class TestDatabase {
                 // L'ordine è importante: elimina prima le tabelle con chiavi esterne
                 st.execute("DROP TABLE IF EXISTS Comande");
                 st.execute("DROP TABLE IF EXISTS Prenotazioni");
+                st.execute("DROP TABLE IF EXISTS Ricetta");
                 st.execute("DROP TABLE IF EXISTS Menu");
+                st.execute("DROP TABLE IF EXISTS Magazzino");
                 st.execute("DROP TABLE IF EXISTS Tavoli");
                 st.execute("DROP TABLE IF EXISTS Utenti");
 
             // Crea le tabelle necessarie per i test
+            st.execute("CREATE TABLE Magazzino (" +
+                    "id INT PRIMARY KEY AUTO_INCREMENT, " +
+                    "prodotto VARCHAR(255) NOT NULL, " +
+                    "quantita DOUBLE NOT NULL DEFAULT 0, " +
+                    "unita_misura VARCHAR(50) DEFAULT 'kg', " +
+                    "soglia_minima DOUBLE DEFAULT 0)");
+
             st.execute("CREATE TABLE Menu (" +
                     "id INT PRIMARY KEY AUTO_INCREMENT, " +
                     "nome VARCHAR(100), " +
@@ -51,6 +60,14 @@ public final class TestDatabase {
                     "categoria VARCHAR(50), " +
                     "disponibile TINYINT(1) DEFAULT 1, " +
                     "allergeni TEXT)");
+
+            st.execute("CREATE TABLE Ricetta (" +
+                    "id_piatto INT NOT NULL, " +
+                    "id_prodotto INT NOT NULL, " +
+                    "quantita DOUBLE NOT NULL, " +
+                    "PRIMARY KEY (id_piatto, id_prodotto), " +
+                    "FOREIGN KEY (id_piatto) REFERENCES Menu(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (id_prodotto) REFERENCES Magazzino(id) ON DELETE CASCADE)");
 
             st.execute("CREATE TABLE Utenti (" +
                     "id INT PRIMARY KEY AUTO_INCREMENT, " +
@@ -113,7 +130,18 @@ public final class TestDatabase {
                 st.execute("DELETE FROM Prenotazioni");
                 st.execute("DELETE FROM Tavoli");
                 st.execute("DELETE FROM Utenti");
+                st.execute("DELETE FROM Ricetta");
                 st.execute("DELETE FROM Menu");
+                st.execute("DELETE FROM Magazzino");
+
+                // Seed Magazzino
+                st.execute("INSERT INTO Magazzino (id, prodotto, quantita, unita_misura, soglia_minima) VALUES " +
+                    "(1, 'Farina 00', 50, 'kg', 10)," +
+                    "(2, 'Uova', 200, 'pz', 50)," +
+                    "(3, 'Pasta di Semola', 30, 'kg', 5)," +
+                    "(4, 'Pomodori', 20, 'kg', 5)," +
+                    "(5, 'Mozzarella', 10, 'kg', 2)," +
+                    "(6, 'Zafferano', 0.1, 'kg', 0.01)");
 
                 // Seed Menu con ID espliciti
                 st.execute("INSERT INTO Menu (id, nome, descrizione, prezzo, categoria, disponibile, allergeni) VALUES " +
@@ -122,6 +150,13 @@ public final class TestDatabase {
                     "(3, 'Carbonara', 'Guanciale, uova, pecorino, pepe', 12.00, 'Primi', 1, 'Uova, Glutine, Lattosio')," +
                     "(4, 'Risotto', 'Risotto allo zafferano', 8.50, 'Primi', 0, 'glutine')," +
                     "(5, 'Caffe', 'Espresso', 1.00, 'Bevande', 1, '')");
+
+                // Seed Ricetta (collegamenti Menu -> Magazzino)
+                // Margherita (2) usa Farina (1), Pomodori (4), Mozzarella (5)
+                st.execute("INSERT INTO Ricetta (id_piatto, id_prodotto, quantita) VALUES " +
+                    "(2, 1, 0.2), (2, 4, 0.1), (2, 5, 0.1)," +
+                    "(4, 6, 0.001)"); // Risotto usa Zafferano
+
 
                 // Seed Utenti con ID espliciti
                 String pwd123Hash = PasswordUtil.hashPassword("pwd123");
