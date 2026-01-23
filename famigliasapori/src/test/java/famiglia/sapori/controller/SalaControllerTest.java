@@ -2,11 +2,14 @@ package famiglia.sapori.controller;
 
 import famiglia.sapori.FamigliaSaporiApplication;
 import famiglia.sapori.dao.ComandaDAO;
+import famiglia.sapori.dao.MagazzinoDAO;
 import famiglia.sapori.dao.PrenotazioneDAO;
+import famiglia.sapori.dao.RicettaDAO;
 import famiglia.sapori.dao.TavoloDAO;
 import famiglia.sapori.model.Comanda;
 import famiglia.sapori.model.Piatto;
 import famiglia.sapori.model.Prenotazione;
+import famiglia.sapori.model.ProdottoMagazzino;
 import famiglia.sapori.model.Tavolo;
 import famiglia.sapori.model.Utente;
 import javafx.application.Platform;
@@ -299,6 +302,20 @@ public class SalaControllerTest {
         @Override public List<Prenotazione> getReservationsForDate(LocalDate date) throws SQLException { return List.of(); }
         @Override public void deletePrenotazione(int id) throws SQLException { deleted = true; }
     }
+    
+    private static class FakeRicettaDAO extends RicettaDAO {
+        @Override
+        public Map<ProdottoMagazzino, Double> getIngredienti(int idPiatto) throws SQLException {
+            return new HashMap<>();
+        }
+    }
+
+    private static class FakeMagazzinoDAO extends MagazzinoDAO {
+        @Override
+        public void scaricaQuantitaBatch(Map<Integer, Double> scarichi) throws SQLException {
+            // Mock implementation: do nothing or verify calls
+        }
+    }
 
     // Test completo del metodo loadMenu e delle interazioni con i bottoni
     @Test
@@ -374,6 +391,8 @@ public class SalaControllerTest {
                 setField(controller, "comandaDAO", comandaDAO);
                 setField(controller, "tavoloDAO", tavoloDAO);
                 setField(controller, "prenotazioneDAO", prenotazioneDAO);
+                setField(controller, "ricettaDAO", new FakeRicettaDAO());
+                setField(controller, "magazzinoDAO", new FakeMagazzinoDAO());
                 setField(controller, "txtNote", new TextArea("Note"));
                 setField(controller, "txtRiepilogo", new TextArea());
                 setField(controller, "lblTotale", new Label());
