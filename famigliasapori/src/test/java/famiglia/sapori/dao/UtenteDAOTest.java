@@ -2,6 +2,7 @@ package famiglia.sapori.dao;
 
 import famiglia.sapori.model.Utente;
 import famiglia.sapori.database.DatabaseTestBase;
+import famiglia.sapori.util.PasswordUtil;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -20,8 +21,9 @@ public class UtenteDAOTest extends DatabaseTestBase {
         // Setup
         UtenteDAO dao = new UtenteDAO();
 
-        // Esegui il login con credenziali valide
-        Utente u = dao.login("mario", "pwd123");
+        // Esegui il login con credenziali valide (passando l'hash della password come farebbe il controller)
+        String pwdHash = PasswordUtil.hashPassword("pwd123");
+        Utente u = dao.login("mario", pwdHash);
 
         // Verifiche
         assertNotNull(u);
@@ -77,11 +79,12 @@ public class UtenteDAOTest extends DatabaseTestBase {
         UtenteDAO dao = new UtenteDAO();
 
         // Prova con username corretto
-        Utente validUser = dao.login("mario", "pwd123");
+        String pwdHash = PasswordUtil.hashPassword("pwd123");
+        Utente validUser = dao.login("mario", pwdHash);
         assertNotNull(validUser, "Login con username corretto dovrebbe funzionare");
         
         // Prova con username in maiuscolo
-        Utente invalidUser = dao.login("MARIO", "pwd123");
+        Utente invalidUser = dao.login("MARIO", pwdHash);
         assertNull(invalidUser, "Username dovrebbe essere case-sensitive");
     }
 
