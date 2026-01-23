@@ -53,7 +53,9 @@ public class LoginController implements Initializable {
         }
 
         try {
-           Utente utente = utenteDAO.login(username, password);
+           // Hash della password prima di inviarla al DAO
+           String hashedPassword = famiglia.sapori.util.PasswordUtil.hashPassword(password);
+           Utente utente = utenteDAO.login(username, hashedPassword);
             if (utente != null) {
                 FamigliaSaporiApplication.setCurrentUser(utente);
                 if ("Gestore".equalsIgnoreCase(utente.getRuolo())) {

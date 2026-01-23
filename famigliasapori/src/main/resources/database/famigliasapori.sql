@@ -184,12 +184,12 @@ LOCK TABLES `Utenti` WRITE;
 /*!40000 ALTER TABLE `Utenti` DISABLE KEYS */;
 
 INSERT INTO `Utenti` (`id`, `nome`, `password`, `ruolo`, `username`) VALUES
-	(1, 'Paolo Rossi', '1234', 'Cameriere', 'paolo.rossi'),
-	(2, 'Luigi Bianchi', '1234', 'Cameriere', 'luigi'),
-	(3, 'Anna Verdi', '1234', 'Cameriere', 'anna'),
-	(4, 'Paolo Neri', '1234', 'Cameriere', 'paolo.neri'),
-	(13, 'Amministratore', 'admin', 'Gestore', 'admin'),
-	(14, 'Mattia Di Sante', '1234', 'Cameriere', 'ofsaint');
+	(1, 'Paolo Rossi', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'Cameriere', 'paolo.rossi'),
+	(2, 'Luigi Bianchi', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'Cameriere', 'luigi'),
+	(3, 'Anna Verdi', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'Cameriere', 'anna'),
+	(4, 'Paolo Neri', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'Cameriere', 'paolo.neri'),
+	(13, 'Amministratore', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'Gestore', 'admin'),
+	(14, 'Mattia Di Sante', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'Cameriere', 'ofsaint');
 
 /*!40000 ALTER TABLE `Utenti` ENABLE KEYS */;
 UNLOCK TABLES;

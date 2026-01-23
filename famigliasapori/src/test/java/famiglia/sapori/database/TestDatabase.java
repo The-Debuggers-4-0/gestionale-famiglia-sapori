@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import famiglia.sapori.util.PasswordUtil;
 
 // Classe di utilità per la gestione del database di test, con setup, pulizia e popolamento
 public final class TestDatabase {
@@ -123,9 +124,12 @@ public final class TestDatabase {
                     "(5, 'Caffe', 'Espresso', 1.00, 'Bevande', 1, '')");
 
                 // Seed Utenti con ID espliciti
+                String pwd123Hash = PasswordUtil.hashPassword("pwd123");
+                String adminHash = PasswordUtil.hashPassword("admin");
+                
                 st.execute("INSERT INTO Utenti (id, nome, username, password, ruolo) VALUES " +
-                    "(1, 'Mario Rossi', 'mario', 'pwd123', 'Cameriere')," +
-                    "(2, 'Admin User', 'admin', 'admin', 'Gestore')");
+                    "(1, 'Mario Rossi', 'mario', '" + pwd123Hash + "', 'Cameriere')," +
+                    "(2, 'Admin User', 'admin', '" + adminHash + "', 'Gestore')");
 
                 // Seed Tavoli con ID espliciti
                 st.execute("INSERT INTO Tavoli (id, numero, stato, posti, note) VALUES " +

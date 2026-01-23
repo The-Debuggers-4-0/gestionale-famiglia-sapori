@@ -286,7 +286,8 @@ public class GestoreController implements Initializable {
             if (newVal != null) {
                 txtNomeUtente.setText(newVal.getNome());
                 txtUsername.setText(newVal.getUsername());
-                txtPassword.setText(newVal.getPassword());
+                // Non mostrare la password (hash) in chiaro
+                txtPassword.setText("");
                 comboRuolo.setValue(newVal.getRuolo());
             } else {
                 clearUtenteFields();
@@ -328,10 +329,20 @@ public class GestoreController implements Initializable {
             String ruolo = comboRuolo.getValue();
 
             if (selectedUtente == null) {
-                Utente u = new Utente(0, nome, user, pass, ruolo);
+                // Nuovo utente: la password è obbligatoria
+                if (pass.isEmpty()) {
+                    showError("La password è obbligatoria per i nuovi utenti");
+                    return;
+                }
+                String hashedPassword = famiglia.sapori.util.PasswordUtil.hashPassword(pass);
+                Utente u = new Utente(0, nome, user, hashedPassword, ruolo);
                 utenteDAO.insertUtente(u);
             } else {
-                Utente u = new Utente(selectedUtente.getId(), nome, user, pass, ruolo);
+                // Aggiornamento: se la password è vuota, mantieni la vecchia (già hashata o in chiaro se legacy)
+                // Se la password non è vuota, hashala
+                String passwordToSave = pass.isEmpty() ? selectedUtente.getPassword() : famiglia.sapori.util.PasswordUtil.hashPassword(pass);
+                
+                Utente u = new Utente(selectedUtente.getId(), nome, user, passwordToSave, ruolo);
                 utenteDAO.updateUtente(u);
             }
             loadUtentiData();
