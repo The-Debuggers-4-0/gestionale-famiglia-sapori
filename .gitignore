@@ -3,3 +3,9 @@ target/
 .vscode/
 .idea/
 *.iml
+
+# Dati locali e segreti DB
+famigliasapori/src/main/resources/database.properties
+famigliasapori/src/test/resources/database.properties
+famigliasapori/src/main/resources/database/*.sql
+famigliasapori/src/test/resources/database/*.sql
